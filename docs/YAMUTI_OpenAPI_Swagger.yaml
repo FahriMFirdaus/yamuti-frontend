@@ -1,0 +1,509 @@
+openapi: 3.0.3
+info:
+  title: YAMUTI API
+  description: API Documentation for YAMUTI Backend (Kerja Praktek)
+  version: 1.2.0
+servers:
+  - url: https://yamuti-backend.onrender.com/api
+    description: Production Server
+  - url: http://localhost:8000/api
+    description: Local Development
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
+paths:
+  /auth/login:
+    post:
+      summary: Login User / Admin
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: admin@yamuti.org
+                password:
+                  type: string
+                  example: password
+      responses:
+        '200':
+          description: Login Successful
+          content:
+            application/json:
+              example:
+                success: true
+                message: Login berhasil
+                data:
+                  user:
+                    id: 1
+                    name: Super Administrator
+                    email: admin@yamuti.org
+                    role: super_admin
+                    nik: "1234567890"
+                    no_hp: "081234567890"
+                  token: 1|xxxxxxxxx
+  /auth/register:
+    post:
+      summary: Register User Baru (Donatur)
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                no_hp:
+                  type: string
+                nik:
+                  type: string
+                foto_identitas:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Registrasi Berhasil
+  /auth/forgot-password:
+    post:
+      summary: Lupa Password (Send Reset Link)
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: admin@yamuti.org
+      responses:
+        '200':
+          description: Link Reset Dikirim ke Email
+  /auth/reset-password:
+    post:
+      summary: Eksekusi Reset Password Baru
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                token:
+                  type: string
+                password:
+                  type: string
+                password_confirmation:
+                  type: string
+      responses:
+        '200':
+          description: Password berhasil diubah
+  /dashboard/summary:
+    get:
+      summary: Mendapatkan ringkasan statistik (Admin & Owner)
+      tags:
+        - Dashboard
+      responses:
+        '200':
+          description: Berhasil mendapatkan summary
+  /anak-asuh:
+    get:
+      summary: Dapatkan Daftar Anak Asuh
+      tags:
+        - Anak Asuh
+      responses:
+        '200':
+          description: Berhasil
+    post:
+      summary: Tambah Anak Asuh Baru
+      tags:
+        - Anak Asuh
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                nama:
+                  type: string
+                nik:
+                  type: string
+                no_kk:
+                  type: string
+                no_akte:
+                  type: string
+                foto_identitas:
+                  type: string
+                  format: binary
+                tempat_lahir:
+                  type: string
+                jenis_kelamin:
+                  type: string
+                  enum: [Laki-laki, Perempuan]
+                tanggal_lahir:
+                  type: string
+                  format: date
+                status:
+                  type: string
+                kategori_bayi:
+                  type: boolean
+      responses:
+        '201':
+          description: Created
+  /kampanye:
+    get:
+      summary: Mendapatkan Daftar Kampanye (Public)
+      tags:
+        - Kampanye
+      security: []
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            example: Aktif
+      responses:
+        '200':
+          description: Berhasil
+    post:
+      summary: Buat Kampanye Baru
+      tags:
+        - Kampanye
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                judul:
+                  type: string
+                deskripsi:
+                  type: string
+                target_donasi:
+                  type: number
+                tanggal_mulai:
+                  type: string
+                  format: date
+                tanggal_berakhir:
+                  type: string
+                  format: date
+                thumbnail:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Created
+  /kampanye/{id}:
+    get:
+      summary: Mendapatkan Detail Kampanye (Public)
+      tags:
+        - Kampanye
+      security: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Berhasil
+  /donasi:
+    post:
+      summary: Buat Donasi Baru (Public)
+      tags:
+        - Donasi
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nama_donatur:
+                  type: string
+                no_whatsapp:
+                  type: string
+                gross_amount:
+                  type: integer
+                kampanye_id:
+                  type: string
+      responses:
+        '201':
+          description: Donasi Created, returns snap_token and payment_url
+  /donasi/{id}/verify:
+    patch:
+      summary: Verifikasi Bukti Transfer Donasi
+      tags:
+        - Donasi
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Donasi diverifikasi (PAID)
+  /kunjungan:
+    get:
+      summary: Mendapatkan Daftar Antrean Kunjungan
+      tags:
+        - Kunjungan
+      responses:
+        '200':
+          description: Berhasil mendapatkan daftar kunjungan
+    post:
+      summary: Request Kunjungan (Public)
+      tags:
+        - Kunjungan
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nama_tamu:
+                  type: string
+                no_whatsapp:
+                  type: string
+                jumlah_pengunjung:
+                  type: integer
+                maksud:
+                  type: string
+                slot_waktu:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: Kunjungan requested
+  /kunjungan/{id}:
+    get:
+      summary: Mendapatkan Detail Kunjungan Spesifik
+      tags:
+        - Kunjungan
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Detail Kunjungan
+  /kunjungan/{id}/status:
+    patch:
+      summary: Update Status Kunjungan
+      tags:
+        - Kunjungan
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [APPROVED, REJECTED, COMPLETED]
+      responses:
+        '200':
+          description: Status diubah dan notifikasi WhatsApp terkirim jika disetujui/ditolak
+  /mutasi-barang:
+    post:
+      summary: Catat Mutasi Barang
+      tags:
+        - Logistik
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                inventaris_id:
+                  type: string
+                tipe:
+                  type: string
+                  enum: [masuk, keluar, rusak]
+                jumlah:
+                  type: integer
+                keterangan:
+                  type: string
+      responses:
+        '201':
+          description: Mutasi berhasil
+  /artikel:
+    post:
+      summary: Buat Artikel Baru
+      tags:
+        - CMS
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                judul:
+                  type: string
+                konten:
+                  type: string
+                kategori_id:
+                  type: string
+                  format: uuid
+                thumbnail:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Artikel dibuat
+  /galeri:
+    post:
+      summary: Unggah Foto Galeri
+      tags:
+        - CMS
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                judul:
+                  type: string
+                deskripsi:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Galeri diunggah
+
+
+  /profile:
+    get:
+      summary: Get My Profile
+      tags:
+        - Profile
+      responses:
+        '200':
+          description: Success
+    put:
+      summary: Update My Profile
+      tags:
+        - Profile
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                no_hp:
+                  type: string
+                foto_identitas:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Success
+  /profile/password:
+    put:
+      summary: Update Password
+      tags:
+        - Profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                current_password:
+                  type: string
+                password:
+                  type: string
+                password_confirmation:
+                  type: string
+      responses:
+        '200':
+          description: Success
+  /user/riwayat-donasi:
+    get:
+      summary: Get Donation History
+      tags:
+        - Profile
+      responses:
+        '200':
+          description: Success
+  /user/riwayat-kunjungan:
+    get:
+      summary: Get Visit History
+      tags:
+        - Profile
+      responses:
+        '200':
+          description: Success
+
+  /donatur:
+    get:
+      summary: Get list of donaturs (CRM)
+      tags:
+        - Admin
+      responses:
+        '200':
+          description: Success
+  /donatur/{id}:
+    get:
+      summary: Get details of a donatur
+      tags:
+        - Admin
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
