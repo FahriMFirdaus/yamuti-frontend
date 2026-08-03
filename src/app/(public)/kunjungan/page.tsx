@@ -22,7 +22,7 @@ const kunjunganSchema = z.object({
     .regex(/^[0-9]+$/, { message: "Hanya angka yang diperbolehkan" }),
   jumlah_pengunjung: z.number().min(1, { message: "Minimal 1 pengunjung" }).max(100, { message: "Maksimal 100 pengunjung" }),
   maksud: z.string().min(10, { message: "Maksud kunjungan harap diisi (min 10 karakter)" }),
-  tanggal_kunjungan: z.date({ required_error: "Silakan pilih tanggal kunjungan" }),
+  tanggal_kunjungan: z.date({ message: "Silakan pilih tanggal kunjungan" }),
   waktu_kunjungan: z.string().min(1, { message: "Silakan pilih jam kunjungan" }),
 });
 
