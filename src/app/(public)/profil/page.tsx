@@ -73,9 +73,9 @@ function ProfilContent() {
   const fetchDonasi = async (page: number) => {
     setIsLoadingDonasi(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token") || undefined;
       if (!token) return;
-      const res = await fetch(`http://localhost:8000/api/user/riwayat-donasi?page=${page}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/user/riwayat-donasi?page=${page}`, {
         headers: {
           "Accept": "application/json",
           "Authorization": `Bearer ${token}`
@@ -104,9 +104,9 @@ function ProfilContent() {
   const fetchKunjungan = async (page: number) => {
     setIsLoadingKunjungan(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token") || undefined;
       if (!token) return;
-      const res = await fetch(`http://localhost:8000/api/user/riwayat-kunjungan?page=${page}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/user/riwayat-kunjungan?page=${page}`, {
         headers: {
           "Accept": "application/json",
           "Authorization": `Bearer ${token}`
@@ -168,7 +168,7 @@ function ProfilContent() {
     setUpdateMessage(null);
     
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token") || undefined;
       
       // Menggunakan FormData agar bisa mengirim file gambar ke backend Laravel
       const formData = new FormData();
@@ -178,7 +178,7 @@ function ProfilContent() {
       if (email) formData.append('email', email);
       if (selectedFile) formData.append('foto_identitas', selectedFile);
 
-      const res = await fetch("http://localhost:8000/api/profile", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/profile`, {
         method: "POST", // Harus POST untuk mengirim FormData di Laravel
         headers: {
           "Accept": "application/json",

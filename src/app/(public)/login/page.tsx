@@ -32,7 +32,7 @@ export default function LoginPage() {
     setErrorMsg("");
     
     try {
-      const res = await fetch("http://localhost:8000/api/auth/login", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
         body: JSON.stringify(data),
@@ -78,7 +78,7 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/api/auth/google/redirect", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/google/redirect`, {
         headers: { "Accept": "application/json" }
       });
       const result = await res.json();

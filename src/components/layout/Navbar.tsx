@@ -23,10 +23,10 @@ export default function Navbar() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token") || undefined;
       if (token) {
         // Fetch User Profile
-        fetch("http://localhost:8000/api/profile", {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/profile`, {
           headers: {
             "Authorization": `Bearer ${token}`,
             "Accept": "application/json"
@@ -47,7 +47,7 @@ export default function Navbar() {
         });
 
         // Fetch Cart Count
-        fetch("http://localhost:8000/api/keranjang/count", {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/keranjang/count`, {
           headers: {
             "Authorization": `Bearer ${token}`,
             "Accept": "application/json"

@@ -13,7 +13,7 @@ interface GaleriItem {
 // Fetch Data Galeri dari API
 async function getGaleri() {
   try {
-    const res = await fetch("http://localhost:8000/api/galeri", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/galeri`, {
       cache: "no-store",
     });
     if (!res.ok) return [];

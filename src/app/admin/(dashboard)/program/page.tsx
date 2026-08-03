@@ -32,10 +32,10 @@ export default function KampanyePage() {
       const session = await getSession();
       let token = session?.accessToken;
       if (!token && typeof window !== "undefined") {
-        token = localStorage.getItem("token");
+        token = localStorage.getItem("token") || undefined;
       }
       
-      const res = await fetch(`http://localhost:8000/api/kampanye?page=${currentPage}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/kampanye?page=${currentPage}`, {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Accept": "application/json"
@@ -75,10 +75,10 @@ export default function KampanyePage() {
       const session = await getSession();
       let token = session?.accessToken;
       if (!token && typeof window !== "undefined") {
-        token = localStorage.getItem("token");
+        token = localStorage.getItem("token") || undefined;
       }
       
-      const res = await fetch(`http://localhost:8000/api/kampanye/${selectedKampanye.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/kampanye/${selectedKampanye.id}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,

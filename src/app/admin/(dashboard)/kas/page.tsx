@@ -57,9 +57,9 @@ export default function BukuKasPage() {
     setIsLoading(true);
     try {
       const session = await getSession();
-      let token = session?.accessToken || localStorage.getItem("token");
+      let token = session?.accessToken || localStorage.getItem("token") || undefined;
 
-      const res = await fetch(`http://localhost:8000/api/transaksi-keuangan`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/transaksi-keuangan`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       
@@ -77,9 +77,9 @@ export default function BukuKasPage() {
     setIsLoadingSaldos(true);
     try {
       const session = await getSession();
-      let token = session?.accessToken || localStorage.getItem("token");
+      let token = session?.accessToken || localStorage.getItem("token") || undefined;
 
-      const resSettings = await fetch("http://localhost:8000/api/settings", {
+      const resSettings = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/settings`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       const resultSettings = await resSettings.json();
@@ -97,7 +97,7 @@ export default function BukuKasPage() {
       await Promise.all(
         kasList.map(async (kasName) => {
           try {
-            const resSaldo = await fetch(`http://localhost:8000/api/kas/saldo?jenis_kas=${encodeURIComponent(kasName)}`, {
+            const resSaldo = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/kas/saldo?jenis_kas=${encodeURIComponent(kasName)}`, {
               headers: { "Authorization": `Bearer ${token}` }
             });
             if (resSaldo.ok) {
@@ -138,9 +138,9 @@ export default function BukuKasPage() {
     if (!selectedKas) return;
     try {
       const session = await getSession();
-      let token = session?.accessToken || localStorage.getItem("token");
+      let token = session?.accessToken || localStorage.getItem("token") || undefined;
 
-      const res = await fetch(`http://localhost:8000/api/transaksi-keuangan/${selectedKas.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/transaksi-keuangan/${selectedKas.id}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,

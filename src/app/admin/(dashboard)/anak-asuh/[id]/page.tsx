@@ -27,10 +27,10 @@ export default function DetailAnakAsuhPage() {
         const session = await getSession();
         let token = session?.accessToken;
         if (!token && typeof window !== "undefined") {
-          token = localStorage.getItem("token");
+          token = localStorage.getItem("token") || undefined;
         }
         
-        const res = await fetch(`http://localhost:8000/api/anak-asuh/${params.id}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/anak-asuh/${params.id}`, {
           headers: {
             "Authorization": `Bearer ${token}`,
             "Accept": "application/json"
@@ -56,10 +56,10 @@ export default function DetailAnakAsuhPage() {
       const session = await getSession();
       let token = session?.accessToken;
       if (!token && typeof window !== "undefined") {
-        token = localStorage.getItem("token");
+        token = localStorage.getItem("token") || undefined;
       }
       
-      const res = await fetch(`http://localhost:8000/api/anak-asuh/${params.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/anak-asuh/${params.id}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,

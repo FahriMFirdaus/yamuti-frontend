@@ -31,7 +31,7 @@ function DonasiContent() {
 
   useEffect(() => {
     if (programSlug) {
-      fetch(`http://localhost:8000/api/kampanye/${programSlug}`)
+      fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/kampanye/${programSlug}`)
         .then(res => res.json())
         .then(data => {
           if (data.data) {
@@ -44,9 +44,9 @@ function DonasiContent() {
 
   // Autofill form jika user sedang login
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token") || undefined;
     if (token) {
-      fetch("http://localhost:8000/api/profile", {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/profile`, {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Accept": "application/json"
@@ -144,7 +144,7 @@ function DonasiContent() {
           headers["Authorization"] = `Bearer ${authToken}`;
         }
 
-        const endpoint = isDraft ? "http://localhost:8000/api/keranjang" : "http://localhost:8000/api/donasi";
+        const endpoint = isDraft ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/keranjang` : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/donasi`;
         
         const response = await fetch(endpoint, {
           method: "POST",

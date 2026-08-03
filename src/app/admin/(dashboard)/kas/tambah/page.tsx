@@ -34,8 +34,8 @@ export default function TambahKasManualPage() {
     const fetchSettings = async () => {
       try {
         const session = await getSession();
-        let token = session?.accessToken || localStorage.getItem("token");
-        const res = await fetch("http://localhost:8000/api/settings", {
+        let token = session?.accessToken || localStorage.getItem("token") || undefined;
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/settings`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
         const result = await res.json();
@@ -62,10 +62,10 @@ export default function TambahKasManualPage() {
       const session = await getSession();
       let token = session?.accessToken;
       if (!token && typeof window !== "undefined") {
-        token = localStorage.getItem("token");
+        token = localStorage.getItem("token") || undefined;
       }
 
-      const res = await fetch("http://localhost:8000/api/transaksi-keuangan", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/transaksi-keuangan`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

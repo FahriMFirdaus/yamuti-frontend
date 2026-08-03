@@ -48,7 +48,7 @@ export default function RegisterPage() {
         password_confirmation: data.confirmPassword,
       };
 
-      const res = await fetch("http://localhost:8000/api/auth/register", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
         body: JSON.stringify(payload),
@@ -84,7 +84,7 @@ export default function RegisterPage() {
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/api/auth/google/redirect", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/google/redirect`, {
         headers: { "Accept": "application/json" }
       });
       const result = await res.json();

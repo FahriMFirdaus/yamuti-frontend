@@ -35,9 +35,9 @@ export default function KunjunganPage() {
     setIsLoading(true);
     try {
       const session = await getSession();
-      let token = session?.accessToken || (typeof window !== 'undefined' ? localStorage.getItem("token") : null);
+      let token = session?.accessToken || (typeof window !== 'undefined' ? (localStorage.getItem("token") || undefined) : undefined);
 
-      const res = await fetch("http://localhost:8000/api/kunjungan?per_page=100", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/kunjungan?per_page=100`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) {
@@ -80,9 +80,9 @@ export default function KunjunganPage() {
 
     try {
       const session = await getSession();
-      let token = session?.accessToken || localStorage.getItem("token");
+      let token = session?.accessToken || localStorage.getItem("token") || undefined;
 
-      const res = await fetch(`http://localhost:8000/api/kunjungan/${selectedKunjungan.id}/status`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/kunjungan/${selectedKunjungan.id}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

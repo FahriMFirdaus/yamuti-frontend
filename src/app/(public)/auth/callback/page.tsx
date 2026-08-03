@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, Phone } from "lucide-react";
 import { Card, CardTitle, CardDescription } from "@/components/ui/card";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState("loading");
@@ -26,7 +26,7 @@ export default function AuthCallbackPage() {
         localStorage.setItem("token", token);
         
         try {
-          const res = await fetch("http://localhost:8000/api/auth/me", {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/me`, {
             headers: {
               "Accept": "application/json",
               "Authorization": `Bearer ${token}`
@@ -111,8 +111,8 @@ export default function AuthCallbackPage() {
                   return;
                 }
                 try {
-                  const token = localStorage.getItem("token");
-                  const res = await fetch("http://localhost:8000/api/profile", {
+                  const token = localStorage.getItem("token") || undefined;
+                  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/profile`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json", "Accept": "application/json", "Authorization": `Bearer ${token}` },
                     body: JSON.stringify({ no_hp: phoneInput })
@@ -155,5 +155,22 @@ export default function AuthCallbackPage() {
         )}
       </Card>
     </div>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-4">
+        <Card className="w-full max-w-md p-8 shadow-xl text-center">
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="h-20 w-20 animate-spin rounded-full border-4 border-zinc-200 border-t-red-600 dark:border-zinc-800 dark:border-t-red-600" />
+            <CardTitle className="text-xl font-bold">Memuat...</CardTitle>
+          </div>
+        </Card>
+      </div>
+    }>
+      <AuthCallbackContent />
+    </Suspense>
   );
 }

@@ -58,9 +58,9 @@ export default function KunjunganPage() {
 
   // Auto-fill dari Profile API jika login
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token") || undefined;
     if (token) {
-      fetch("http://localhost:8000/api/profile", {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/profile`, {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Accept": "application/json"
@@ -86,7 +86,7 @@ export default function KunjunganPage() {
       setIsLoadingSlots(true);
       const formattedDate = format(date, "yyyy-MM-dd");
       
-      fetch(`http://localhost:8000/api/kunjungan/ketersediaan?tanggal=${formattedDate}`)
+      fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/kunjungan/ketersediaan?tanggal=${formattedDate}`)
         .then(res => res.json())
         .then(data => {
           if (data.success && data.data && data.data.slot_waktu) {
@@ -126,7 +126,7 @@ export default function KunjunganPage() {
     const slotWaktu = `${formattedDate} ${timeString}`;
 
     try {
-      const response = await fetch("http://localhost:8000/api/kunjungan", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/kunjungan`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -25,7 +25,7 @@ const formSchema = z.object({
   tanggal_lahir: z.string().min(1, "Tanggal lahir wajib diisi"),
   status: z.string(),
   kategori_bayi: z.boolean(),
-  status_keluarga: z.enum(["Yatim", "Piatu", "Yatim Piatu", "Dhuafa"], { required_error: "Status keluarga wajib dipilih" }),
+  status_keluarga: z.enum(["Yatim", "Piatu", "Yatim Piatu", "Dhuafa"], { message: "Status keluarga wajib dipilih" }),
   tingkat_pendidikan: z.string().optional(),
   nama_sekolah: z.string().optional(),
   tanggal_masuk: z.string().min(1, "Tanggal masuk wajib diisi"),
@@ -54,10 +54,10 @@ export default function EditAnakAsuhPage() {
         const session = await getSession();
         let token = session?.accessToken;
         if (!token && typeof window !== "undefined") {
-          token = localStorage.getItem("token");
+          token = localStorage.getItem("token") || undefined;
         }
         
-        const res = await fetch(`http://localhost:8000/api/anak-asuh/${params.id}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/anak-asuh/${params.id}`, {
           headers: {
             "Authorization": `Bearer ${token}`,
             "Accept": "application/json"
@@ -100,7 +100,7 @@ export default function EditAnakAsuhPage() {
       const session = await getSession();
       let token = session?.accessToken;
       if (!token && typeof window !== "undefined") {
-        token = localStorage.getItem("token");
+        token = localStorage.getItem("token") || undefined;
       }
       
       const formData = new FormData();
@@ -118,7 +118,7 @@ export default function EditAnakAsuhPage() {
         formData.append('foto_identitas', selectedFile);
       }
 
-      const res = await fetch(`http://localhost:8000/api/anak-asuh/${params.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/anak-asuh/${params.id}`, {
         method: "POST", // using POST with _method=PUT
         headers: {
           "Authorization": `Bearer ${token}`,

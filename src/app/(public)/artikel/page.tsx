@@ -19,7 +19,7 @@ interface ArtikelItem {
 // Fetch Data Artikel dari API
 async function getArtikel() {
   try {
-    const res = await fetch("http://localhost:8000/api/artikel", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/artikel`, {
       cache: "no-store",
     });
     if (!res.ok) return [];

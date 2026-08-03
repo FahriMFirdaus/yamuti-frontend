@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 // Fetch Data Program dari API
 async function getKampanye() {
   try {
-    const res = await fetch("http://localhost:8000/api/kampanye", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/kampanye`, {
       cache: "no-store",
     });
     if (!res.ok) return [];
@@ -164,7 +164,7 @@ export default async function ProgramPage() {
                       Donasi
                     </Link>
                   )}
-                  <ShareButton url={`http://localhost:3000/program/${campaign.slug}`} title={campaign.judul} />
+                  <ShareButton url={`http://localhost:3000/program/${campaign.slug}`} title={campaign.judul} text={campaign.deskripsi || campaign.judul} />
                 </CardFooter>
               </Card>
             );

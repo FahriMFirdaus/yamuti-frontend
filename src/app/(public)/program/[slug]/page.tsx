@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 // Fetch Detail Program dari API
 async function getKampanyeDetail(slug: string) {
   try {
-    const res = await fetch(`http://localhost:8000/api/kampanye/${slug}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/kampanye/${slug}`, {
       cache: "no-store",
     });
     if (!res.ok) return null;

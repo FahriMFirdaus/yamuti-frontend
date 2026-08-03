@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Lock, CheckCircle2 } from "lucide-react";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardTitle, CardDescription } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -43,7 +43,7 @@ export default function ResetPasswordPage() {
     setErrorMsg("");
 
     try {
-      const res = await fetch("http://localhost:8000/api/auth/reset-password", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
         body: JSON.stringify({
@@ -167,5 +167,22 @@ export default function ResetPasswordPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-4">
+        <Card className="w-full max-w-md p-8 shadow-xl text-center">
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="h-20 w-20 animate-spin rounded-full border-4 border-zinc-200 border-t-red-600 dark:border-zinc-800 dark:border-t-red-600" />
+            <CardTitle className="text-xl font-bold">Memuat...</CardTitle>
+          </div>
+        </Card>
+      </div>
+    }>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }

@@ -40,13 +40,13 @@ function CartContent() {
   const fetchCart = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token") || undefined;
       if (!token) {
         router.push("/login");
         return;
       }
       
-      const res = await fetch("http://localhost:8000/api/keranjang", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/keranjang`, {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Accept": "application/json"
@@ -83,8 +83,8 @@ function CartContent() {
     if (!confirm("Hapus donasi ini dari keranjang?")) return;
     
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:8000/api/keranjang/${id}`, {
+      const token = localStorage.getItem("token") || undefined;
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/keranjang/${id}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -107,10 +107,10 @@ function CartContent() {
     
     setIsProcessing(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token") || undefined;
       const keranjangIds = items.map(item => item.id);
       
-      const res = await fetch("http://localhost:8000/api/keranjang/checkout", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/keranjang/checkout`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,

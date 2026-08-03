@@ -43,10 +43,10 @@ export default function EditKampanyePage() {
         const session = await getSession();
         let token = session?.accessToken;
         if (!token && typeof window !== "undefined") {
-          token = localStorage.getItem("token");
+          token = localStorage.getItem("token") || undefined;
         }
         
-        const res = await fetch(`http://localhost:8000/api/kampanye/${id}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/kampanye/${id}`, {
           headers: {
             "Authorization": `Bearer ${token}`,
             "Accept": "application/json"
@@ -83,7 +83,7 @@ export default function EditKampanyePage() {
       const session = await getSession();
       let token = session?.accessToken;
       if (!token && typeof window !== "undefined") {
-        token = localStorage.getItem("token");
+        token = localStorage.getItem("token") || undefined;
       }
 
       // Laravel menerima _method PUT pada endpoint POST saat menggunakan FormData untuk file
@@ -102,7 +102,7 @@ export default function EditKampanyePage() {
         formData.append("gambar", selectedFile);
       }
 
-      const res = await fetch(`http://localhost:8000/api/kampanye/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/kampanye/${id}`, {
         method: "POST", // Karena kita menggunakan trik _method=PUT untuk formdata laravel
         headers: {
           "Authorization": `Bearer ${token}`

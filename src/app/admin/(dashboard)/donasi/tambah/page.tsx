@@ -36,7 +36,7 @@ export default function TambahDonasiManualPage() {
     // Fetch daftar program aktif untuk dropdown
     const fetchPrograms = async () => {
       try {
-        const res = await fetch("http://localhost:8000/api/kampanye");
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/kampanye`);
         const result = await res.json();
         // Fallback untuk antisipasi pagination
         const data = result.data?.data || result.data || [];
@@ -54,7 +54,7 @@ export default function TambahDonasiManualPage() {
       const session = await getSession();
       let token = session?.accessToken;
       if (!token && typeof window !== "undefined") {
-        token = localStorage.getItem("token");
+        token = localStorage.getItem("token") || undefined;
       }
 
       // Pastikan nominal adalah angka mutlak
@@ -67,7 +67,7 @@ export default function TambahDonasiManualPage() {
         keterangan: data.keterangan || "Donasi Manual via Admin"
       };
 
-      const res = await fetch("http://localhost:8000/api/donasi/manual", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/donasi/manual`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
