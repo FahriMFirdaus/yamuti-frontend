@@ -212,8 +212,13 @@ export default function KampanyePage() {
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <div className="h-12 w-16 bg-zinc-100 dark:bg-zinc-800 rounded-md overflow-hidden relative flex-shrink-0">
-                              {kampanye.gambar ? (
-                                <Image src={kampanye.gambar} alt={kampanye.judul} fill className="object-cover" />
+                              {(kampanye.thumbnail || kampanye.gambar) ? (
+                                /* eslint-disable-next-line @next/next/no-img-element */
+                                <img 
+                                  src={kampanye.thumbnail || kampanye.gambar} 
+                                  alt={kampanye.judul} 
+                                  className="w-full h-full object-cover" 
+                                />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-zinc-400">
                                   <Target className="h-5 w-5" />

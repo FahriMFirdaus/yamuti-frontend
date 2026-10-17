@@ -93,7 +93,27 @@ export default function KunjunganPage() {
 
       if (!res.ok) throw new Error("Gagal memperbarui status kunjungan");
       
-      alert(`Status kunjungan berhasil diperbarui menjadi ${statusPayload}`);
+      const targetPhone = selectedKunjungan.no_whatsapp?.replace(/^0/, "62").replace(/[^0-9]/g, "");
+      const formattedDate = new Date(selectedKunjungan.slot_waktu).toLocaleString("id-ID", { dateStyle: "full", timeStyle: "short" });
+
+      if (modalType === "APPROVE" && targetPhone) {
+        const text = encodeURIComponent(
+          `Assalamu'alaikum Wr. Wb. Bpk/Ibu ${selectedKunjungan.nama_tamu},\n\nAlhamdulillah jadwal kunjungan Anda ke Yayasan YAMUTI pada:\n📅 ${formattedDate} WIB\n👥 Jumlah: ${selectedKunjungan.jumlah_pengunjung} Orang\n\nTelah kami *SETUJUI*. Kami dengan senang hati menanti kehadiran Bapak/Ibu di panti asuhan kami.\n\nAlamat: Jl. Raya Tasikmalaya - Ciamis No. 88, Jawa Barat.\n\nTerima kasih, salam hangat dari kami pengurus & adik-adik asuh YAMUTI.`
+        );
+        if (confirm("Status berhasil disetujui! Ingin langsung mengirim konfirmasi jadwal ke WhatsApp tamu?")) {
+          window.open(`https://wa.me/${targetPhone}?text=${text}`, "_blank");
+        }
+      } else if (modalType === "REJECT" && targetPhone) {
+        const text = encodeURIComponent(
+          `Assalamu'alaikum Wr. Wb. Bpk/Ibu ${selectedKunjungan.nama_tamu},\n\nMohon maaf, terkait permohonan kunjungan ke Yayasan YAMUTI pada ${formattedDate} WIB saat ini belum dapat kami setujui karena bentrok dengan jadwal kegiatan asrama / kuota penuh.\n\nBapak/Ibu dapat memilih tanggal alternatif lainnya melalui website kami atau berkonsultasi via chat ini.\n\nTerima kasih atas pengertiannya.`
+        );
+        if (confirm("Status ditolak. Ingin mengirim pemberitahuan alternatif ke WhatsApp tamu?")) {
+          window.open(`https://wa.me/${targetPhone}?text=${text}`, "_blank");
+        }
+      } else {
+        alert(`Status kunjungan berhasil diperbarui menjadi ${statusPayload}`);
+      }
+      
       fetchKunjungan();
     } catch (e) {
       console.error(e);

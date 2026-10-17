@@ -167,7 +167,8 @@ export default function DetailKampanyePage() {
           <Card className="border-none shadow-md rounded-3xl overflow-hidden bg-white dark:bg-zinc-900">
             <div className="relative aspect-[4/3] w-full bg-zinc-100 dark:bg-zinc-800">
               {data.thumbnail ? (
-                <Image src={data.thumbnail} alt={data.judul} fill className="object-cover" />
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={data.thumbnail} alt={data.judul} className="w-full h-full object-cover" />
               ) : (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-zinc-400">
                   <Target className="w-12 h-12 mb-2 opacity-50" />

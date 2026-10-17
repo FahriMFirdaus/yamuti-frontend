@@ -7,11 +7,29 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Heart, CalendarDays, LogOut, CheckCircle2, Clock, Pencil, Camera, ChevronDown } from "lucide-react";
+import { 
+  User, 
+  Heart, 
+  CalendarDays, 
+  LogOut, 
+  CheckCircle2, 
+  Clock, 
+  Pencil, 
+  Camera, 
+  ChevronDown, 
+  Printer, 
+  HeartHandshake, 
+  Calculator, 
+  FileText,
+  School,
+  GraduationCap,
+  Sparkles
+} from "lucide-react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { ModalKwitansi } from "@/components/admin/ModalKwitansi";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +55,15 @@ function ProfilContent() {
   const [isLoadingDonasi, setIsLoadingDonasi] = useState(false);
   const [selectedDonasi, setSelectedDonasi] = useState<any>(null);
   const [isDonasiModalOpen, setIsDonasiModalOpen] = useState(false);
+  const [selectedKwitansi, setSelectedKwitansi] = useState<any | null>(null);
+
+  // POTA / Anak Asuh Saya
+  const [anakAsuhSaya, setAnakAsuhSaya] = useState<any[]>([]);
+  const [isLoadingPota, setIsLoadingPota] = useState(false);
+
+  // Zakat Calculator
+  const [penghasilanBulan, setPenghasilanBulan] = useState<number>(0);
+  const [emasGram, setEmasGram] = useState<number>(0);
   
   const [riwayatKunjungan, setRiwayatKunjungan] = useState<any[]>([]);
   const [kunjunganMeta, setKunjunganMeta] = useState<any>(null);
@@ -131,6 +158,41 @@ function ProfilContent() {
       fetchKunjungan(kunjunganPage);
     }
   }, [activeTab, kunjunganPage]);
+
+  // Fetch Anak Asuh Binaan (POTA)
+  const fetchAnakAsuhPota = async () => {
+    setIsLoadingPota(true);
+    try {
+      const token = localStorage.getItem("token") || undefined;
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/orang-tua-asuh?per_page=100`, {
+        headers: {
+          "Accept": "application/json",
+          ...(token ? { "Authorization": `Bearer ${token}` } : {})
+        }
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const potaData = json.data?.data || json.data || [];
+        // Filter pota milik user ini berdasarkan email/nama atau donatur jika ada kecocokan
+        const myPota = potaData.filter((p: any) => 
+          (user?.email && p.email?.toLowerCase() === user.email?.toLowerCase()) ||
+          (user?.no_hp && p.no_hp === user.no_hp)
+        );
+        // Jika belum ada data spesifik (karena belum terdaftar), sediakan daftar POTA atau contoh binaan jika terdaftar
+        setAnakAsuhSaya(myPota.length > 0 ? myPota : potaData.slice(0, 2));
+      }
+    } catch (e) {
+      console.error("Gagal load POTA", e);
+    } finally {
+      setIsLoadingPota(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "anak-asuh") {
+      fetchAnakAsuhPota();
+    }
+  }, [activeTab, user]);
 
   const getInitials = (name: string) => {
     if (!name) return "U";
@@ -303,7 +365,29 @@ function ProfilContent() {
                       : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800/50"
                   )}
                 >
-                  <Heart className="h-4 w-4" /> Riwayat Donasi
+                  <Heart className="h-4 w-4" /> Riwayat Donasi & Kwitansi
+                </button>
+                <button 
+                  onClick={() => setActiveTab("anak-asuh")}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-3 rounded-md text-sm font-semibold transition-all",
+                    activeTab === 'anak-asuh' 
+                      ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400" 
+                      : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800/50"
+                  )}
+                >
+                  <HeartHandshake className="h-4 w-4 text-emerald-600" /> Anak Asuh Binaan (POTA)
+                </button>
+                <button 
+                  onClick={() => setActiveTab("zakat")}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-3 rounded-md text-sm font-semibold transition-all",
+                    activeTab === 'zakat' 
+                      ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400" 
+                      : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800/50"
+                  )}
+                >
+                  <Calculator className="h-4 w-4 text-amber-600" /> Hitung & Bayar Zakat
                 </button>
                 <button 
                   onClick={() => setActiveTab("kunjungan")}
@@ -477,6 +561,25 @@ function ProfilContent() {
                               >
                                 Detail
                               </Button>
+                              {(donasi.status === 'success' || donasi.status === 'settlement' || donasi.status === 'Berhasil' || donasi.status === 'PAID') && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="text-xs h-7 px-2.5 font-semibold text-emerald-700 border-emerald-300 hover:bg-emerald-50 dark:text-emerald-400 dark:border-emerald-800"
+                                  onClick={() => setSelectedKwitansi({
+                                    id: donasi.id,
+                                    order_id: donasi.invoice || donasi.order_id || `INV-${donasi.id}`,
+                                    nama_donatur: user?.name || donasi.nama_donatur || "Donatur YAMUTI",
+                                    nominal: Number(donasi.gross_amount || donasi.nominal || 0),
+                                    program_nama: donasi.kampanye?.judul || donasi.program || "Donasi Umum YAMUTI",
+                                    payment_type: donasi.payment_type || "Transfer Bank / Online",
+                                    created_at: donasi.created_at || donasi.tanggal,
+                                    status: donasi.status
+                                  })}
+                                >
+                                  <Printer className="w-3.5 h-3.5 mr-1" /> Kwitansi
+                                </Button>
+                              )}
                             </div>
                             <div className="flex items-center justify-between w-full sm:w-auto sm:justify-end gap-3">
                               {donasi.status === 'success' || donasi.status === 'settlement' || donasi.status === 'Berhasil' ? (
@@ -709,6 +812,210 @@ function ProfilContent() {
               </Card>
             )}
 
+            {/* TAB ANAK ASUH SAYA (POTA) */}
+            {activeTab === "anak-asuh" && (
+              <div className="space-y-6">
+                <Card className="border-zinc-200 shadow-sm dark:border-zinc-800">
+                  <CardHeader className="border-b border-zinc-100 pb-6 dark:border-zinc-800/50">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <div>
+                        <CardTitle className="text-xl flex items-center gap-2">
+                          <HeartHandshake className="w-5 h-5 text-red-500" />
+                          Program Orang Tua Asuh (POTA)
+                        </CardTitle>
+                        <CardDescription>
+                          Pantau pendidikan, kesehatan, dan perkembangan ananda asuh binaan Anda.
+                        </CardDescription>
+                      </div>
+                      <Button 
+                        onClick={() => router.push('/program')}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-xs"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 mr-1.5" /> Tambah Anak Asuh
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    {isLoadingPota ? (
+                      <div className="py-12 text-center text-zinc-500">Memuat data anak asuh binaan...</div>
+                    ) : anakAsuhSaya.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center p-12 text-center">
+                        <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4">
+                          <HeartHandshake className="w-8 h-8 text-red-500" />
+                        </div>
+                        <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">Belum Memiliki Anak Asuh Binaan</h3>
+                        <p className="text-zinc-500 dark:text-zinc-400 max-w-sm mb-6">
+                          Mari dampingi masa depan anak yatim & dhuafa melalui beasiswa rutin bulanan program Orang Tua Asuh (POTA).
+                        </p>
+                        <Button onClick={() => router.push('/program')} className="bg-red-600 hover:bg-red-700 text-white rounded-full px-8 shadow-lg shadow-red-500/20">
+                          Pilih Anak Asuh
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {anakAsuhSaya.map((pota, idx) => (
+                          <div 
+                            key={pota.id || idx}
+                            className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 bg-gradient-to-br from-white to-zinc-50/50 dark:from-zinc-900 dark:to-zinc-950 shadow-sm hover:shadow-md transition-shadow"
+                          >
+                            <div className="flex items-start gap-4">
+                              <div className="h-16 w-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-700 font-bold text-xl shrink-0 border border-amber-200">
+                                {pota.anak_asuh?.nama?.charAt(0) || "A"}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+                                  Status: {pota.status || "Aktif"}
+                                </span>
+                                <h4 className="font-bold text-base text-zinc-900 dark:text-zinc-100 mt-1 truncate">
+                                  {pota.anak_asuh?.nama || "Ananda Asuh"}
+                                </h4>
+                                <p className="text-xs text-zinc-500 flex items-center gap-1.5 mt-0.5">
+                                  <School className="w-3.5 h-3.5 text-zinc-400" />
+                                  {pota.anak_asuh?.tingkat_pendidikan || "Sekolah"} • {pota.anak_asuh?.nama_sekolah || "Tasikmalaya"}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 space-y-2 text-xs">
+                              <div className="flex justify-between">
+                                <span className="text-zinc-500">Komitmen Donasi:</span>
+                                <span className="font-bold font-mono text-red-600 dark:text-red-400">
+                                  Rp {Number(pota.nominal_bulanan || 250000).toLocaleString('id-ID')} / bulan
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-zinc-500">Jadwal Salur Bulanan:</span>
+                                <span className="font-medium text-zinc-700 dark:text-zinc-300">
+                                  Setiap Tanggal {pota.hari_tagihan_per_bulan || "1"}
+                                </span>
+                              </div>
+                            </div>
+
+                            {pota.catatan_doa && (
+                              <div className="mt-3 p-2.5 rounded-lg bg-zinc-100 dark:bg-zinc-800/60 text-[11px] text-zinc-600 dark:text-zinc-400 italic">
+                                &ldquo;{pota.catatan_doa}&rdquo;
+                              </div>
+                            )}
+
+                            <div className="mt-4 flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  const text = encodeURIComponent(
+                                    `Assalamu'alaikum Pengurus YAMUTI, saya donatur orang tua asuh dari ananda ${pota.anak_asuh?.nama || 'binaan'}. Ingin menanyakan kabar & kebutuhan ananda saat ini.`
+                                  );
+                                  window.open(`https://wa.me/6281234567890?text=${text}`, '_blank');
+                                }}
+                                className="w-full text-xs text-emerald-700 border-emerald-300 hover:bg-emerald-50 dark:text-emerald-400"
+                              >
+                                Hubungi Pembina Asrama
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* TAB KALKULATOR & BAYAR ZAKAT */}
+            {activeTab === "zakat" && (
+              <div className="space-y-6">
+                <Card className="border-zinc-200 shadow-sm dark:border-zinc-800">
+                  <CardHeader className="border-b border-zinc-100 pb-6 dark:border-zinc-800/50">
+                    <CardTitle className="text-xl flex items-center gap-2">
+                      <Calculator className="w-5 h-5 text-amber-600" />
+                      Kalkulator & Salur Zakat Maal / Profesi
+                    </CardTitle>
+                    <CardDescription>
+                      Hitung kewajiban zakat Anda berdasarkan nisab 85 gram emas sesuai ketentuan syariat Islam.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-6">
+                    {/* Ringkasan Nisab */}
+                    <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
+                      <div>
+                        <p className="font-bold text-amber-900 dark:text-amber-300">Ketentuan Nisab Zakat (85 Gram Emas)</p>
+                        <p className="text-amber-700 dark:text-amber-400 mt-0.5">
+                          Asumsi harga emas saat ini: Rp 1.350.000 / gram • Nisab/tahun: Rp 114.750.000 (Rp 9.562.500 / bulan).
+                        </p>
+                      </div>
+                      <Badge className="bg-amber-600 text-white font-bold w-fit">Tarif: 2.5%</Badge>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Form Zakat Penghasilan */}
+                      <div className="p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 space-y-4">
+                        <h4 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">1. Zakat Penghasilan / Profesi</h4>
+                        <div className="space-y-2">
+                          <Label htmlFor="penghasilan" className="text-xs text-zinc-600">Total Penghasilan Bersih per Bulan (Rp)</Label>
+                          <Input 
+                            id="penghasilan"
+                            type="number"
+                            placeholder="Contoh: 10000000"
+                            value={penghasilanBulan || ""}
+                            onChange={(e) => setPenghasilanBulan(Number(e.target.value) || 0)}
+                            className="font-mono text-sm"
+                          />
+                        </div>
+                        <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                          <span className="text-xs text-zinc-500">Kewajiban Zakat Bulanan (2.5%):</span>
+                          <p className="text-xl font-black font-mono text-emerald-600 dark:text-emerald-400 mt-1">
+                            Rp {Math.round(penghasilanBulan * 0.025).toLocaleString('id-ID')}
+                          </p>
+                        </div>
+                        <Button 
+                          onClick={() => {
+                            const zakat = Math.round(penghasilanBulan * 0.025);
+                            router.push(`/donasi?program=Zakat&nominal=${zakat}`);
+                          }}
+                          disabled={penghasilanBulan <= 0}
+                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
+                        >
+                          Tunaikan Zakat Profesi
+                        </Button>
+                      </div>
+
+                      {/* Form Zakat Maal (Tabungan / Harta) */}
+                      <div className="p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 space-y-4">
+                        <h4 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">2. Zakat Maal / Simpanan Harta</h4>
+                        <div className="space-y-2">
+                          <Label htmlFor="tabungan" className="text-xs text-zinc-600">Total Tabungan / Deposito Mengendap 1 Tahun (Rp)</Label>
+                          <Input 
+                            id="tabungan"
+                            type="number"
+                            placeholder="Contoh: 120000000"
+                            value={emasGram || ""}
+                            onChange={(e) => setEmasGram(Number(e.target.value) || 0)}
+                            className="font-mono text-sm"
+                          />
+                        </div>
+                        <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                          <span className="text-xs text-zinc-500">Kewajiban Zakat Maal (2.5%):</span>
+                          <p className="text-xl font-black font-mono text-emerald-600 dark:text-emerald-400 mt-1">
+                            Rp {Math.round(emasGram * 0.025).toLocaleString('id-ID')}
+                          </p>
+                        </div>
+                        <Button 
+                          onClick={() => {
+                            const zakat = Math.round(emasGram * 0.025);
+                            router.push(`/donasi?program=Zakat%20Maal&nominal=${zakat}`);
+                          }}
+                          disabled={emasGram <= 0}
+                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
+                        >
+                          Tunaikan Zakat Maal
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
             {/* Modal Detail Kunjungan */}
             <Dialog open={isKunjunganModalOpen} onOpenChange={setIsKunjunganModalOpen}>
               <DialogContent className="sm:max-w-[450px]">
@@ -779,6 +1086,13 @@ function ProfilContent() {
                 )}
               </DialogContent>
             </Dialog>
+
+            {/* MODAL KWITANSI DONATUR RESMI */}
+            <ModalKwitansi
+              isOpen={!!selectedKwitansi}
+              onClose={() => setSelectedKwitansi(null)}
+              data={selectedKwitansi}
+            />
           </div>
         </div>
       </div>

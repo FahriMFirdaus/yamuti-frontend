@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Plus, Download, AlertCircle, FileText } from "lucide-react";
+import { Search, Plus, Download, AlertCircle, FileText, Printer, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { getSession } from "next-auth/react";
+import { ModalKwitansi } from "@/components/admin/ModalKwitansi";
 
 export default function DonasiPage() {
   const [data, setData] = useState<any[]>([]);
@@ -17,6 +18,7 @@ export default function DonasiPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedKwitansi, setSelectedKwitansi] = useState<any | null>(null);
 
   const fetchDonasi = async () => {
     setIsLoading(true);
@@ -104,6 +106,7 @@ export default function DonasiPage() {
                 <TableHead className="font-semibold hidden md:table-cell w-[200px] pl-4">Nominal</TableHead>
                 <TableHead className="font-semibold hidden lg:table-cell w-[200px] pl-4">Metode & Waktu</TableHead>
                 <TableHead className="font-semibold text-left pl-4">Status</TableHead>
+                <TableHead className="font-semibold text-center w-[160px] pr-6">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -180,7 +183,7 @@ export default function DonasiPage() {
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-left pl-4 pr-6 py-4 align-top pt-5">
+                    <TableCell className="text-left pl-4 py-4 align-top pt-5">
                       {donasi.status === 'settlement' || donasi.status === 'PAID' ? (
                         <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none dark:bg-emerald-900/30 dark:text-emerald-400">Lunas (PAID)</Badge>
                       ) : donasi.status === 'pending' || donasi.status === 'PENDING' ? (
@@ -190,6 +193,45 @@ export default function DonasiPage() {
                           {donasi.status || 'Batal'}
                         </Badge>
                       )}
+                    </TableCell>
+                    <TableCell className="text-center pr-6 py-4 align-top pt-4">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => setSelectedKwitansi({
+                            id: donasi.id,
+                            order_id: donasi.order_id,
+                            nama_donatur: donasi.nama_donatur,
+                            nominal: donasi.gross_amount,
+                            program_nama: donasi.program_nama,
+                            payment_type: donasi.payment_type,
+                            created_at: donasi.created_at,
+                            status: donasi.status
+                          })}
+                          className="h-8 text-xs font-semibold text-emerald-700 border-emerald-300 hover:bg-emerald-50 dark:text-emerald-400 dark:border-emerald-800"
+                        >
+                          <Printer className="w-3.5 h-3.5 mr-1" />
+                          Kwitansi
+                        </Button>
+                        {donasi.no_hp && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const cleanPhone = donasi.no_hp.replace(/^0/, '62').replace(/[^0-9]/g, '');
+                              const text = encodeURIComponent(
+                                `Assalamu'alaikum Wr. Wb. Bpk/Ibu ${donasi.nama_donatur || 'Donatur'},\n\nTerima kasih atas infak & donasi yang disalurkan melalui Yayasan YAMUTI sebesar ${formatRupiah(donasi.gross_amount)} untuk ${donasi.program_nama || 'Donasi Umum'} (ID: ${donasi.order_id || '#' + donasi.id}).\n\nSemoga menjadi amal jariyah yang membawa keberkahan dan dilipatgandakan rezekinya oleh Allah SWT. Aamiin ya Rabbal 'Alamin.\n\nSalam hormat,\nPengurus Yayasan YAMUTI`
+                              );
+                              window.open(`https://wa.me/${cleanPhone}?text=${text}`, '_blank');
+                            }}
+                            className="h-8 text-xs font-semibold text-emerald-600 border-emerald-200 hover:bg-emerald-50 dark:text-emerald-400"
+                            title="Kirim Ucapan Terima Kasih via WhatsApp"
+                          >
+                            <MessageSquare className="w-3.5 h-3.5" />
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -224,6 +266,13 @@ export default function DonasiPage() {
           </div>
         </div>
       )}
+
+      {/* MODAL KWITANSI RESMI */}
+      <ModalKwitansi
+        isOpen={!!selectedKwitansi}
+        onClose={() => setSelectedKwitansi(null)}
+        data={selectedKwitansi}
+      />
     </div>
   );
 }

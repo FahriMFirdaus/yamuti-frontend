@@ -12,7 +12,9 @@ interface ArtikelDetail {
   thumbnail_url: string | null;
   created_at: string;
   kategori_artikel?: {
-    nama: string;
+    nama_kategori?: string;
+    nama?: string;
+    slug?: string;
   };
   penulis?: {
     name: string;
@@ -33,7 +35,7 @@ async function getArtikelDetail(slug: string): Promise<ArtikelDetail | null> {
   }
 }
 
-export default async function DetailArtikelPage({ params }: { params: { slug: string } }) {
+export default async function DetailArtikelPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const artikel = await getArtikelDetail(slug);
 
@@ -52,12 +54,11 @@ export default async function DetailArtikelPage({ params }: { params: { slug: st
       {/* Hero Thumbnail */}
       <div className="relative w-full h-[400px] md:h-[500px] bg-zinc-900 overflow-hidden">
         {artikel.thumbnail_url ? (
-          <Image 
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img 
             src={artikel.thumbnail_url} 
             alt={artikel.judul}
-            fill
-            priority
-            className="object-cover opacity-60"
+            className="w-full h-full object-cover opacity-60"
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-zinc-800 to-zinc-900" />
@@ -71,7 +72,7 @@ export default async function DetailArtikelPage({ params }: { params: { slug: st
               Kembali ke Artikel
             </Link>
             <Badge className="bg-red-600 hover:bg-red-700 text-white border-none shadow-sm font-semibold mb-4 text-sm px-4 py-1">
-              {artikel.kategori_artikel?.nama || "Berita"}
+              {artikel.kategori_artikel?.nama_kategori || (artikel as any).kategori_artikel?.nama || (artikel as any).kategori || "Berita"}
             </Badge>
             <h1 className="text-3xl md:text-5xl font-extrabold text-white leading-tight mb-4 drop-shadow-md">
               {artikel.judul}
@@ -99,7 +100,7 @@ export default async function DetailArtikelPage({ params }: { params: { slug: st
         <div className="mt-12 flex items-center justify-between border-t border-zinc-200 dark:border-zinc-800 pt-8">
           <div className="flex items-center text-zinc-600 dark:text-zinc-400 font-medium">
             <Tag className="w-5 h-5 mr-2" />
-            Kategori: <span className="text-zinc-900 dark:text-white ml-2">{artikel.kategori_artikel?.nama || "Berita"}</span>
+            Kategori: <span className="text-zinc-900 dark:text-white ml-2">{artikel.kategori_artikel?.nama_kategori || (artikel as any).kategori_artikel?.nama || (artikel as any).kategori || "Berita"}</span>
           </div>
           <Link href="/artikel" className="font-bold text-red-600 hover:text-red-700 hover:underline">
             Baca Artikel Lainnya &rarr;

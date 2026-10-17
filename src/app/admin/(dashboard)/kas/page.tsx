@@ -5,8 +5,9 @@ import Link from "next/link";
 import { getSession } from "next-auth/react";
 import { 
   Download, Plus, Search, TrendingUp, TrendingDown, 
-  Wallet, Pencil, Trash2, AlertCircle
+  Wallet, Pencil, Trash2, AlertCircle, Printer 
 } from "lucide-react";
+import { ModalLaporanKas } from "@/components/admin/ModalLaporanKas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +45,7 @@ export default function BukuKasPage() {
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedKas, setSelectedKas] = useState<any | null>(null);
+  const [isLaporanOpen, setIsLaporanOpen] = useState(false);
 
   const formatRupiah = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -171,8 +173,12 @@ export default function BukuKasPage() {
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Sistem Fund Accounting. Pantau saldo setiap tabungan secara transparan.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="text-zinc-700 w-full sm:w-auto">
-            <Download className="mr-2 h-4 w-4" /> Export Laporan
+          <Button 
+            variant="outline" 
+            onClick={() => setIsLaporanOpen(true)}
+            className="text-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-700 w-full sm:w-auto"
+          >
+            <Printer className="mr-2 h-4 w-4 text-blue-600" /> Cetak Laporan Kas (PDF)
           </Button>
           <Link href="/admin/kas/tambah">
             <Button className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
@@ -383,6 +389,16 @@ export default function BukuKasPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* MODAL CETAK LAPORAN KAS */}
+      <ModalLaporanKas
+        isOpen={isLaporanOpen}
+        onClose={() => setIsLaporanOpen(false)}
+        transaksi={transaksiKas}
+        entitasKas={entitasKas}
+        saldos={saldos}
+        activeTab={activeTab}
+      />
     </div>
   );
 }

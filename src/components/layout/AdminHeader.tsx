@@ -1,8 +1,10 @@
 "use client";
 
-import { LogOut, Menu, Bell } from "lucide-react";
+import { LogOut, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signOut } from "next-auth/react";
+import { NotificationBell } from "@/components/layout/NotificationBell";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function AdminHeader() {
   return (
@@ -17,10 +19,9 @@ export default function AdminHeader() {
         </h1>
       </div>
       
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" className="text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
-          <Bell className="h-5 w-5" />
-        </Button>
+      <div className="flex items-center gap-3">
+        <ThemeToggle />
+        <NotificationBell />
         <Button 
           variant="outline" 
           size="sm" 

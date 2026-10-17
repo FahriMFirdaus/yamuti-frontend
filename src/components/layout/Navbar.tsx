@@ -171,7 +171,15 @@ export default function Navbar() {
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => router.push('/profil?tab=donasi')} className="p-3 cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20">
                     <FileText className="mr-3 h-5 w-5 text-zinc-500" />
-                    <span className="font-medium">Riwayat Donasi</span>
+                    <span className="font-medium">Riwayat Donasi & Kwitansi</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/profil?tab=anak-asuh')} className="p-3 cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20">
+                    <User className="mr-3 h-5 w-5 text-emerald-600" />
+                    <span className="font-medium">Anak Asuh Binaan (POTA)</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/profil?tab=zakat')} className="p-3 cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20">
+                    <FileText className="mr-3 h-5 w-5 text-amber-600" />
+                    <span className="font-medium">Kalkulator & Bayar Zakat</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => router.push('/profil?tab=kunjungan')} className="p-3 cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20">
                     <CalendarClock className="mr-3 h-5 w-5 text-zinc-500" />

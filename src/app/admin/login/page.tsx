@@ -36,18 +36,40 @@ export default function AdminLoginPage() {
     setIsLoading(true);
     setErrorMsg("");
     
-    const result = await signIn("credentials", {
-      redirect: false,
-      email: data.email,
-      password: data.password,
-    });
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+      // Authenticate directly to Sanctum to grab token for localStorage
+      const apiRes = await fetch(`${apiUrl}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({ email: data.email, password: data.password })
+      });
+      const apiJson = await apiRes.json();
+      
+      if (apiRes.ok && apiJson.data?.token) {
+        localStorage.setItem("token", apiJson.data.token);
+        if (apiJson.data.user) {
+          localStorage.setItem("user", JSON.stringify(apiJson.data.user));
+        }
+      }
 
-    if (result?.error) {
-      setErrorMsg("Email atau password salah.");
+      // NextAuth session sign-in
+      const result = await signIn("credentials", {
+        redirect: false,
+        email: data.email,
+        password: data.password,
+      });
+
+      if (result?.error) {
+        setErrorMsg("Email atau password salah.");
+        setIsLoading(false);
+      } else {
+        router.push("/admin/dashboard");
+        router.refresh();
+      }
+    } catch (err: any) {
+      setErrorMsg("Gagal menghubungi server. Pastikan backend aktif.");
       setIsLoading(false);
-    } else {
-      router.push("/admin/dashboard");
-      router.refresh();
     }
   };
 

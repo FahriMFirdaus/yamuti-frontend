@@ -20,6 +20,10 @@ const formSchema = z.object({
   nik: z.string().min(16, "NIK harus 16 digit"),
   no_kk: z.string().min(16, "No KK harus 16 digit"),
   no_akte: z.string().min(1, "No Akte wajib diisi"),
+  no_bpjs: z.string().optional(),
+  has_akta_fisik: z.boolean(),
+  has_kk_fisik: z.boolean(),
+  has_ijazah_fisik: z.boolean(),
   tempat_lahir: z.string().min(3, "Tempat lahir wajib diisi"),
   jenis_kelamin: z.enum(["Laki-laki", "Perempuan"]),
   tanggal_lahir: z.string().min(1, "Tanggal lahir wajib diisi"),
@@ -30,7 +34,11 @@ const formSchema = z.object({
   nama_sekolah: z.string().optional(),
   tanggal_masuk: z.string().min(1, "Tanggal masuk wajib diisi"),
   golongan_darah: z.string().optional(),
+  berat_badan: z.string().optional(),
+  tinggi_badan: z.string().optional(),
   riwayat_penyakit: z.string().optional(),
+  riwayat_alergi: z.string().optional(),
+  status_imunisasi: z.string().optional(),
   catatan_khusus: z.string().optional(),
 });
 
@@ -44,6 +52,9 @@ export default function TambahAnakAsuhPage() {
     defaultValues: {
       status: "Aktif",
       kategori_bayi: false,
+      has_akta_fisik: false,
+      has_kk_fisik: false,
+      has_ijazah_fisik: false,
     }
   });
 
@@ -143,6 +154,32 @@ export default function TambahAnakAsuhPage() {
                 <Label htmlFor="no_akte" className="font-semibold">No Akte Kelahiran *</Label>
                 <Input id="no_akte" {...register("no_akte")} className={cn(errors.no_akte && "border-red-500")} />
                 {errors.no_akte && <p className="text-xs text-red-500">{errors.no_akte.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="no_bpjs" className="font-semibold">No. BPJS / KIS (Opsional)</Label>
+                <Input id="no_bpjs" {...register("no_bpjs")} placeholder="Nomor kartu jaminan kesehatan anak..." />
+              </div>
+
+              {/* Checklist Kelengkapan Dokumen Fisik */}
+              <div className="space-y-2 rounded-lg border border-dashed border-zinc-200 dark:border-zinc-800 p-3 bg-zinc-50/50 dark:bg-zinc-900/50">
+                <Label className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
+                  Status Dokumen Fisik di Panti
+                </Label>
+                <div className="grid grid-cols-3 gap-2 pt-1 text-xs">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input type="checkbox" id="has_akta_fisik" {...register("has_akta_fisik")} className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600" />
+                    <span>Akta Fisik</span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input type="checkbox" id="has_kk_fisik" {...register("has_kk_fisik")} className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600" />
+                    <span>KK Fisik</span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input type="checkbox" id="has_ijazah_fisik" {...register("has_ijazah_fisik")} className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600" />
+                    <span>Ijazah Fisik</span>
+                  </label>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -269,9 +306,30 @@ export default function TambahAnakAsuhPage() {
                 </select>
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="berat_badan" className="font-semibold">Berat Badan (kg)</Label>
+                  <Input id="berat_badan" type="number" {...register("berat_badan")} placeholder="Contoh: 25" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="tinggi_badan" className="font-semibold">Tinggi Badan (cm)</Label>
+                  <Input id="tinggi_badan" type="number" {...register("tinggi_badan")} placeholder="Contoh: 120" />
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="riwayat_penyakit" className="font-semibold">Riwayat Penyakit (Opsional)</Label>
-                <Input id="riwayat_penyakit" {...register("riwayat_penyakit")} placeholder="Contoh: Asma, Alergi Debu" />
+                <Input id="riwayat_penyakit" {...register("riwayat_penyakit")} placeholder="Contoh: Asma, TBC, dll" />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="riwayat_alergi" className="font-semibold">Riwayat Alergi (Opsional)</Label>
+                <Input id="riwayat_alergi" {...register("riwayat_alergi")} placeholder="Contoh: Alergi Dingin, Seafood, Amoxicillin" />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="status_imunisasi" className="font-semibold">Status Imunisasi Dasar</Label>
+                <Input id="status_imunisasi" {...register("status_imunisasi")} placeholder="Contoh: Lengkap / BCG, Polio, Campak" />
               </div>
 
               <div className="space-y-2 md:col-span-2">
