@@ -98,6 +98,7 @@ function ProfilContent() {
 
   // POTA Registration States (In-Card Form)
   const [showPotaForm, setShowPotaForm] = useState(false);
+  const [potaStep, setPotaStep] = useState<1 | 2>(1);
   const [availableAnakAsuh, setAvailableAnakAsuh] = useState<any[]>([]);
   const [isLoadingAvailableAnak, setIsLoadingAvailableAnak] = useState(false);
   const [selectedAnakId, setSelectedAnakId] = useState<string>("");
@@ -315,6 +316,8 @@ function ProfilContent() {
     }
   };
 
+  const selectedAnakDetail = availableAnakAsuh.find(a => a.id === selectedAnakId) || null;
+
   const handleDaftarPota = async (e: React.FormEvent) => {
     e.preventDefault();
     setPotaFormMessage(null);
@@ -364,6 +367,7 @@ function ProfilContent() {
       fetchAnakAsuhPota();
       setTimeout(() => {
         setShowPotaForm(false);
+        setPotaStep(1);
         setPotaFormMessage(null);
         setCatatanDoaPota("");
       }, 2000);
@@ -1203,6 +1207,7 @@ function ProfilContent() {
                         onClick={() => {
                           const nextState = !showPotaForm;
                           setShowPotaForm(nextState);
+                          setPotaStep(1);
                           if (nextState) {
                             fetchAvailableAnakAsuh();
                           }
@@ -1223,18 +1228,57 @@ function ProfilContent() {
                     </div>
                   </CardHeader>
                   <CardContent className="p-6">
-                    {/* IN-CARD FORM PENDAFTARAN POTA */}
+                    {/* IN-CARD FORM PENDAFTARAN POTA (2-LANGKAH) */}
                     {showPotaForm && (
                       <div className="mb-8 p-6 rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 border border-emerald-200 dark:border-emerald-800/50 space-y-6 animate-in slide-in-from-top-3 duration-300">
-                        <div className="flex items-start justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-4">
+                        {/* Header & Stepper */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-4">
                           <div>
                             <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                               <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                              Pilih Ananda Asuh & Tentukan Komitmen Beasiswa
+                              {potaStep === 1 
+                                ? "Langkah 1: Pilih Ananda Asuh Binaan" 
+                                : "Langkah 2: Tentukan Komitmen Beasiswa & Jadwal Salur"}
                             </h3>
                             <p className="text-xs text-zinc-500 mt-1">
-                              Pilih calon anak asuh binaan asrama YAMUTI untuk mendapatkan bantuan beasiswa bulanan rutin.
+                              {potaStep === 1 
+                                ? "Pelajari profil dan bio singkat anak asuh sebelum menentukan komitmen pendampingan beasiswa." 
+                                : `Mengatur komitmen bulanan untuk ananda ${selectedAnakDetail?.nama || 'pilihan Anda'}.`}
                             </p>
+                          </div>
+                          
+                          {/* Step Badges */}
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => setPotaStep(1)}
+                              className={cn(
+                                "flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer",
+                                potaStep === 1
+                                  ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                                  : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800"
+                              )}
+                            >
+                              <span className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center text-[10px]">1</span>
+                              <span>Pilih Ananda</span>
+                            </button>
+                            <span className="text-zinc-300 dark:text-zinc-700">→</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (selectedAnakId) setPotaStep(2);
+                              }}
+                              disabled={!selectedAnakId}
+                              className={cn(
+                                "flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all",
+                                potaStep === 2
+                                  ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                                  : "bg-white dark:bg-zinc-900 text-zinc-400 border-zinc-200 dark:border-zinc-800 disabled:opacity-50 cursor-pointer"
+                              )}
+                            >
+                              <span className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center text-[10px]">2</span>
+                              <span>Komitmen Donasi</span>
+                            </button>
                           </div>
                         </div>
 
@@ -1254,22 +1298,19 @@ function ProfilContent() {
                           </div>
                         )}
 
-                        <form onSubmit={handleDaftarPota} className="space-y-5">
-                          {/* 1. Pilih Anak Asuh */}
-                          <div className="space-y-2">
-                            <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                              1. Pilih Calon Anak Asuh Binaan
-                            </Label>
+                        {/* LANGKAH 1: PILIH CALON ANAK ASUH DENGAN FOTO & BIO */}
+                        {potaStep === 1 && (
+                          <div className="space-y-6">
                             {isLoadingAvailableAnak ? (
-                              <div className="p-4 text-xs text-zinc-500 text-center bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
-                                Memuat calon anak asuh binaan...
+                              <div className="p-12 text-sm text-zinc-500 text-center bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800">
+                                Memuat calon ananda santri binaan...
                               </div>
                             ) : availableAnakAsuh.length === 0 ? (
-                              <div className="p-4 text-xs text-zinc-500 text-center bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
-                                Saat ini seluruh ananda santri telah memiliki orang tua asuh aktif. Anda tetap dapat berdonasi rutin melalui tab Donasi.
+                              <div className="p-12 text-sm text-zinc-500 text-center bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800">
+                                Alhamdulillah seluruh ananda santri asrama saat ini telah memiliki orang tua asuh aktif.
                               </div>
                             ) : (
-                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-72 overflow-y-auto p-1 pr-2">
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[520px] overflow-y-auto p-1 pr-2">
                                 {availableAnakAsuh.map((anak) => {
                                   const isSelected = selectedAnakId === anak.id;
                                   return (
@@ -1277,139 +1318,263 @@ function ProfilContent() {
                                       key={anak.id}
                                       onClick={() => setSelectedAnakId(anak.id)}
                                       className={cn(
-                                        "p-3 rounded-xl border cursor-pointer transition-all flex items-start gap-3",
+                                        "p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between relative group hover:shadow-md",
                                         isSelected
-                                          ? "bg-emerald-50/80 border-emerald-500 ring-2 ring-emerald-500/20 dark:bg-emerald-950/30 dark:border-emerald-500"
+                                          ? "bg-emerald-50/90 border-emerald-500 ring-2 ring-emerald-500/20 dark:bg-emerald-950/30 dark:border-emerald-500"
                                           : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-emerald-300"
                                       )}
                                     >
-                                      <div className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 font-bold text-sm flex items-center justify-center shrink-0">
-                                        {anak.nama?.charAt(0) || "A"}
+                                      <div>
+                                        <div className="flex items-start gap-3.5 mb-3">
+                                          {/* Foto Profil / Inisial Ananda */}
+                                          <div className="relative h-14 w-14 rounded-2xl bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 font-bold text-lg flex items-center justify-center shrink-0 border border-amber-200 dark:border-amber-800/60 overflow-hidden">
+                                            {anak.foto_identitas ? (
+                                              <Image src={anak.foto_identitas} alt={anak.nama} fill className="object-cover" />
+                                            ) : (
+                                              <span>{anak.nama?.charAt(0) || "A"}</span>
+                                            )}
+                                          </div>
+                                          
+                                          <div className="min-w-0 flex-1">
+                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                              <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+                                                {anak.status_keluarga || "Yatim / Dhuafa"}
+                                              </span>
+                                              <span className="text-[10px] text-zinc-500 dark:text-zinc-400">
+                                                {anak.jenis_kelamin}
+                                              </span>
+                                            </div>
+                                            <h4 className="font-bold text-sm text-zinc-900 dark:text-zinc-100 mt-1 truncate">
+                                              {anak.nama}
+                                            </h4>
+                                            <p className="text-xs text-zinc-500 flex items-center gap-1 mt-0.5 truncate">
+                                              <School className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                                              <span className="truncate">{anak.tingkat_pendidikan || "Sekolah"} • {anak.nama_sekolah || "Asrama YAMUTI"}</span>
+                                            </p>
+                                          </div>
+                                        </div>
+
+                                        {/* Bio / Keterangan Singkat */}
+                                        <div className="text-xs text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800/60 p-2.5 rounded-xl border border-zinc-100 dark:border-zinc-800 line-clamp-3 leading-relaxed">
+                                          {anak.keterangan ? (
+                                            `"${anak.keterangan}"`
+                                          ) : (
+                                            "Ananda adalah santri binaan asrama YAMUTI yang tekun menuntut ilmu dan menghafal Al-Qur'an."
+                                          )}
+                                        </div>
                                       </div>
-                                      <div className="min-w-0 flex-1">
-                                        <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
-                                          {anak.nama}
-                                        </p>
-                                        <p className="text-[11px] text-zinc-500 truncate mt-0.5">
-                                          {anak.tingkat_pendidikan || "Sekolah"} • {anak.jenis_kelamin}
-                                        </p>
-                                        <span className="inline-block mt-1 text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold">
-                                          {isSelected ? "✓ Dipilih" : "Klik untuk memilih"}
+
+                                      <div className="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+                                        <span className={cn(
+                                          "text-xs font-semibold",
+                                          isSelected ? "text-emerald-700 dark:text-emerald-400" : "text-zinc-500"
+                                        )}>
+                                          {isSelected ? "✓ Ananda Terpilih" : "Klik untuk memilih"}
                                         </span>
+                                        <div className={cn(
+                                          "w-5 h-5 rounded-full border flex items-center justify-center text-xs",
+                                          isSelected 
+                                            ? "bg-emerald-600 text-white border-emerald-600" 
+                                            : "border-zinc-300 dark:border-zinc-700"
+                                        )}>
+                                          {isSelected && "✓"}
+                                        </div>
                                       </div>
                                     </div>
                                   );
                                 })}
                               </div>
                             )}
-                          </div>
 
-                          {/* 2. Nominal Komitmen Bulanan */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="nominal-pota" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                                2. Komitmen Donasi Bulanan (Rp)
-                              </Label>
-                              <div className="grid grid-cols-3 gap-2">
-                                {[100000, 250000, 500000].map((val) => (
-                                  <button
-                                    type="button"
-                                    key={val}
-                                    onClick={() => setNominalPota(val)}
-                                    className={cn(
-                                      "py-2 px-1 text-center rounded-lg text-xs font-bold border transition-all cursor-pointer",
-                                      nominalPota === val
-                                        ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
-                                        : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50"
+                            {/* Tombol Lanjut ke Langkah 2 */}
+                            <div className="pt-2 flex items-center justify-between border-t border-zinc-200 dark:border-zinc-800">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setShowPotaForm(false)}
+                                className="text-xs h-10 px-4"
+                              >
+                                Batal
+                              </Button>
+                              <Button
+                                type="button"
+                                disabled={!selectedAnakId}
+                                onClick={() => setPotaStep(2)}
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold h-10 px-6 cursor-pointer"
+                              >
+                                Lanjut ke Komitmen Donasi (Langkah 2) →
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* LANGKAH 2: FORM KOMITMEN BEASISWA & JADWAL */}
+                        {potaStep === 2 && (
+                          <form onSubmit={handleDaftarPota} className="space-y-6">
+                            {/* Ringkasan Profil Anak yang Dipilih */}
+                            {selectedAnakDetail && (
+                              <div className="p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-emerald-300 dark:border-emerald-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="relative h-12 w-12 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 font-bold text-base flex items-center justify-center shrink-0 border border-amber-200 overflow-hidden">
+                                    {selectedAnakDetail.foto_identitas ? (
+                                      <Image src={selectedAnakDetail.foto_identitas} alt={selectedAnakDetail.nama} fill className="object-cover" />
+                                    ) : (
+                                      <span>{selectedAnakDetail.nama?.charAt(0) || "A"}</span>
                                     )}
-                                  >
-                                    Rp {(val / 1000).toLocaleString('id-ID')}rb
-                                  </button>
-                                ))}
+                                  </div>
+                                  <div>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 px-2 py-0.5 rounded">
+                                        Ananda Pilihan Anda
+                                      </span>
+                                      <span className="text-xs text-zinc-500">
+                                        {selectedAnakDetail.jenis_kelamin}
+                                      </span>
+                                    </div>
+                                    <h4 className="font-bold text-sm text-zinc-900 dark:text-zinc-100 mt-0.5">
+                                      {selectedAnakDetail.nama}
+                                    </h4>
+                                    <p className="text-xs text-zinc-500">
+                                      {selectedAnakDetail.tingkat_pendidikan || "Sekolah"} • {selectedAnakDetail.nama_sekolah || "Asrama YAMUTI"}
+                                    </p>
+                                  </div>
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setPotaStep(1)}
+                                  className="text-xs text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 w-fit"
+                                >
+                                  Ganti Ananda
+                                </Button>
                               </div>
+                            )}
+
+                            {/* Pilihan Nominal Donasi Bulanan */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                              <div className="space-y-2">
+                                <Label htmlFor="nominal-pota" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                                  Komitmen Donasi Beasiswa per Bulan (Rp)
+                                </Label>
+                                <div className="grid grid-cols-3 gap-2">
+                                  {[100000, 250000, 500000].map((val) => (
+                                    <button
+                                      type="button"
+                                      key={val}
+                                      onClick={() => setNominalPota(val)}
+                                      className={cn(
+                                        "py-2.5 px-1 text-center rounded-xl text-xs font-bold border transition-all cursor-pointer",
+                                        nominalPota === val
+                                          ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                                          : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50"
+                                      )}
+                                    >
+                                      Rp {(val / 1000).toLocaleString('id-ID')}rb
+                                    </button>
+                                  ))}
+                                </div>
+                                <Input
+                                  id="nominal-pota"
+                                  type="number"
+                                  min={50000}
+                                  step={10000}
+                                  value={nominalPota || ""}
+                                  onChange={(e) => setNominalPota(Number(e.target.value) || 0)}
+                                  className="h-11 text-xs font-mono bg-white dark:bg-zinc-900"
+                                  placeholder="Nominal lain, cth: 300000"
+                                  required
+                                />
+                                <p className="text-[11px] text-zinc-500">
+                                  Minimal donasi beasiswa bulanan adalah Rp 50.000.
+                                </p>
+                              </div>
+
+                              {/* Tanggal Tagihan / Pengingat Setiap Bulan */}
+                              <div className="space-y-2">
+                                <Label htmlFor="hari-tagihan" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                                  Jadwal Pengingat Salur (Tgl Setiap Bulan)
+                                </Label>
+                                <div className="grid grid-cols-3 gap-2">
+                                  {[1, 5, 10].map((tgl) => (
+                                    <button
+                                      type="button"
+                                      key={tgl}
+                                      onClick={() => setHariTagihan(tgl)}
+                                      className={cn(
+                                        "py-2.5 px-1 text-center rounded-xl text-xs font-bold border transition-all cursor-pointer",
+                                        hariTagihan === tgl
+                                          ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                                          : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50"
+                                      )}
+                                    >
+                                      Tgl {tgl}
+                                    </button>
+                                  ))}
+                                </div>
+                                <Input
+                                  id="hari-tagihan"
+                                  type="number"
+                                  min={1}
+                                  max={31}
+                                  value={hariTagihan || ""}
+                                  onChange={(e) => setHariTagihan(Number(e.target.value) || 1)}
+                                  className="h-11 text-xs font-mono bg-white dark:bg-zinc-900"
+                                  placeholder="Tanggal 1-31"
+                                  required
+                                />
+                                <p className="text-[11px] text-zinc-500">
+                                  Sistem akan mengirimkan pesan notifikasi WhatsApp pengingat pada tanggal ini.
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Catatan Doa / Harapan Donatur */}
+                            <div className="space-y-2">
+                              <Label htmlFor="catatan-doa" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                                Pesan Doa / Harapan Khusus untuk Ananda (Opsional)
+                              </Label>
                               <Input
-                                id="nominal-pota"
-                                type="number"
-                                min={50000}
-                                step={10000}
-                                value={nominalPota || ""}
-                                onChange={(e) => setNominalPota(Number(e.target.value) || 0)}
-                                className="h-10 text-xs font-mono bg-white dark:bg-zinc-900"
-                                placeholder="Nominal lain, cth: 300000"
-                                required
+                                id="catatan-doa"
+                                type="text"
+                                value={catatanDoaPota}
+                                onChange={(e) => setCatatanDoaPota(e.target.value)}
+                                placeholder="Semoga ananda rajin belajar, sholeh/sholehah dan tercapai cita-citanya..."
+                                className="h-11 text-xs bg-white dark:bg-zinc-900"
+                                maxLength={500}
                               />
                             </div>
 
-                            {/* 3. Tanggal Tagihan / Pengingat Setiap Bulan */}
-                            <div className="space-y-2">
-                              <Label htmlFor="hari-tagihan" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                                3. Jadwal Pengingat Salur (Tgl Setiap Bulan)
-                              </Label>
-                              <div className="grid grid-cols-3 gap-2">
-                                {[1, 5, 10].map((tgl) => (
-                                  <button
-                                    type="button"
-                                    key={tgl}
-                                    onClick={() => setHariTagihan(tgl)}
-                                    className={cn(
-                                      "py-2 px-1 text-center rounded-lg text-xs font-bold border transition-all cursor-pointer",
-                                      hariTagihan === tgl
-                                        ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
-                                        : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50"
-                                    )}
-                                  >
-                                    Tgl {tgl}
-                                  </button>
-                                ))}
+                            {/* Tombol Aksi */}
+                            <div className="pt-2 flex items-center justify-between border-t border-zinc-200 dark:border-zinc-800">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setPotaStep(1)}
+                                className="text-xs h-10 px-4"
+                              >
+                                ← Kembali ke Langkah 1
+                              </Button>
+                              <div className="flex items-center gap-3">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  onClick={() => setShowPotaForm(false)}
+                                  className="text-xs h-10 px-4 text-zinc-500"
+                                >
+                                  Batal
+                                </Button>
+                                <Button
+                                  type="submit"
+                                  disabled={isSubmittingPota || !selectedAnakId}
+                                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold h-10 px-6 cursor-pointer"
+                                >
+                                  {isSubmittingPota ? "Menyimpan Komitmen..." : "Konfirmasi Jadi Orang Tua Asuh"}
+                                </Button>
                               </div>
-                              <Input
-                                id="hari-tagihan"
-                                type="number"
-                                min={1}
-                                max={31}
-                                value={hariTagihan || ""}
-                                onChange={(e) => setHariTagihan(Number(e.target.value) || 1)}
-                                className="h-10 text-xs font-mono bg-white dark:bg-zinc-900"
-                                placeholder="Tanggal 1-31"
-                                required
-                              />
                             </div>
-                          </div>
-
-                          {/* 4. Catatan Doa / Harapan Donatur */}
-                          <div className="space-y-2">
-                            <Label htmlFor="catatan-doa" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                              4. Pesan Doa / Harapan untuk Ananda (Opsional)
-                            </Label>
-                            <Input
-                              id="catatan-doa"
-                              type="text"
-                              value={catatanDoaPota}
-                              onChange={(e) => setCatatanDoaPota(e.target.value)}
-                              placeholder="Semoga ananda rajin belajar, sholeh/sholehah dan tercapai cita-citanya..."
-                              className="h-10 text-xs bg-white dark:bg-zinc-900"
-                              maxLength={500}
-                            />
-                          </div>
-
-                          <div className="pt-2 flex items-center justify-end gap-3">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={() => setShowPotaForm(false)}
-                              className="text-xs h-10 px-4"
-                            >
-                              Batal
-                            </Button>
-                            <Button
-                              type="submit"
-                              disabled={isSubmittingPota || !selectedAnakId}
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold h-10 px-6 cursor-pointer"
-                            >
-                              {isSubmittingPota ? "Menyimpan..." : "Konfirmasi Jadi Orang Tua Asuh"}
-                            </Button>
-                          </div>
-                        </form>
+                          </form>
+                        )}
                       </div>
                     )}
 
