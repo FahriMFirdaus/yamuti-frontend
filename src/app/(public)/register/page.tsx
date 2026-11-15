@@ -83,6 +83,7 @@ export default function RegisterPage() {
 
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
+    setErrorMsg("");
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/google/redirect`, {
         headers: { "Accept": "application/json" }
@@ -91,10 +92,10 @@ export default function RegisterPage() {
       if (result.data && result.data.url) {
         window.location.href = result.data.url;
       } else {
-        throw new Error("Gagal mengambil URL Google");
+        throw new Error("Gagal mengambil tautan masuk Google. Silakan coba kembali.");
       }
     } catch (err: any) {
-      alert(err.message);
+      setErrorMsg(err.message || "Terjadi kesalahan saat menghubungkan ke akun Google.");
       setIsGoogleLoading(false);
     }
   };
