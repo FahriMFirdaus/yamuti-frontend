@@ -34,7 +34,7 @@ export default function TambahKasManualPage() {
     const fetchSettings = async () => {
       try {
         const session = await getSession();
-        let token = session?.accessToken || localStorage.getItem("token") || undefined;
+        const token = session?.accessToken || localStorage.getItem("token") || undefined;
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/settings`, {
           headers: { "Authorization": `Bearer ${token}` }
         });

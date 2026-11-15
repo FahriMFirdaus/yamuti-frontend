@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 async function getKampanye() {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/kampanye?per_page=100`, {
-      cache: "no-store",
+      next: { revalidate: 60 },
     });
     if (!res.ok) return [];
     const json = await res.json();

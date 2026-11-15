@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { getSession } from "next-auth/react";
 import Image from "next/image";
+import { AdminKampanyeUpdates } from "@/components/admin/AdminKampanyeUpdates";
 
 export default function DetailKampanyePage() {
   const router = useRouter();
@@ -259,6 +260,12 @@ export default function DetailKampanyePage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Bagian Manajemen Kabar Penyaluran Dana */}
+          <AdminKampanyeUpdates 
+            kampanyeId={id as string} 
+            initialUpdates={data.updates || []} 
+          />
         </div>
       </div>
 

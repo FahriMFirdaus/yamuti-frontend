@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ShoppingCart, LogOut, User, FileText, CalendarClock, ChevronDown } from "lucide-react";
+import { ShoppingCart, LogOut, User, FileText, CalendarClock, ChevronDown, Menu, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +20,12 @@ export default function Navbar() {
   const pathname = usePathname();
   const [user, setUser] = useState<{name: string, email: string, no_hp?: string} | null>(null);
   const [cartCount, setCartCount] = useState<number>(0);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+
+  // Tutup menu saat navigasi berpindah
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -202,8 +208,113 @@ export default function Navbar() {
               </Link>
             </div>
           )}
+
+          {/* Hamburger Button untuk Mobile */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="flex items-center justify-center p-2 rounded-lg text-zinc-600 hover:text-red-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:text-red-400 dark:hover:bg-zinc-800 md:hidden focus:outline-none transition-colors"
+            aria-label="Toggle Menu Navigasi"
+          >
+            {isMobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
+          </button>
         </div>
       </div>
+
+      {/* Mobile Navigation Drawer / Dropdown */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden border-t border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md px-4 pt-3 pb-6 space-y-3 animate-in slide-in-from-top-2 duration-200 shadow-xl">
+          <nav className="flex flex-col space-y-1">
+            <Link
+              href="/"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={cn(
+                "px-3 py-2.5 rounded-lg text-base font-medium transition-colors",
+                pathname === "/"
+                  ? "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 font-semibold"
+                  : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              )}
+            >
+              Beranda
+            </Link>
+            <Link
+              href="/tentang"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={cn(
+                "px-3 py-2.5 rounded-lg text-base font-medium transition-colors",
+                pathname.startsWith("/tentang")
+                  ? "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 font-semibold"
+                  : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              )}
+            >
+              Tentang
+            </Link>
+            <Link
+              href="/program"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={cn(
+                "px-3 py-2.5 rounded-lg text-base font-medium transition-colors",
+                pathname.startsWith("/program")
+                  ? "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 font-semibold"
+                  : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              )}
+            >
+              Program
+            </Link>
+            <Link
+              href="/kunjungan"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={cn(
+                "px-3 py-2.5 rounded-lg text-base font-medium transition-colors",
+                pathname.startsWith("/kunjungan")
+                  ? "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 font-semibold"
+                  : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              )}
+            >
+              Kunjungan
+            </Link>
+            <Link
+              href="/artikel"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={cn(
+                "px-3 py-2.5 rounded-lg text-base font-medium transition-colors",
+                pathname.startsWith("/artikel")
+                  ? "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 font-semibold"
+                  : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              )}
+            >
+              Artikel
+            </Link>
+            <Link
+              href="/galeri"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={cn(
+                "px-3 py-2.5 rounded-lg text-base font-medium transition-colors",
+                pathname.startsWith("/galeri")
+                  ? "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 font-semibold"
+                  : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              )}
+            >
+              Galeri
+            </Link>
+          </nav>
+
+          {!user && (
+            <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800">
+              <Link
+                href="/login"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-center w-full py-2.5 px-4 rounded-xl text-base font-semibold text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+              >
+                Masuk ke Akun
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
     </header>
   );
 }

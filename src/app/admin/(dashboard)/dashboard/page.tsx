@@ -76,7 +76,7 @@ export default function DashboardPage() {
     if (showLoadingState) setIsLoading(true);
     try {
       const session = await getSession();
-      let token = session?.accessToken || (typeof window !== "undefined" ? localStorage.getItem("token") || undefined : undefined);
+      const token = session?.accessToken || (typeof window !== "undefined" ? localStorage.getItem("token") || undefined : undefined);
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
       const res = await fetch(`${apiUrl}/dashboard/summary`, {

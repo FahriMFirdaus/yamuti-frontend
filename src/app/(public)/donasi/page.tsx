@@ -22,6 +22,7 @@ function DonasiContent() {
   const [email, setEmail] = useState("");
   const [pesan, setPesan] = useState("");
   const [privacy, setPrivacy] = useState<"public" | "initial" | "anonymous">("public");
+  const [isRutin, setIsRutin] = useState(false);
 
   const [snapToken, setSnapToken] = useState<string | null>(null);
 
@@ -153,7 +154,7 @@ function DonasiContent() {
           nama_donatur: finalName,
           no_whatsapp: whatsapp,
           gross_amount: amount,
-          pesan: pesan, // Mengirim data doa ke Backend
+          pesan: isRutin ? `[Komitmen Rutin Bulanan] ${pesan}`.trim() : pesan,
           kampanye_id: kampanye ? kampanye.id : null, // Mengirim ID kampanye jika Donasi Khusus
           is_anonymous: privacy === "anonymous", // Flag privasi ke Backend
         }),
@@ -375,6 +376,26 @@ function DonasiContent() {
                       value={pesan}
                       onChange={(e) => setPesan(e.target.value)}
                     />
+                  </div>
+
+                  {/* OPSI KOMITMEN DONASI RUTIN BULANAN */}
+                  <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800/80">
+                    <label className="flex items-start gap-3 p-3.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50 cursor-pointer hover:bg-zinc-100/50 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={isRutin}
+                        onChange={(e) => setIsRutin(e.target.checked)}
+                        className="mt-1 h-4 w-4 rounded border-zinc-300 text-red-600 focus:ring-red-500"
+                      />
+                      <div className="text-xs leading-relaxed">
+                        <span className="font-bold text-zinc-900 dark:text-zinc-100 block">
+                          Jadikan Komitmen Donasi Rutin Bulanan
+                        </span>
+                        <span className="text-zinc-500 dark:text-zinc-400">
+                          Pengingat santunan berkala akan dikirimkan secara ramah ke WhatsApp Anda tiap awal bulan.
+                        </span>
+                      </div>
+                    </label>
                   </div>
                 </div>
               </div>

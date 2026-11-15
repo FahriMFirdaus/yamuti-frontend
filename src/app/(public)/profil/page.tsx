@@ -30,6 +30,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { ModalKwitansi } from "@/components/admin/ModalKwitansi";
+import { ModalSertifikatDonatur } from "@/components/admin/ModalSertifikatDonatur";
 import {
   Dialog,
   DialogContent,
@@ -56,6 +57,7 @@ function ProfilContent() {
   const [selectedDonasi, setSelectedDonasi] = useState<any>(null);
   const [isDonasiModalOpen, setIsDonasiModalOpen] = useState(false);
   const [selectedKwitansi, setSelectedKwitansi] = useState<any | null>(null);
+  const [selectedSertifikat, setSelectedSertifikat] = useState<any | null>(null);
 
   // POTA / Anak Asuh Saya
   const [anakAsuhSaya, setAnakAsuhSaya] = useState<any[]>([]);
@@ -562,23 +564,38 @@ function ProfilContent() {
                                 Detail
                               </Button>
                               {(donasi.status === 'success' || donasi.status === 'settlement' || donasi.status === 'Berhasil' || donasi.status === 'PAID') && (
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  className="text-xs h-7 px-2.5 font-semibold text-emerald-700 border-emerald-300 hover:bg-emerald-50 dark:text-emerald-400 dark:border-emerald-800"
-                                  onClick={() => setSelectedKwitansi({
-                                    id: donasi.id,
-                                    order_id: donasi.invoice || donasi.order_id || `INV-${donasi.id}`,
-                                    nama_donatur: user?.name || donasi.nama_donatur || "Donatur YAMUTI",
-                                    nominal: Number(donasi.gross_amount || donasi.nominal || 0),
-                                    program_nama: donasi.kampanye?.judul || donasi.program || "Donasi Umum YAMUTI",
-                                    payment_type: donasi.payment_type || "Transfer Bank / Online",
-                                    created_at: donasi.created_at || donasi.tanggal,
-                                    status: donasi.status
-                                  })}
-                                >
-                                  <Printer className="w-3.5 h-3.5 mr-1" /> Kwitansi
-                                </Button>
+                                <>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    className="text-xs h-7 px-2.5 font-semibold text-emerald-700 border-emerald-300 hover:bg-emerald-50 dark:text-emerald-400 dark:border-emerald-800"
+                                    onClick={() => setSelectedKwitansi({
+                                      id: donasi.id,
+                                      order_id: donasi.invoice || donasi.order_id || `INV-${donasi.id}`,
+                                      nama_donatur: user?.name || donasi.nama_donatur || "Donatur YAMUTI",
+                                      nominal: Number(donasi.gross_amount || donasi.nominal || 0),
+                                      program_nama: donasi.kampanye?.judul || donasi.program || "Donasi Umum YAMUTI",
+                                      payment_type: donasi.payment_type || "Transfer Bank / Online",
+                                      created_at: donasi.created_at || donasi.tanggal,
+                                      status: donasi.status
+                                    })}
+                                  >
+                                    <Printer className="w-3.5 h-3.5 mr-1" /> Kwitansi
+                                  </Button>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    className="text-xs h-7 px-2.5 font-semibold text-amber-700 border-amber-300 hover:bg-amber-50 dark:text-amber-400 dark:border-amber-800"
+                                    onClick={() => setSelectedSertifikat({
+                                      nama_donatur: user?.name || donasi.nama_donatur || "Muhsinin Dermawan",
+                                      nominal: Number(donasi.gross_amount || donasi.nominal || 0),
+                                      program_nama: donasi.kampanye?.judul || donasi.program || "Santunan Anak Asuh YAMUTI",
+                                      tanggal: donasi.created_at || donasi.tanggal || new Date().toISOString(),
+                                    })}
+                                  >
+                                    <Sparkles className="w-3.5 h-3.5 mr-1 text-amber-500" /> E-Sertifikat
+                                  </Button>
+                                </>
                               )}
                             </div>
                             <div className="flex items-center justify-between w-full sm:w-auto sm:justify-end gap-3">
@@ -1092,6 +1109,13 @@ function ProfilContent() {
               isOpen={!!selectedKwitansi}
               onClose={() => setSelectedKwitansi(null)}
               data={selectedKwitansi}
+            />
+
+            {/* MODAL PIAGAM APRESIASI DONATUR (E-SERTIFIKAT) */}
+            <ModalSertifikatDonatur
+              isOpen={!!selectedSertifikat}
+              onClose={() => setSelectedSertifikat(null)}
+              data={selectedSertifikat}
             />
           </div>
         </div>

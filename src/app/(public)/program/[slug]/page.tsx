@@ -2,6 +2,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { notFound } from "next/navigation";
+import { ProgramUpdatesTab } from "@/components/program/ProgramUpdatesTab";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sparkles, History } from "lucide-react";
 
 // Fetch Detail Program dari API
 async function getKampanyeDetail(slug: string) {
@@ -67,10 +70,34 @@ export default async function DetailProgramPage({ params }: { params: { slug: st
           
           <div className="lg:col-span-2 space-y-8">
             <div className="rounded-2xl bg-white p-6 md:p-8 shadow-sm border border-zinc-100 dark:bg-zinc-900 dark:border-zinc-800">
-              <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">Cerita Program</h2>
-              <div className="prose prose-zinc dark:prose-invert max-w-none text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap">
-                {campaign.deskripsi || "Mari bantu sukseskan program kebaikan ini. Setiap donasi Anda akan sangat berarti bagi anak-anak asuh di Panti Asuhan YAMUTI."}
-              </div>
+              <Tabs defaultValue="cerita" className="w-full">
+                <TabsList className="mb-6 grid w-full max-w-md grid-cols-2">
+                  <TabsTrigger value="cerita" className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    <span>Cerita Program</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="kabar" className="flex items-center gap-2">
+                    <History className="w-4 h-4" />
+                    <span>Kabar Penyaluran</span>
+                    {campaign.updates && campaign.updates.length > 0 && (
+                      <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-xs">
+                        {campaign.updates.length}
+                      </Badge>
+                    )}
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="cerita" className="space-y-4">
+                  <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">Cerita Program</h2>
+                  <div className="prose prose-zinc dark:prose-invert max-w-none text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap leading-relaxed">
+                    {campaign.deskripsi || "Mari bantu sukseskan program kebaikan ini. Setiap donasi Anda akan sangat berarti bagi anak-anak asuh di Panti Asuhan YAMUTI."}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="kabar" className="pt-2">
+                  <ProgramUpdatesTab updates={campaign.updates || []} />
+                </TabsContent>
+              </Tabs>
             </div>
           </div>
 

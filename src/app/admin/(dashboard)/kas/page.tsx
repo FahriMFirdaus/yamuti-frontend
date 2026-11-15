@@ -59,7 +59,7 @@ export default function BukuKasPage() {
     setIsLoading(true);
     try {
       const session = await getSession();
-      let token = session?.accessToken || localStorage.getItem("token") || undefined;
+      const token = session?.accessToken || localStorage.getItem("token") || undefined;
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/transaksi-keuangan`, {
         headers: { "Authorization": `Bearer ${token}` }
@@ -79,7 +79,7 @@ export default function BukuKasPage() {
     setIsLoadingSaldos(true);
     try {
       const session = await getSession();
-      let token = session?.accessToken || localStorage.getItem("token") || undefined;
+      const token = session?.accessToken || localStorage.getItem("token") || undefined;
 
       const resSettings = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/settings`, {
         headers: { "Authorization": `Bearer ${token}` }
@@ -140,7 +140,7 @@ export default function BukuKasPage() {
     if (!selectedKas) return;
     try {
       const session = await getSession();
-      let token = session?.accessToken || localStorage.getItem("token") || undefined;
+      const token = session?.accessToken || localStorage.getItem("token") || undefined;
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/transaksi-keuangan/${selectedKas.id}`, {
         method: "DELETE",

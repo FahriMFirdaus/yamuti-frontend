@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Calendar, User, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import DOMPurify from "isomorphic-dompurify";
 
 interface ArtikelDetail {
   id: string;
@@ -94,7 +95,7 @@ export default async function DetailArtikelPage({ params }: { params: Promise<{ 
 
       <div className="container mx-auto max-w-4xl px-4 md:px-8 pt-12 md:pt-16">
         <div className="bg-white dark:bg-zinc-900 p-8 md:p-12 rounded-3xl shadow-xl shadow-zinc-200/50 dark:shadow-black/50 border border-zinc-100 dark:border-zinc-800 -mt-24 relative z-10 prose prose-lg prose-zinc dark:prose-invert max-w-none prose-headings:font-bold prose-a:text-red-600 hover:prose-a:text-red-700 prose-img:rounded-2xl">
-          <div dangerouslySetInnerHTML={{ __html: artikel.konten }} />
+          <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(artikel.konten) }} />
         </div>
         
         <div className="mt-12 flex items-center justify-between border-t border-zinc-200 dark:border-zinc-800 pt-8">

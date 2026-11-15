@@ -94,7 +94,7 @@ export default function PengaturanPage() {
     const fetchAllSettings = async () => {
       try {
         const session = await getSession();
-        let token = session?.accessToken || (typeof window !== "undefined" ? localStorage.getItem("token") || undefined : undefined);
+        const token = session?.accessToken || (typeof window !== "undefined" ? localStorage.getItem("token") || undefined : undefined);
 
         // 1. Fetch Split Rule
         const resSplit = await fetch(`${apiUrl}/settings`, {
@@ -169,7 +169,7 @@ export default function PengaturanPage() {
     setIsSubmittingKas(true);
     try {
       const session = await getSession();
-      let token = session?.accessToken || (typeof window !== "undefined" ? localStorage.getItem("token") || undefined : undefined);
+      const token = session?.accessToken || (typeof window !== "undefined" ? localStorage.getItem("token") || undefined : undefined);
 
       const res = await fetch(`${apiUrl}/settings/split-rule`, {
         method: "POST",
@@ -277,7 +277,7 @@ export default function PengaturanPage() {
     setIsSubmittingLokasi(true);
     try {
       const session = await getSession();
-      let token = session?.accessToken || (typeof window !== "undefined" ? localStorage.getItem("token") || undefined : undefined);
+      const token = session?.accessToken || (typeof window !== "undefined" ? localStorage.getItem("token") || undefined : undefined);
 
       const res = await fetch(`${apiUrl}/settings/lokasi-operasional`, {
         method: "POST",

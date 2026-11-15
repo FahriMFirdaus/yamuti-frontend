@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { getSession } from "next-auth/react";
+import { AdminAnakAsuhRecords } from "@/components/admin/AdminAnakAsuhRecords";
 
 export default function DetailAnakAsuhPage() {
   const params = useParams();
@@ -267,6 +268,12 @@ export default function DetailAnakAsuhPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Jurnal Rekam Jejak & Perkembangan Anak Asuh */}
+          <AdminAnakAsuhRecords
+            anakAsuhId={params.id as string}
+            initialRecords={data.records || []}
+          />
         </div>
       </div>
 

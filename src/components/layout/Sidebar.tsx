@@ -59,6 +59,7 @@ const navSections: NavSection[] = [
     items: [
       { name: "CMS Berita", href: "/admin/cms", icon: FileText },
       { name: "Galeri Foto", href: "/admin/cms?tab=galeri", icon: ImageIcon },
+      { name: "WhatsApp Broadcast", href: "/admin/broadcast", icon: Megaphone },
     ],
   },
   {
