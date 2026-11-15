@@ -96,6 +96,17 @@ function ProfilContent() {
   const [profileWhatsapp, setProfileWhatsapp] = useState("");
   const [profileEmail, setProfileEmail] = useState("");
 
+  // POTA Registration States (In-Card Form)
+  const [showPotaForm, setShowPotaForm] = useState(false);
+  const [availableAnakAsuh, setAvailableAnakAsuh] = useState<any[]>([]);
+  const [isLoadingAvailableAnak, setIsLoadingAvailableAnak] = useState(false);
+  const [selectedAnakId, setSelectedAnakId] = useState<string>("");
+  const [nominalPota, setNominalPota] = useState<number>(250000);
+  const [hariTagihan, setHariTagihan] = useState<number>(1);
+  const [catatanDoaPota, setCatatanDoaPota] = useState<string>("");
+  const [isSubmittingPota, setIsSubmittingPota] = useState(false);
+  const [potaFormMessage, setPotaFormMessage] = useState<{type: 'success'|'error', text: string} | null>(null);
+
   const itemsPerPage = 3;
 
   useEffect(() => {
@@ -276,6 +287,90 @@ function ProfilContent() {
       console.error("Gagal load POTA", e);
     } finally {
       setIsLoadingPota(false);
+    }
+  };
+
+  const fetchAvailableAnakAsuh = async () => {
+    setIsLoadingAvailableAnak(true);
+    try {
+      const token = localStorage.getItem("token") || undefined;
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002/api"}/user/anak-asuh-tersedia`, {
+        headers: {
+          "Accept": "application/json",
+          ...(token ? { "Authorization": `Bearer ${token}` } : {})
+        }
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const list = json.data || [];
+        setAvailableAnakAsuh(list);
+        if (list.length > 0 && !selectedAnakId) {
+          setSelectedAnakId(list[0].id);
+        }
+      }
+    } catch (e) {
+      console.error("Gagal load calon anak asuh", e);
+    } finally {
+      setIsLoadingAvailableAnak(false);
+    }
+  };
+
+  const handleDaftarPota = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPotaFormMessage(null);
+
+    if (!selectedAnakId) {
+      setPotaFormMessage({ type: 'error', text: 'Silakan pilih salah satu anak asuh binaan.' });
+      return;
+    }
+
+    if (nominalPota < 50000) {
+      setPotaFormMessage({ type: 'error', text: 'Komitmen donasi minimal Rp 50.000 / bulan.' });
+      return;
+    }
+
+    setIsSubmittingPota(true);
+    try {
+      const token = localStorage.getItem("token") || undefined;
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002/api"}/user/orang-tua-asuh`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          ...(token ? { "Authorization": `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          anak_asuh_id: selectedAnakId,
+          nominal_bulanan: nominalPota,
+          hari_tagihan_per_bulan: Number(hariTagihan) || 1,
+          catatan_doa: catatanDoaPota
+        })
+      });
+
+      const json = await res.json();
+
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        router.push("/login");
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error(json.message || "Gagal mendaftarkan Orang Tua Asuh.");
+      }
+
+      setPotaFormMessage({ type: 'success', text: 'Alhamdulillah! Komitmen Orang Tua Asuh berhasil didaftarkan.' });
+      fetchAnakAsuhPota();
+      setTimeout(() => {
+        setShowPotaForm(false);
+        setPotaFormMessage(null);
+        setCatatanDoaPota("");
+      }, 2000);
+    } catch (err: any) {
+      setPotaFormMessage({ type: 'error', text: err.message });
+    } finally {
+      setIsSubmittingPota(false);
     }
   };
 
@@ -1105,14 +1200,219 @@ function ProfilContent() {
                         </CardDescription>
                       </div>
                       <Button 
-                        onClick={() => router.push('/program')}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-xs"
+                        onClick={() => {
+                          const nextState = !showPotaForm;
+                          setShowPotaForm(nextState);
+                          if (nextState) {
+                            fetchAvailableAnakAsuh();
+                          }
+                        }}
+                        className={cn(
+                          "rounded-full text-xs font-semibold cursor-pointer transition-all",
+                          showPotaForm 
+                            ? "bg-zinc-200 text-zinc-800 hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-200" 
+                            : "bg-emerald-600 hover:bg-emerald-700 text-white"
+                        )}
                       >
-                        <Sparkles className="w-3.5 h-3.5 mr-1.5" /> Tambah Anak Asuh
+                        {showPotaForm ? "Tutup Form" : (
+                          <>
+                            <Sparkles className="w-3.5 h-3.5 mr-1.5" /> Tambah Anak Asuh
+                          </>
+                        )}
                       </Button>
                     </div>
                   </CardHeader>
                   <CardContent className="p-6">
+                    {/* IN-CARD FORM PENDAFTARAN POTA */}
+                    {showPotaForm && (
+                      <div className="mb-8 p-6 rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 border border-emerald-200 dark:border-emerald-800/50 space-y-6 animate-in slide-in-from-top-3 duration-300">
+                        <div className="flex items-start justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-4">
+                          <div>
+                            <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                              <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                              Pilih Ananda Asuh & Tentukan Komitmen Beasiswa
+                            </h3>
+                            <p className="text-xs text-zinc-500 mt-1">
+                              Pilih calon anak asuh binaan asrama YAMUTI untuk mendapatkan bantuan beasiswa bulanan rutin.
+                            </p>
+                          </div>
+                        </div>
+
+                        {potaFormMessage && (
+                          <div className={cn(
+                            "flex items-center gap-2 p-3.5 rounded-lg text-sm font-medium",
+                            potaFormMessage.type === 'success' 
+                              ? "bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300" 
+                              : "bg-red-50 text-red-800 border border-red-200 dark:bg-red-950/40 dark:text-red-300"
+                          )}>
+                            {potaFormMessage.type === 'success' ? (
+                              <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+                            ) : (
+                              <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
+                            )}
+                            <span>{potaFormMessage.text}</span>
+                          </div>
+                        )}
+
+                        <form onSubmit={handleDaftarPota} className="space-y-5">
+                          {/* 1. Pilih Anak Asuh */}
+                          <div className="space-y-2">
+                            <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                              1. Pilih Calon Anak Asuh Binaan
+                            </Label>
+                            {isLoadingAvailableAnak ? (
+                              <div className="p-4 text-xs text-zinc-500 text-center bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
+                                Memuat calon anak asuh binaan...
+                              </div>
+                            ) : availableAnakAsuh.length === 0 ? (
+                              <div className="p-4 text-xs text-zinc-500 text-center bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
+                                Saat ini seluruh ananda santri telah memiliki orang tua asuh aktif. Anda tetap dapat berdonasi rutin melalui tab Donasi.
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-72 overflow-y-auto p-1 pr-2">
+                                {availableAnakAsuh.map((anak) => {
+                                  const isSelected = selectedAnakId === anak.id;
+                                  return (
+                                    <div
+                                      key={anak.id}
+                                      onClick={() => setSelectedAnakId(anak.id)}
+                                      className={cn(
+                                        "p-3 rounded-xl border cursor-pointer transition-all flex items-start gap-3",
+                                        isSelected
+                                          ? "bg-emerald-50/80 border-emerald-500 ring-2 ring-emerald-500/20 dark:bg-emerald-950/30 dark:border-emerald-500"
+                                          : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-emerald-300"
+                                      )}
+                                    >
+                                      <div className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 font-bold text-sm flex items-center justify-center shrink-0">
+                                        {anak.nama?.charAt(0) || "A"}
+                                      </div>
+                                      <div className="min-w-0 flex-1">
+                                        <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                                          {anak.nama}
+                                        </p>
+                                        <p className="text-[11px] text-zinc-500 truncate mt-0.5">
+                                          {anak.tingkat_pendidikan || "Sekolah"} • {anak.jenis_kelamin}
+                                        </p>
+                                        <span className="inline-block mt-1 text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold">
+                                          {isSelected ? "✓ Dipilih" : "Klik untuk memilih"}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* 2. Nominal Komitmen Bulanan */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="nominal-pota" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                                2. Komitmen Donasi Bulanan (Rp)
+                              </Label>
+                              <div className="grid grid-cols-3 gap-2">
+                                {[100000, 250000, 500000].map((val) => (
+                                  <button
+                                    type="button"
+                                    key={val}
+                                    onClick={() => setNominalPota(val)}
+                                    className={cn(
+                                      "py-2 px-1 text-center rounded-lg text-xs font-bold border transition-all cursor-pointer",
+                                      nominalPota === val
+                                        ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                                        : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50"
+                                    )}
+                                  >
+                                    Rp {(val / 1000).toLocaleString('id-ID')}rb
+                                  </button>
+                                ))}
+                              </div>
+                              <Input
+                                id="nominal-pota"
+                                type="number"
+                                min={50000}
+                                step={10000}
+                                value={nominalPota || ""}
+                                onChange={(e) => setNominalPota(Number(e.target.value) || 0)}
+                                className="h-10 text-xs font-mono bg-white dark:bg-zinc-900"
+                                placeholder="Nominal lain, cth: 300000"
+                                required
+                              />
+                            </div>
+
+                            {/* 3. Tanggal Tagihan / Pengingat Setiap Bulan */}
+                            <div className="space-y-2">
+                              <Label htmlFor="hari-tagihan" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                                3. Jadwal Pengingat Salur (Tgl Setiap Bulan)
+                              </Label>
+                              <div className="grid grid-cols-3 gap-2">
+                                {[1, 5, 10].map((tgl) => (
+                                  <button
+                                    type="button"
+                                    key={tgl}
+                                    onClick={() => setHariTagihan(tgl)}
+                                    className={cn(
+                                      "py-2 px-1 text-center rounded-lg text-xs font-bold border transition-all cursor-pointer",
+                                      hariTagihan === tgl
+                                        ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                                        : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50"
+                                    )}
+                                  >
+                                    Tgl {tgl}
+                                  </button>
+                                ))}
+                              </div>
+                              <Input
+                                id="hari-tagihan"
+                                type="number"
+                                min={1}
+                                max={31}
+                                value={hariTagihan || ""}
+                                onChange={(e) => setHariTagihan(Number(e.target.value) || 1)}
+                                className="h-10 text-xs font-mono bg-white dark:bg-zinc-900"
+                                placeholder="Tanggal 1-31"
+                                required
+                              />
+                            </div>
+                          </div>
+
+                          {/* 4. Catatan Doa / Harapan Donatur */}
+                          <div className="space-y-2">
+                            <Label htmlFor="catatan-doa" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                              4. Pesan Doa / Harapan untuk Ananda (Opsional)
+                            </Label>
+                            <Input
+                              id="catatan-doa"
+                              type="text"
+                              value={catatanDoaPota}
+                              onChange={(e) => setCatatanDoaPota(e.target.value)}
+                              placeholder="Semoga ananda rajin belajar, sholeh/sholehah dan tercapai cita-citanya..."
+                              className="h-10 text-xs bg-white dark:bg-zinc-900"
+                              maxLength={500}
+                            />
+                          </div>
+
+                          <div className="pt-2 flex items-center justify-end gap-3">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => setShowPotaForm(false)}
+                              className="text-xs h-10 px-4"
+                            >
+                              Batal
+                            </Button>
+                            <Button
+                              type="submit"
+                              disabled={isSubmittingPota || !selectedAnakId}
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold h-10 px-6 cursor-pointer"
+                            >
+                              {isSubmittingPota ? "Menyimpan..." : "Konfirmasi Jadi Orang Tua Asuh"}
+                            </Button>
+                          </div>
+                        </form>
+                      </div>
+                    )}
+
                     {isLoadingPota ? (
                       <div className="py-12 text-center text-zinc-500">Memuat data anak asuh binaan...</div>
                     ) : anakAsuhSaya.length === 0 ? (
@@ -1124,8 +1424,14 @@ function ProfilContent() {
                         <p className="text-zinc-500 dark:text-zinc-400 max-w-sm mb-6">
                           Mari dampingi masa depan anak yatim & dhuafa melalui beasiswa rutin bulanan program Orang Tua Asuh (POTA).
                         </p>
-                        <Button onClick={() => router.push('/program')} className="bg-red-600 hover:bg-red-700 text-white rounded-full px-8 shadow-lg shadow-red-500/20">
-                          Pilih Anak Asuh
+                        <Button 
+                          onClick={() => {
+                            setShowPotaForm(true);
+                            fetchAvailableAnakAsuh();
+                          }} 
+                          className="bg-red-600 hover:bg-red-700 text-white rounded-full px-8 shadow-lg shadow-red-500/20 cursor-pointer font-bold"
+                        >
+                          Pilih Anak Asuh Sekarang
                         </Button>
                       </div>
                     ) : (
