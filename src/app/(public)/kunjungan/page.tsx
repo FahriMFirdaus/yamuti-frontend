@@ -67,9 +67,16 @@ export default function KunjunganPage() {
           "Accept": "application/json"
         }
       })
-      .then(res => res.json())
+      .then(res => {
+        if (res.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          return null;
+        }
+        return res.json();
+      })
       .then(data => {
-        if (data.success && data.data) {
+        if (data && data.success && data.data) {
           setValue("nama_tamu", data.data.name || "");
           setValue("no_whatsapp", data.data.no_hp || "");
         }

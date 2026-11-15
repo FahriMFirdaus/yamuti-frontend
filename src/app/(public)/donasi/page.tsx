@@ -55,9 +55,16 @@ function DonasiContent() {
           "Accept": "application/json"
         }
       })
-      .then(res => res.json())
+      .then(res => {
+        if (res.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          return null;
+        }
+        return res.json();
+      })
       .then(data => {
-        if (data.success && data.data) {
+        if (data && data.success && data.data) {
           // Hanya isi jika state masih kosong (menghindari penimpaan saat user sudah mengetik)
           setName(prev => prev ? prev : (data.data.name || ""));
           setWhatsapp(prev => prev ? prev : (data.data.no_hp || ""));

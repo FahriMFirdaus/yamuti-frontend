@@ -56,6 +56,13 @@ function CartContent() {
         }
       });
       
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        router.push("/login");
+        return;
+      }
+      
       const data = await res.json();
       if (data.success) {
         setItems(data.data);

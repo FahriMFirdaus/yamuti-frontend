@@ -32,6 +32,11 @@ function ResetPasswordContent() {
     
     if (urlToken) setToken(urlToken);
     if (urlEmail) setEmail(urlEmail);
+
+    // Bersihkan token sensitif dari URL history agar tidak bocor via Referer / screenshot
+    if (urlToken && typeof window !== "undefined" && window.history?.replaceState) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
   }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {

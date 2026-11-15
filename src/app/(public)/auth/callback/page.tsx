@@ -24,6 +24,10 @@ function AuthCallbackContent() {
 
       if (token) {
         localStorage.setItem("token", token);
+        // Bersihkan query string token dari window history agar tidak terekspos di browser history atau screenshot
+        if (typeof window !== "undefined" && window.history?.replaceState) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
         
         try {
           const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/me`, {
