@@ -23,7 +23,10 @@ import {
   FileText,
   School,
   GraduationCap,
-  Sparkles
+  Sparkles,
+  Eye,
+  EyeOff,
+  AlertCircle
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
@@ -78,11 +81,21 @@ function ProfilContent() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
+  // Password Form States
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState<{type: 'success'|'error', text: string} | null>(null);
+
   const itemsPerPage = 3;
 
   useEffect(() => {
     const tab = searchParams.get("tab");
-    if (tab === "donasi" || tab === "kunjungan") {
+    if (tab && ["profil", "donasi", "anak-asuh", "zakat", "kunjungan"].includes(tab)) {
       setActiveTab(tab);
     }
     
@@ -99,17 +112,79 @@ function ProfilContent() {
     }
   }, [searchParams]);
 
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordMessage(null);
+
+    if (!currentPassword) {
+      setPasswordMessage({ type: 'error', text: 'Kata sandi saat ini wajib diisi.' });
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setPasswordMessage({ type: 'error', text: 'Kata sandi baru minimal 8 karakter.' });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordMessage({ type: 'error', text: 'Konfirmasi kata sandi baru tidak cocok.' });
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    try {
+      const token = localStorage.getItem("token") || undefined;
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002/api"}/profile/password`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          current_password: currentPassword,
+          password: newPassword,
+          password_confirmation: confirmPassword
+        })
+      });
+
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.message || 'Gagal memperbarui kata sandi. Periksa kata sandi saat ini.');
+      }
+
+      setPasswordMessage({ type: 'success', text: 'Kata sandi berhasil diperbarui!' });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setTimeout(() => {
+        setPasswordMessage(null);
+        setIsPasswordOpen(false);
+      }, 3000);
+    } catch (err: any) {
+      setPasswordMessage({ type: 'error', text: err.message });
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+
   const fetchDonasi = async (page: number) => {
     setIsLoadingDonasi(true);
     try {
       const token = localStorage.getItem("token") || undefined;
       if (!token) return;
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/user/riwayat-donasi?page=${page}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002/api"}/user/riwayat-donasi?page=${page}`, {
         headers: {
           "Accept": "application/json",
           "Authorization": `Bearer ${token}`
         }
       });
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        router.push("/login");
+        return;
+      }
       if (res.ok) {
         const result = await res.json();
         const data = result.data?.data || [];
@@ -135,12 +210,18 @@ function ProfilContent() {
     try {
       const token = localStorage.getItem("token") || undefined;
       if (!token) return;
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/user/riwayat-kunjungan?page=${page}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002/api"}/user/riwayat-kunjungan?page=${page}`, {
         headers: {
           "Accept": "application/json",
           "Authorization": `Bearer ${token}`
         }
       });
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        router.push("/login");
+        return;
+      }
       if (res.ok) {
         const result = await res.json();
         const data = result.data?.data || [];
@@ -166,12 +247,18 @@ function ProfilContent() {
     setIsLoadingPota(true);
     try {
       const token = localStorage.getItem("token") || undefined;
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/orang-tua-asuh?per_page=100`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002/api"}/orang-tua-asuh?per_page=100`, {
         headers: {
           "Accept": "application/json",
           ...(token ? { "Authorization": `Bearer ${token}` } : {})
         }
       });
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        router.push("/login");
+        return;
+      }
       if (res.ok) {
         const json = await res.json();
         const potaData = json.data?.data || json.data || [];
@@ -242,7 +329,7 @@ function ProfilContent() {
       if (email) formData.append('email', email);
       if (selectedFile) formData.append('foto_identitas', selectedFile);
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/profile`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002/api"}/profile`, {
         method: "POST", // Harus POST untuk mengirim FormData di Laravel
         headers: {
           "Accept": "application/json",
@@ -254,6 +341,13 @@ function ProfilContent() {
       
       const result = await res.json();
       
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        router.push("/login");
+        return;
+      }
+
       if (!res.ok) {
         throw new Error(result.message || "Gagal memperbarui profil");
       }
@@ -298,8 +392,69 @@ function ProfilContent() {
           </Button>
         </div>
 
+        {/* Mobile Horizontal Pill Navigation (< lg) */}
+        <div className="lg:hidden mb-6">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+            <button
+              onClick={() => setActiveTab("profil")}
+              className={cn(
+                "flex items-center gap-2 whitespace-nowrap px-4 py-2.5 rounded-full text-sm font-semibold transition-all shrink-0 border",
+                activeTab === "profil"
+                  ? "bg-red-600 text-white border-red-600 shadow-sm shadow-red-500/20"
+                  : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50"
+              )}
+            >
+              <User className="h-4 w-4" /> Data Diri
+            </button>
+            <button
+              onClick={() => setActiveTab("donasi")}
+              className={cn(
+                "flex items-center gap-2 whitespace-nowrap px-4 py-2.5 rounded-full text-sm font-semibold transition-all shrink-0 border",
+                activeTab === "donasi"
+                  ? "bg-red-600 text-white border-red-600 shadow-sm shadow-red-500/20"
+                  : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50"
+              )}
+            >
+              <Heart className="h-4 w-4" /> Riwayat Donasi
+            </button>
+            <button
+              onClick={() => setActiveTab("anak-asuh")}
+              className={cn(
+                "flex items-center gap-2 whitespace-nowrap px-4 py-2.5 rounded-full text-sm font-semibold transition-all shrink-0 border",
+                activeTab === "anak-asuh"
+                  ? "bg-red-600 text-white border-red-600 shadow-sm shadow-red-500/20"
+                  : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50"
+              )}
+            >
+              <HeartHandshake className="h-4 w-4" /> Anak Asuh (POTA)
+            </button>
+            <button
+              onClick={() => setActiveTab("zakat")}
+              className={cn(
+                "flex items-center gap-2 whitespace-nowrap px-4 py-2.5 rounded-full text-sm font-semibold transition-all shrink-0 border",
+                activeTab === "zakat"
+                  ? "bg-red-600 text-white border-red-600 shadow-sm shadow-red-500/20"
+                  : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50"
+              )}
+            >
+              <Calculator className="h-4 w-4" /> Bayar Zakat
+            </button>
+            <button
+              onClick={() => setActiveTab("kunjungan")}
+              className={cn(
+                "flex items-center gap-2 whitespace-nowrap px-4 py-2.5 rounded-full text-sm font-semibold transition-all shrink-0 border",
+                activeTab === "kunjungan"
+                  ? "bg-red-600 text-white border-red-600 shadow-sm shadow-red-500/20"
+                  : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50"
+              )}
+            >
+              <CalendarDays className="h-4 w-4" /> Kunjungan
+            </button>
+          </div>
+        </div>
+
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar Menu */}
+          {/* Sidebar Menu (Desktop: full menu, Mobile: user card only) */}
           <div className="w-full lg:w-72 shrink-0 space-y-6">
             {/* User Info Card */}
             <Card className="border-zinc-200 shadow-sm dark:border-zinc-800">
@@ -344,8 +499,8 @@ function ProfilContent() {
               </CardContent>
             </Card>
 
-            {/* Navigation Menu */}
-            <Card className="border-zinc-200 shadow-sm dark:border-zinc-800">
+            {/* Navigation Menu (Hidden on mobile, shown on lg screens) */}
+            <Card className="hidden lg:block border-zinc-200 shadow-sm dark:border-zinc-800">
               <div className="flex flex-col p-2">
                 <button 
                   onClick={() => setActiveTab("profil")}
@@ -438,18 +593,28 @@ function ProfilContent() {
                       <div className="py-8 text-center text-zinc-500">Memuat data profil...</div>
                     )}
                     
-                    <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800/50 flex flex-col sm:flex-row items-center gap-4">
+                    <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800/50 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                       <Button 
                         onClick={handleUpdateProfile} 
                         disabled={isUpdating}
-                        className="h-11 w-full sm:w-auto px-8 bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                        className="h-11 w-full sm:w-auto px-8 bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 cursor-pointer font-semibold"
                       >
                         {isUpdating ? "Menyimpan..." : "Simpan Perubahan"}
                       </Button>
                       {updateMessage && (
-                        <span className={cn("text-sm font-semibold", updateMessage.type === 'success' ? "text-green-600" : "text-red-600")}>
-                          {updateMessage.text}
-                        </span>
+                        <div className={cn(
+                          "flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium w-full sm:w-auto",
+                          updateMessage.type === 'success' 
+                            ? "bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800" 
+                            : "bg-red-50 text-red-800 border border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800"
+                        )}>
+                          {updateMessage.type === 'success' ? (
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                          ) : (
+                            <AlertCircle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
+                          )}
+                          <span>{updateMessage.text}</span>
+                        </div>
                       )}
                     </div>
                   </CardContent>
@@ -472,24 +637,98 @@ function ProfilContent() {
                     <div className="border-t border-zinc-100 dark:border-zinc-800/50 animate-in slide-in-from-top-4 fade-in duration-300">
                       <CardContent className="pt-6">
                         {user?.has_password === true ? (
-                          <form className="space-y-6">
+                          <form onSubmit={handleUpdatePassword} className="space-y-6">
+                            {passwordMessage && (
+                              <div className={cn(
+                                "flex items-center gap-2 p-3.5 rounded-lg text-sm font-medium",
+                                passwordMessage.type === 'success' 
+                                  ? "bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800" 
+                                  : "bg-red-50 text-red-800 border border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800"
+                              )}>
+                                {passwordMessage.type === 'success' ? (
+                                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                ) : (
+                                  <AlertCircle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
+                                )}
+                                <span>{passwordMessage.text}</span>
+                              </div>
+                            )}
+
                             <div className="space-y-4">
                               <div className="space-y-2">
                                 <Label htmlFor="current-password" className="font-semibold text-zinc-700 dark:text-zinc-300">Kata Sandi Saat Ini</Label>
-                                <Input id="current-password" type="password" placeholder="Masukkan kata sandi saat ini" className="h-11 max-w-md bg-white dark:bg-zinc-900" />
+                                <div className="relative max-w-md">
+                                  <Input 
+                                    id="current-password" 
+                                    type={showCurrentPassword ? "text" : "password"} 
+                                    placeholder="Masukkan kata sandi saat ini" 
+                                    value={currentPassword}
+                                    onChange={(e) => setCurrentPassword(e.target.value)}
+                                    className="h-11 pr-10 bg-white dark:bg-zinc-900" 
+                                    required
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                                    aria-label={showCurrentPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
+                                  >
+                                    {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                  </button>
+                                </div>
                               </div>
                               <div className="space-y-2">
                                 <Label htmlFor="new-password" className="font-semibold text-zinc-700 dark:text-zinc-300">Kata Sandi Baru</Label>
-                                <Input id="new-password" type="password" placeholder="Masukkan kata sandi baru" className="h-11 max-w-md bg-white dark:bg-zinc-900" />
+                                <div className="relative max-w-md">
+                                  <Input 
+                                    id="new-password" 
+                                    type={showNewPassword ? "text" : "password"} 
+                                    placeholder="Minimal 8 karakter" 
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    className="h-11 pr-10 bg-white dark:bg-zinc-900" 
+                                    required
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowNewPassword(!showNewPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                                    aria-label={showNewPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
+                                  >
+                                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                  </button>
+                                </div>
                               </div>
                               <div className="space-y-2">
                                 <Label htmlFor="confirm-password" className="font-semibold text-zinc-700 dark:text-zinc-300">Konfirmasi Kata Sandi Baru</Label>
-                                <Input id="confirm-password" type="password" placeholder="Ketik ulang kata sandi baru" className="h-11 max-w-md bg-white dark:bg-zinc-900" />
+                                <div className="relative max-w-md">
+                                  <Input 
+                                    id="confirm-password" 
+                                    type={showConfirmPassword ? "text" : "password"} 
+                                    placeholder="Ketik ulang kata sandi baru" 
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    className="h-11 pr-10 bg-white dark:bg-zinc-900" 
+                                    required
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                                    aria-label={showConfirmPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
+                                  >
+                                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                  </button>
+                                </div>
                               </div>
                             </div>
                             <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800/50">
-                              <Button type="button" className="h-11 px-8 bg-red-600 hover:bg-red-700 text-white font-bold">
-                                Perbarui Kata Sandi
+                              <Button 
+                                type="submit" 
+                                disabled={isUpdatingPassword}
+                                className="h-11 px-8 bg-red-600 hover:bg-red-700 text-white font-bold cursor-pointer"
+                              >
+                                {isUpdatingPassword ? "Menyimpan..." : "Perbarui Kata Sandi"}
                               </Button>
                             </div>
                           </form>
@@ -922,7 +1161,7 @@ function ProfilContent() {
                                   const text = encodeURIComponent(
                                     `Assalamu'alaikum Pengurus YAMUTI, saya donatur orang tua asuh dari ananda ${pota.anak_asuh?.nama || 'binaan'}. Ingin menanyakan kabar & kebutuhan ananda saat ini.`
                                   );
-                                  window.open(`https://wa.me/6281234567890?text=${text}`, '_blank');
+                                  window.open(`https://wa.me/6281221650050?text=${text}`, '_blank');
                                 }}
                                 className="w-full text-xs text-emerald-700 border-emerald-300 hover:bg-emerald-50 dark:text-emerald-400"
                               >
