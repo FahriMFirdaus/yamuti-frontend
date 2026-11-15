@@ -69,11 +69,11 @@ export default function LupaPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-5rem)] flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden bg-zinc-50 dark:bg-zinc-950">
+    <div className="flex min-h-[calc(100dvh-5rem)] flex-col justify-center py-8 sm:py-12 sm:px-6 lg:px-8 relative overflow-hidden bg-zinc-50 dark:bg-zinc-950">
       
-      {/* Background Ornaments */}
-      <div className="absolute -top-40 -left-40 w-96 h-96 bg-red-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-amber-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+      {/* Background Subtle Gradient Blobs */}
+      <div className="pointer-events-none absolute -top-40 -left-40 w-96 h-96 bg-red-500/10 dark:bg-red-600/10 rounded-full blur-3xl"></div>
+      <div className="pointer-events-none absolute -bottom-40 -right-40 w-96 h-96 bg-amber-500/10 dark:bg-amber-600/10 rounded-full blur-3xl"></div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
         <h2 className="text-center text-3xl font-extrabold text-zinc-900 dark:text-white">
@@ -88,13 +88,15 @@ export default function LupaPasswordPage() {
         <div className="bg-white dark:bg-zinc-900 py-8 px-4 shadow-2xl shadow-zinc-200/50 dark:shadow-black/50 sm:rounded-3xl sm:px-10 border border-zinc-200/50 dark:border-zinc-800/50 backdrop-blur-xl">
           <form className="space-y-6" noValidate onSubmit={handleSubmit}>
             <div className="space-y-2">
-              <Label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Alamat Email Terdaftar</Label>
+              <Label htmlFor="forgot-email" className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Alamat Email Terdaftar</Label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-zinc-400" />
                 </div>
                 <Input
+                  id="forgot-email"
                   type="email"
+                  autoComplete="email"
                   required
                   placeholder="Contoh: budi@gmail.com"
                   className="pl-10 h-12 rounded-xl bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 focus:border-red-400"

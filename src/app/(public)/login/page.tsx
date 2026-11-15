@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Lock, Mail } from "lucide-react";
+import { ArrowLeft, Lock, Mail, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const loginSchema = z.object({
@@ -21,6 +21,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof loginSchema>>({
@@ -95,11 +96,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-5rem)] flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden bg-zinc-50 dark:bg-zinc-950">
+    <div className="flex min-h-[calc(100dvh-5rem)] flex-col justify-center py-8 sm:py-12 sm:px-6 lg:px-8 relative overflow-hidden bg-zinc-50 dark:bg-zinc-950">
       
-      {/* Background Ornaments */}
-      <div className="absolute -top-40 -right-40 w-96 h-96 bg-red-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-      <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-red-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+      {/* Background Subtle Gradient Blobs */}
+      <div className="pointer-events-none absolute -top-40 -right-40 w-96 h-96 bg-red-500/10 dark:bg-red-600/10 rounded-full blur-3xl"></div>
+      <div className="pointer-events-none absolute -bottom-40 -left-40 w-96 h-96 bg-red-600/10 dark:bg-red-700/10 rounded-full blur-3xl"></div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
         <h2 className="text-center text-3xl font-extrabold text-zinc-900 dark:text-white">
@@ -149,13 +150,15 @@ export default function LoginPage() {
           <form className="space-y-6" noValidate onSubmit={handleSubmit(onSubmit)}>
             
             <div className="space-y-2">
-              <Label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Email</Label>
+              <Label htmlFor="login-email" className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Email</Label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-zinc-400" />
                 </div>
                 <Input
+                  id="login-email"
                   type="email"
+                  autoComplete="email"
                   placeholder="Contoh: budi@gmail.com"
                   className={cn("pl-10 h-12 rounded-xl bg-zinc-50 dark:bg-zinc-950 focus:border-red-400", errors.email ? "border-red-500 focus-visible:ring-red-500" : "border-zinc-200 dark:border-zinc-800")}
                   {...register("email")}
@@ -166,7 +169,7 @@ export default function LoginPage() {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Kata Sandi</Label>
+                <Label htmlFor="login-password" className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Kata Sandi</Label>
                 <div className="text-sm">
                   <Link href="/lupa-password" className="font-semibold text-red-600 hover:text-red-500">
                     Lupa sandi?
@@ -178,11 +181,25 @@ export default function LoginPage() {
                   <Lock className="h-5 w-5 text-zinc-400" />
                 </div>
                 <Input
-                  type="password"
+                  id="login-password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
                   placeholder="Masukkan kata sandi Anda"
-                  className={cn("pl-10 h-12 rounded-xl bg-zinc-50 dark:bg-zinc-950 focus:border-red-400", errors.password ? "border-red-500 focus-visible:ring-red-500" : "border-zinc-200 dark:border-zinc-800")}
+                  className={cn("pl-10 pr-12 h-12 rounded-xl bg-zinc-50 dark:bg-zinc-950 focus:border-red-400", errors.password ? "border-red-500 focus-visible:ring-red-500" : "border-zinc-200 dark:border-zinc-800")}
                   {...register("password")}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 focus:outline-none"
+                  aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
               </div>
               {errors.password && <p className="text-xs font-semibold text-red-500">{errors.password.message}</p>}
             </div>

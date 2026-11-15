@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CheckCircle2, Phone } from "lucide-react";
+import { CheckCircle2, Phone, XCircle } from "lucide-react";
 import { Card, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -147,10 +147,10 @@ function AuthCallbackContent() {
         {status === "error" && (
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-50 dark:bg-red-900/20">
-              <span className="text-3xl">❌</span>
+              <XCircle className="h-10 w-10 text-red-600 dark:text-red-400 animate-in zoom-in duration-500" />
             </div>
-            <CardTitle className="text-xl font-bold text-red-600">Autentikasi Gagal</CardTitle>
-            <CardDescription className="text-zinc-500">Gagal memproses sesi. Mengembalikan Anda ke halaman login...</CardDescription>
+            <CardTitle className="text-xl font-bold text-red-600 dark:text-red-400">Autentikasi Gagal</CardTitle>
+            <CardDescription className="text-zinc-500 dark:text-zinc-400">Gagal memproses sesi. Mengembalikan Anda ke halaman login...</CardDescription>
           </div>
         )}
       </Card>

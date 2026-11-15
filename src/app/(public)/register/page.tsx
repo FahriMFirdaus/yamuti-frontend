@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Link from "next/link";
-import { ArrowLeft, Lock, Mail, Phone, User, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Lock, Mail, Phone, User, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -30,6 +30,8 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof registerSchema>>({
@@ -122,11 +124,11 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-5rem)] flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden bg-zinc-50 dark:bg-zinc-950">
+    <div className="flex min-h-[calc(100dvh-5rem)] flex-col justify-center py-8 sm:py-12 sm:px-6 lg:px-8 relative overflow-hidden bg-zinc-50 dark:bg-zinc-950">
       
-      {/* Background Ornaments */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-red-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-red-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+      {/* Background Subtle Gradient Blobs */}
+      <div className="pointer-events-none absolute top-0 left-0 w-96 h-96 bg-red-500/10 dark:bg-red-600/10 rounded-full blur-3xl"></div>
+      <div className="pointer-events-none absolute bottom-0 right-0 w-96 h-96 bg-red-600/10 dark:bg-red-700/10 rounded-full blur-3xl"></div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
         <h2 className="text-center text-3xl font-extrabold text-zinc-900 dark:text-white">
@@ -175,13 +177,15 @@ export default function RegisterPage() {
           <form className="space-y-5" noValidate onSubmit={handleSubmit(onSubmit)}>
             
             <div className="space-y-2">
-              <Label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Nama Lengkap <span className="text-red-500">*</span></Label>
+              <Label htmlFor="reg-name" className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Nama Lengkap <span className="text-red-500">*</span></Label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <User className="h-5 w-5 text-zinc-400" />
                 </div>
                 <Input
+                  id="reg-name"
                   type="text"
+                  autoComplete="name"
                   placeholder="Contoh: Budi Santoso"
                   className={cn("pl-10 h-12 rounded-xl bg-zinc-50 dark:bg-zinc-950 focus:border-red-400", errors.name ? "border-red-500 focus-visible:ring-red-500" : "border-zinc-200 dark:border-zinc-800")}
                   {...register("name")}
@@ -191,13 +195,15 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Email <span className="text-red-500">*</span></Label>
+              <Label htmlFor="reg-email" className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Email <span className="text-red-500">*</span></Label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-zinc-400" />
                 </div>
                 <Input
+                  id="reg-email"
                   type="email"
+                  autoComplete="email"
                   placeholder="budi@gmail.com"
                   className={cn("pl-10 h-12 rounded-xl bg-zinc-50 dark:bg-zinc-950 focus:border-red-400", errors.email ? "border-red-500 focus-visible:ring-red-500" : "border-zinc-200 dark:border-zinc-800")}
                   {...register("email")}
@@ -207,13 +213,15 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">No. WhatsApp / HP <span className="text-red-500">*</span></Label>
+              <Label htmlFor="reg-phone" className="text-sm font-bold text-zinc-700 dark:text-zinc-300">No. WhatsApp / HP <span className="text-red-500">*</span></Label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Phone className="h-5 w-5 text-zinc-400" />
                 </div>
                 <Input
-                  type="text"
+                  id="reg-phone"
+                  type="tel"
+                  autoComplete="tel"
                   placeholder="Contoh: 08123456789"
                   className={cn("pl-10 h-12 rounded-xl bg-zinc-50 dark:bg-zinc-950 focus:border-red-400", errors.no_hp ? "border-red-500 focus-visible:ring-red-500" : "border-zinc-200 dark:border-zinc-800")}
                   {...register("no_hp")}
@@ -224,32 +232,60 @@ export default function RegisterPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Kata Sandi <span className="text-red-500">*</span></Label>
+                <Label htmlFor="reg-password" className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Kata Sandi <span className="text-red-500">*</span></Label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Lock className="h-5 w-5 text-zinc-400" />
                   </div>
                   <Input
-                    type="password"
-                    placeholder="Minimal 6 char"
-                    className={cn("pl-10 h-12 rounded-xl bg-zinc-50 dark:bg-zinc-950 focus:border-red-400", errors.password ? "border-red-500 focus-visible:ring-red-500" : "border-zinc-200 dark:border-zinc-800")}
+                    id="reg-password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    placeholder="Minimal 6 karakter"
+                    className={cn("pl-10 pr-12 h-12 rounded-xl bg-zinc-50 dark:bg-zinc-950 focus:border-red-400", errors.password ? "border-red-500 focus-visible:ring-red-500" : "border-zinc-200 dark:border-zinc-800")}
                     {...register("password")}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 focus:outline-none"
+                    aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
                 </div>
                 {errors.password && <p className="text-xs font-semibold text-red-500">{errors.password.message}</p>}
               </div>
               <div className="space-y-2">
-                <Label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Ulangi Sandi <span className="text-red-500">*</span></Label>
+                <Label htmlFor="reg-confirm-password" className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Ulangi Sandi <span className="text-red-500">*</span></Label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Lock className="h-5 w-5 text-zinc-400" />
                   </div>
                   <Input
-                    type="password"
+                    id="reg-confirm-password"
+                    type={showConfirmPassword ? "text" : "password"}
+                    autoComplete="new-password"
                     placeholder="Konfirmasi"
-                    className={cn("pl-10 h-12 rounded-xl bg-zinc-50 dark:bg-zinc-950 focus:border-red-400", errors.confirmPassword ? "border-red-500 focus-visible:ring-red-500" : "border-zinc-200 dark:border-zinc-800")}
+                    className={cn("pl-10 pr-12 h-12 rounded-xl bg-zinc-50 dark:bg-zinc-950 focus:border-red-400", errors.confirmPassword ? "border-red-500 focus-visible:ring-red-500" : "border-zinc-200 dark:border-zinc-800")}
                     {...register("confirmPassword")}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 focus:outline-none"
+                    aria-label={showConfirmPassword ? "Sembunyikan konfirmasi kata sandi" : "Tampilkan konfirmasi kata sandi"}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
                 </div>
                 {errors.confirmPassword && <p className="text-xs font-semibold text-red-500">{errors.confirmPassword.message}</p>}
               </div>
