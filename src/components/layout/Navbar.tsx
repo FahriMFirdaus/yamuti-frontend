@@ -97,7 +97,7 @@ export default function Navbar() {
               <span className="inline-block text-red-600 text-xl md:text-2xl font-extrabold tracking-tight leading-none">
                 YAMUTI
               </span>
-              <span className="inline-block text-zinc-900 dark:text-white text-[10px] md:text-xs font-bold tracking-[0.2em] leading-none mt-1">
+              <span className="inline-block text-zinc-900 dark:text-white text-xs font-bold tracking-[0.18em] leading-none mt-1">
                 TASIKMALAYA
               </span>
             </div>

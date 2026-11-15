@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Heart, Users, CheckCircle, ArrowRight, Quote, BookOpen, Share2, MapPin, Clock, Phone, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { Heart, Users, CheckCircle, ArrowRight, Quote, BookOpen, Share2, Check, MapPin, Clock, Phone, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { UrgentNeedsWidget } from "@/components/home/UrgentNeedsWidget";
 
 const ALL_PROGRAMS: Array<{
@@ -64,6 +64,7 @@ export default function Home() {
   const [randomArticles, setRandomArticles] = useState<typeof ALL_ARTICLES>([]);
   const [activeArticleIndex, setActiveArticleIndex] = useState(0);
   const [donorDoaList, setDonorDoaList] = useState<Array<{ id: string; nama: string; doa: string; role?: string; tanggal?: string }>>(ALL_DOA);
+  const [copiedProgramId, setCopiedProgramId] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
   
   // Quran API State
@@ -469,6 +470,7 @@ export default function Home() {
                           Donasi
                         </Link>
                         <button
+                          type="button"
                           onClick={() => {
                             const url = window.location.origin + '/program/' + (program.slug || program.id);
                             if (navigator.share) {
@@ -476,16 +478,29 @@ export default function Home() {
                                 title: program.judul,
                                 text: 'Mari bantu wujudkan harapan bersama YAMUTI Tasikmalaya untuk program ini.',
                                 url: url,
-                              }).catch(console.error);
-                            } else {
-                              navigator.clipboard.writeText(url);
-                              alert('Tautan program berhasil disalin!');
+                              }).catch(() => {});
+                            } else if (navigator.clipboard) {
+                              navigator.clipboard.writeText(url).then(() => {
+                                setCopiedProgramId(program.id);
+                                setTimeout(() => setCopiedProgramId(null), 2500);
+                              }).catch(() => {});
                             }
                           }}
-                          className={cn(buttonVariants({ variant: "outline", size: "icon" }), "rounded-xl h-[52px] w-[52px] flex-shrink-0 border-2 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 hover:text-red-600 hover:border-red-600 transition-colors")}
-                          title="Bagikan Program"
+                          className={cn(
+                            buttonVariants({ variant: "outline", size: "icon" }),
+                            "rounded-xl h-[52px] w-[52px] flex-shrink-0 border-2 transition-all duration-200",
+                            copiedProgramId === program.id
+                              ? "border-emerald-600 bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400"
+                              : "border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 hover:text-red-600 hover:border-red-600"
+                          )}
+                          title={copiedProgramId === program.id ? "Tautan Tersalin!" : "Bagikan Program"}
+                          aria-label="Bagikan Program"
                         >
-                          <Share2 className="h-5 w-5" />
+                          {copiedProgramId === program.id ? (
+                            <Check className="h-5 w-5 animate-in zoom-in-50 duration-200" />
+                          ) : (
+                            <Share2 className="h-5 w-5" />
+                          )}
                         </button>
                       </div>
                     </CardContent>

@@ -42,13 +42,13 @@ export default async function Footer() {
             <h3 className="mb-4 text-red-600 text-2xl font-extrabold tracking-tight">
               YAMUTI <span className="text-zinc-900 dark:text-white">Tasikmalaya</span>
             </h3>
-            <p className="max-w-xs text-sm text-zinc-500 dark:text-zinc-400">
-              Yayasan Mutiara Titipan Illahi Tasikmalaya. Bersama kita merajut asa, menebar manfaat, dan membangun masa depan gemilang bagi anak-anak panti asuhan.
+            <p className="max-w-xs text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              Yayasan Mutiara Titipan Illahi Tasikmalaya. Bersama merajut asa, menebar manfaat, dan mendampingi masa depan anak-anak panti asuhan.
             </p>
           </div>
           <div>
-            <h4 className="mb-4 font-semibold text-zinc-900 dark:text-zinc-100">Navigasi</h4>
-            <ul className="space-y-2 text-sm text-zinc-500 dark:text-zinc-400">
+            <h4 className="mb-4 font-bold text-zinc-900 dark:text-zinc-100">Navigasi</h4>
+            <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
               <li><Link href="/" className="hover:text-red-600 dark:hover:text-red-400 transition-colors">Beranda</Link></li>
               <li><Link href="/program" className="hover:text-red-600 dark:hover:text-red-400 transition-colors">Program Donasi</Link></li>
               <li><Link href="/kunjungan" className="hover:text-red-600 dark:hover:text-red-400 transition-colors">Jadwal Kunjungan</Link></li>
@@ -57,33 +57,33 @@ export default async function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="mb-4 font-semibold text-zinc-900 dark:text-zinc-100">Kontak</h4>
-            <ul className="space-y-2 text-sm text-zinc-500 dark:text-zinc-400">
+            <h4 className="mb-4 font-bold text-zinc-900 dark:text-zinc-100">Kontak</h4>
+            <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
               <li>
-                <span className="font-medium text-zinc-700 dark:text-zinc-300">Email:</span>{" "}
-                <a href={`mailto:${email}`} className="hover:text-red-600 transition-colors">
+                <span className="font-semibold text-zinc-800 dark:text-zinc-200">Email:</span>{" "}
+                <a href={`mailto:${email}`} className="hover:text-red-600 dark:hover:text-red-400 transition-colors underline-offset-4 hover:underline">
                   {email}
                 </a>
               </li>
               <li>
-                <span className="font-medium text-zinc-700 dark:text-zinc-300">No. HP Resmi:</span>{" "}
-                <a href={`tel:${noHpResmi.replace(/[^0-9+]/g, "")}`} className="hover:text-red-600 transition-colors">
+                <span className="font-semibold text-zinc-800 dark:text-zinc-200">No. HP Resmi:</span>{" "}
+                <a href={`tel:${noHpResmi.replace(/[^0-9+]/g, "")}`} className="hover:text-red-600 dark:hover:text-red-400 transition-colors">
                   {noHpResmi}
                 </a>
               </li>
               <li>
-                <span className="font-medium text-zinc-700 dark:text-zinc-300">WhatsApp Admin:</span>{" "}
-                <a href={waUrl} target="_blank" rel="noopener noreferrer" className="hover:text-red-600 transition-colors">
+                <span className="font-semibold text-zinc-800 dark:text-zinc-200">WhatsApp Admin:</span>{" "}
+                <a href={waUrl} target="_blank" rel="noopener noreferrer" className="hover:text-red-600 dark:hover:text-red-400 transition-colors underline-offset-4 hover:underline">
                   {noWaAdmin}
                 </a>
               </li>
               <li>
-                <span className="font-medium text-zinc-700 dark:text-zinc-300">Alamat:</span> {alamat}
+                <span className="font-semibold text-zinc-800 dark:text-zinc-200">Alamat:</span> {alamat}
               </li>
             </ul>
           </div>
         </div>
-        <div className="mt-12 border-t border-zinc-200 pt-8 text-center text-sm text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+        <div className="mt-12 border-t border-zinc-200 pt-8 text-center text-sm font-medium text-zinc-600 dark:border-zinc-800 dark:text-zinc-400">
           &copy; {new Date().getFullYear()} Yayasan Mutiara Titipan Illahi Tasikmalaya. Hak Cipta Dilindungi.
         </div>
       </div>

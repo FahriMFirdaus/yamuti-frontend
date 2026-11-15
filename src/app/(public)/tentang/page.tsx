@@ -48,28 +48,30 @@ export default function TentangKamiPage() {
                 Visi & Misi
               </h2>
               <div className="bg-white dark:bg-zinc-900 p-8 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800">
-                <h3 className="text-xl font-bold text-red-600 mb-4">Visi</h3>
-                <p className="text-lg italic text-zinc-700 dark:text-zinc-300 mb-8 border-l-4 border-amber-500 pl-4">
+                <h3 className="text-xl font-bold text-red-600 mb-2">Visi Kami</h3>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">Arah pengabdian yang menjadi landasan setiap langkah yayasan:</p>
+                <blockquote className="text-lg italic text-zinc-800 dark:text-zinc-200 mb-8 border-l-4 border-amber-500 pl-4 py-1 bg-amber-50/50 dark:bg-amber-950/20 rounded-r-xl">
                   "Menjadi Lembaga yang Amanah dan professional menuju Masyarakat yang Rahmatan lil alamiin."
-                </p>
+                </blockquote>
 
-                <h3 className="text-xl font-bold text-red-600 mb-4">Misi</h3>
-                <ul className="space-y-4 text-zinc-600 dark:text-zinc-400">
+                <h3 className="text-xl font-bold text-red-600 mb-2">Misi & Ikhtiar Nyata</h3>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">Langkah konkret kami dalam mendampingi anak-anak asuh dan melayani umat:</p>
+                <ul className="space-y-4 text-zinc-700 dark:text-zinc-300">
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="h-6 w-6 text-green-500 shrink-0" />
-                    <span>Membangun sumber daya insani yang amanah dan professional.</span>
+                    <CheckCircle className="h-6 w-6 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong>Membina Insan Berakhlak:</strong> Membangun sumber daya pengasuh dan santri yang amanah, mandiri, dan berkarakter islami.</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="h-6 w-6 text-green-500 shrink-0" />
-                    <span>Memantapkan positioning sebagai lembaga yang amanah dan professional.</span>
+                    <CheckCircle className="h-6 w-6 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong>Tata Kelola Terpercaya:</strong> Menjaga transparansi dan akuntabilitas pelaporan donasi secara profesional bagi para dermawan.</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="h-6 w-6 text-green-500 shrink-0" />
-                    <span>Menumbuhkembangkan kepedulian masyarakat kepada nilai-nilai kehidupan yang berorientasi pada kemanusiaan.</span>
+                    <CheckCircle className="h-6 w-6 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong>Menebar Kepedulian Sosial:</strong> Mengajak masyarakat luas untuk saling peduli dan berbagi kebahagiaan bersama anak-anak yatim dhuafa.</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="h-6 w-6 text-green-500 shrink-0" />
-                    <span>Menjadikan lembaga sebagai akselerator perubahan menuju peradaban rahmatan lil alamiin.</span>
+                    <CheckCircle className="h-6 w-6 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong>Mewujudkan Kemanfaatan Luas:</strong> Menjadi wadah kebaikan yang menghadirkan kasih sayang dan rahmat bagi seluruh alam (*rahmatan lil alamiin*).</span>
                   </li>
                 </ul>
               </div>
