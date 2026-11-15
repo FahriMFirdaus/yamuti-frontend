@@ -4,7 +4,8 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Trash2, ShoppingCart, ShieldCheck, ArrowRight, Wallet } from "lucide-react";
+import { Trash2, ShoppingCart, ShieldCheck, ArrowRight, Wallet, CheckCircle2, AlertCircle } from "lucide-react";
+import Script from "next/script";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -35,6 +36,8 @@ function CartContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [snapToken, setSnapToken] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Fetch Cart Items
   const fetchCart = async () => {
@@ -66,21 +69,11 @@ function CartContent() {
 
   useEffect(() => {
     fetchCart();
-    
-    // Load Midtrans Script
-    const script = document.createElement("script");
-    script.src = "https://app.sandbox.midtrans.com/snap/snap.js";
-    script.setAttribute("data-client-key", "SB-Mid-client-XXXXX"); // Replace with actual Client Key
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
   }, [router]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Hapus donasi ini dari keranjang?")) return;
+    setErrorMessage(null);
+    setDeletingId(id);
     
     try {
       const token = localStorage.getItem("token") || undefined;
@@ -93,19 +86,23 @@ function CartContent() {
       });
       
       if (res.ok) {
-        setItems(items.filter(item => item.id !== id));
-        // Update navbar badge by dispatching a storage event or reloading
+        setItems(prev => prev.filter(item => item.id !== id));
         window.dispatchEvent(new Event('storage'));
+      } else {
+        setErrorMessage("Gagal menghapus donasi dari keranjang.");
       }
-    } catch (error) {
-      alert("Gagal menghapus item.");
+    } catch {
+      setErrorMessage("Terjadi kesalahan jaringan saat menghapus.");
+    } finally {
+      setDeletingId(null);
     }
   };
 
   const handleCheckoutAll = async () => {
     if (items.length === 0) return;
-    
+    setErrorMessage(null);
     setIsProcessing(true);
+
     try {
       const token = localStorage.getItem("token") || undefined;
       const keranjangIds = items.map(item => item.id);
@@ -129,16 +126,15 @@ function CartContent() {
           // @ts-ignore
           window.snap.embed(data.data.snap_token, {
             embedId: 'snap-container',
-            onSuccess: function (result: any) {
-              alert("Pembayaran Berhasil! Terima kasih orang baik.");
+            onSuccess: function (_result: any) {
               router.push('/profil?tab=donasi');
             },
-            onPending: function (result: any) {
-              alert("Menunggu pembayaran Anda.");
+            onPending: function (_result: any) {
+              setErrorMessage("Menunggu pembayaran Anda diselesaikan.");
               router.push('/profil?tab=donasi');
             },
-            onError: function (result: any) {
-              alert("Pembayaran gagal. Silakan coba lagi.");
+            onError: function (_result: any) {
+              setErrorMessage("Pembayaran gagal atau dibatalkan. Silakan coba kembali.");
               setSnapToken(null);
             },
             onClose: function () {
@@ -147,10 +143,10 @@ function CartContent() {
           });
         }, 100);
       } else {
-        alert(data.message || "Gagal melakukan checkout");
+        setErrorMessage(data.message || "Gagal memproses checkout keranjang donasi.");
       }
-    } catch (error) {
-      alert("Terjadi kesalahan jaringan.");
+    } catch {
+      setErrorMessage("Terjadi kesalahan jaringan saat memproses donasi.");
     } finally {
       setIsProcessing(false);
     }
@@ -170,7 +166,14 @@ function CartContent() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-24">
+    <>
+      <Script 
+        src={process.env.NEXT_PUBLIC_MIDTRANS_SNAP_URL || "https://app.sandbox.midtrans.com/snap/snap.js"} 
+        data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "SB-Mid-client-DUMMY_KEY"}
+        strategy="lazyOnload"
+      />
+
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-24">
       <div className="bg-zinc-900 py-12 dark:bg-zinc-950 border-b border-zinc-800">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Keranjang Donasi</h1>
@@ -212,7 +215,14 @@ function CartContent() {
                           <h3 className="font-bold text-lg text-zinc-900 dark:text-white line-clamp-2">
                             {item.kampanye ? item.kampanye.judul : "Donasi Umum untuk Yayasan"}
                           </h3>
-                          <button onClick={() => handleDelete(item.id)} className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors shrink-0">
+                          <button 
+                            type="button"
+                            disabled={deletingId === item.id}
+                            onClick={() => handleDelete(item.id)} 
+                            className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors shrink-0 disabled:opacity-50"
+                            title="Hapus dari keranjang"
+                            aria-label="Hapus donasi"
+                          >
                             <Trash2 className="w-5 h-5" />
                           </button>
                         </div>
@@ -253,6 +263,13 @@ function CartContent() {
                       </div>
                     </div>
 
+                    {errorMessage && (
+                      <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/40 text-red-700 dark:text-red-400 text-sm flex items-start gap-2">
+                        <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                        <span>{errorMessage}</span>
+                      </div>
+                    )}
+
                     {snapToken ? (
                       <div className="mt-6 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
                          <div id="snap-container" className="w-full min-h-[400px]"></div>
@@ -279,7 +296,8 @@ function CartContent() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 

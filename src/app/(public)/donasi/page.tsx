@@ -23,6 +23,8 @@ function DonasiContent() {
   const [pesan, setPesan] = useState("");
   const [privacy, setPrivacy] = useState<"public" | "initial" | "anonymous">("public");
   const [isRutin, setIsRutin] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [cartSuccessMessage, setCartSuccessMessage] = useState<string | null>(null);
 
   const [snapToken, setSnapToken] = useState<string | null>(null);
 
@@ -104,23 +106,26 @@ function DonasiContent() {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   const handlePayment = async (isDraft = false) => {
+    setFormError(null);
+    setCartSuccessMessage(null);
+
     if (amount === 0) {
-      alert("Silakan pilih atau masukkan nominal donasi terlebih dahulu.");
+      setFormError("Silakan pilih atau masukkan nominal donasi terlebih dahulu.");
       return;
     }
 
     if (amount < 10000) {
-      alert("Minimal donasi adalah Rp 10.000.");
+      setFormError("Minimal nominal donasi adalah Rp 10.000.");
       return;
     }
     
     if (!whatsapp) {
-      alert("Mohon lengkapi No. WhatsApp Anda pada bagian 'Data Donatur' terlebih dahulu.");
+      setFormError("Mohon isi nomor WhatsApp Anda agar kami dapat mengirimkan bukti/laporan donasi.");
       return;
     }
     
     if (whatsapp.length < 9 || whatsapp.length > 15) {
-      alert("Nomor WhatsApp harus terdiri dari 9 hingga 15 digit.");
+      setFormError("Nomor WhatsApp harus terdiri dari 9 hingga 15 digit angka.");
       return;
     }
 
@@ -167,9 +172,9 @@ function DonasiContent() {
       }
 
       if (isDraft) {
-        alert("Berhasil ditambahkan ke Keranjang Donasi!");
-        // Refresh halaman atau trigger update navbar bisa dilakukan dengan window location
-        window.location.reload();
+        setCartSuccessMessage("Donasi berhasil disimpan ke Keranjang!");
+        window.dispatchEvent(new Event('storage'));
+        setTimeout(() => setCartSuccessMessage(null), 4000);
         return;
       }
 
@@ -183,14 +188,14 @@ function DonasiContent() {
           // @ts-ignore
           window.snap.embed(token, {
             embedId: 'snap-container',
-            onSuccess: function (result: any) {
+            onSuccess: function (_result: any) {
               setIsSuccess(true);
             },
-            onPending: function (result: any) {
-              alert("Menunggu pembayaran Anda diselesaikan.");
+            onPending: function (_result: any) {
+              setFormError("Menunggu pembayaran Anda diselesaikan.");
             },
-            onError: function (result: any) {
-              alert("Pembayaran gagal. Silakan coba lagi.");
+            onError: function (_result: any) {
+              setFormError("Pembayaran gagal atau dibatalkan. Silakan coba lagi.");
               setSnapToken(null);
             },
             onClose: function () {
@@ -202,7 +207,7 @@ function DonasiContent() {
         throw new Error("Gagal mendapatkan Token Pembayaran dari server.");
       }
     } catch (error: any) {
-      alert(error.message);
+      setFormError(error.message || "Terjadi kesalahan saat memproses pembayaran.");
     } finally {
       setIsLoading(false);
     }
@@ -230,8 +235,8 @@ function DonasiContent() {
   return (
     <>
       <Script 
-        src="https://app.sandbox.midtrans.com/snap/snap.js" 
-        data-client-key="SB-Mid-client-DUMMY_KEY"
+        src={process.env.NEXT_PUBLIC_MIDTRANS_SNAP_URL || "https://app.sandbox.midtrans.com/snap/snap.js"} 
+        data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "SB-Mid-client-DUMMY_KEY"}
         strategy="lazyOnload"
       />
 
@@ -439,12 +444,25 @@ function DonasiContent() {
                     
                     <div className="pt-4 border-t border-dashed border-zinc-200 dark:border-zinc-800 mb-8">
                       <div className="flex flex-col gap-2">
-                        <span className="text-xs text-zinc-500">Total Sementara (Sebelum Biaya Payment Gateway)</span>
+                        <span className="text-xs text-zinc-500">Total Donasi (Metode pembayaran dapat dipilih di halaman Midtrans berikutnya)</span>
                         <span className="text-3xl font-black text-red-600 dark:text-red-400">
                           {formatRupiah(amount)}
                         </span>
                       </div>
                     </div>
+
+                    {formError && (
+                      <div className="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/40 text-red-700 dark:text-red-400 text-sm animate-in fade-in duration-200">
+                        {formError}
+                      </div>
+                    )}
+
+                    {cartSuccessMessage && (
+                      <div className="mb-6 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/40 text-emerald-700 dark:text-emerald-400 text-sm font-semibold animate-in fade-in duration-200 flex items-center gap-2">
+                        <CheckCircle2 className="w-5 h-5 shrink-0" />
+                        <span>{cartSuccessMessage}</span>
+                      </div>
+                    )}
 
                     <div className="flex flex-col sm:flex-row gap-3">
                       <Button 

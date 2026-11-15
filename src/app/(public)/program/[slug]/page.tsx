@@ -48,7 +48,7 @@ export default async function DetailProgramPage({ params }: { params: { slug: st
     <div className="min-h-screen bg-zinc-50 pb-24 dark:bg-zinc-950">
       <div className="relative h-[400px] w-full bg-zinc-900">
         <img 
-          src={campaign.thumbnail} 
+          src={campaign.thumbnail || "https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=1200&auto=format&fit=crop"} 
           alt={campaign.judul} 
           className="h-full w-full object-cover opacity-60"
         />
@@ -179,6 +179,27 @@ export default async function DetailProgramPage({ params }: { params: { slug: st
 
           </div>
 
+        </div>
+      </div>
+
+      {/* Mobile Sticky Bottom Action Bar */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800 p-4 shadow-2xl safe-area-bottom">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col min-w-0">
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">Terkumpul</span>
+            <span className="font-extrabold text-base text-red-600 dark:text-red-400 truncate">
+              Rp {terkumpul.toLocaleString('id-ID')}
+            </span>
+          </div>
+          <Link href={`/donasi?program=${campaign.slug}`} className="flex-1 max-w-[200px]">
+            <Button 
+              size="lg" 
+              disabled={isTercapai}
+              className="w-full h-12 rounded-xl bg-gradient-to-r from-red-600 to-amber-500 text-white font-bold text-sm shadow-md transition-all active:scale-95"
+            >
+              {isTercapai ? "Ditutup" : "Donasi Sekarang"}
+            </Button>
+          </Link>
         </div>
       </div>
     </div>
