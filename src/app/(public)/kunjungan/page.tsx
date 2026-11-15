@@ -36,6 +36,7 @@ export default function KunjunganPage() {
   const [timeSlots, setTimeSlots] = useState<{jam: string, is_available: boolean}[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [stepError, setStepError] = useState<string>("");
+  const [submitError, setSubmitError] = useState<string>("");
 
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -116,6 +117,7 @@ export default function KunjunganPage() {
 
   const onSubmit = async (data: KunjunganFormValues) => {
     setIsLoading(true);
+    setSubmitError("");
     
     const formattedDate = format(data.tanggal_kunjungan, "yyyy-MM-dd");
     const isFullDay = data.waktu_kunjungan === "FULL DAY";
@@ -151,7 +153,7 @@ export default function KunjunganPage() {
       console.log("Data Kunjungan berhasil dikirim:", resData);
       setIsSuccess(true);
     } catch (error: any) {
-      alert(error.message);
+      setSubmitError(error.message || "Terjadi kesalahan saat mengirim pengajuan kunjungan.");
     } finally {
       setIsLoading(false);
     }
@@ -167,8 +169,8 @@ export default function KunjunganPage() {
             </svg>
           </div>
           <CardTitle className="mb-2 text-2xl text-red-700 dark:text-red-400">Pengajuan Terkirim!</CardTitle>
-          <CardDescription className="text-zinc-600 dark:text-zinc-300 px-6 mt-4">
-            Terima kasih telah menjadwalkan kunjungan Anda ke Yayasan Mutiara Harapan. Admin kami akan memverifikasi dan menghubungi Anda kembali melalui WhatsApp sesegera mungkin.
+          <CardDescription className="text-zinc-600 dark:text-zinc-300 px-6 mt-4 leading-relaxed">
+            Terima kasih telah menjadwalkan kunjungan Anda ke Panti Asuhan YAMUTI Tasikmalaya. Admin kami akan memverifikasi dan menghubungi Anda kembali melalui WhatsApp sesegera mungkin.
           </CardDescription>
           <Button onClick={() => { setIsSuccess(false); setStep(1); setDate(undefined); setTime(""); }} variant="outline" className="mt-8 rounded-full">
             Ajukan Kunjungan Lain
@@ -401,6 +403,12 @@ export default function KunjunganPage() {
                   />
                   {errors.maksud && <p className="text-sm text-red-500">{errors.maksud.message}</p>}
                 </div>
+
+                {submitError && (
+                  <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/40 text-red-700 dark:text-red-400 text-sm animate-in fade-in duration-200">
+                    {submitError}
+                  </div>
+                )}
 
                 <Button
                   type="submit"

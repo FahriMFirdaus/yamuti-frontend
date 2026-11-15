@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Calendar, User, Tag } from "lucide-react";
+import { ArrowLeft, Calendar, User, Tag, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ShareButton } from "@/components/ui/share-button";
 import DOMPurify from "isomorphic-dompurify";
 
 interface ArtikelDetail {
@@ -50,6 +50,11 @@ export default async function DetailArtikelPage({ params }: { params: Promise<{ 
     year: 'numeric'
   });
 
+  // Estimasi waktu baca (~200 kata per menit)
+  const plainText = (artikel.konten || "").replace(/<[^>]*>?/gm, "").trim();
+  const wordCount = plainText.split(/\s+/).filter(Boolean).length;
+  const readTimeMinutes = Math.max(1, Math.ceil(wordCount / 200));
+
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-950 pb-24">
       {/* Hero Thumbnail */}
@@ -85,6 +90,10 @@ export default async function DetailArtikelPage({ params }: { params: Promise<{ 
                 {tanggal}
               </div>
               <div className="flex items-center">
+                <Clock className="w-4 h-4 mr-2" />
+                ~{readTimeMinutes} menit baca
+              </div>
+              <div className="flex items-center">
                 <User className="w-4 h-4 mr-2" />
                 {artikel.penulis?.name || "Admin YAMUTI"}
               </div>
@@ -98,14 +107,23 @@ export default async function DetailArtikelPage({ params }: { params: Promise<{ 
           <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(artikel.konten) }} />
         </div>
         
-        <div className="mt-12 flex items-center justify-between border-t border-zinc-200 dark:border-zinc-800 pt-8">
+        <div className="mt-12 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-zinc-200 dark:border-zinc-800 pt-8">
           <div className="flex items-center text-zinc-600 dark:text-zinc-400 font-medium">
             <Tag className="w-5 h-5 mr-2" />
             Kategori: <span className="text-zinc-900 dark:text-white ml-2">{artikel.kategori_artikel?.nama_kategori || (artikel as any).kategori_artikel?.nama || (artikel as any).kategori || "Berita"}</span>
           </div>
-          <Link href="/artikel" className="font-bold text-red-600 hover:text-red-700 hover:underline">
-            Baca Artikel Lainnya &rarr;
-          </Link>
+          
+          <div className="flex items-center gap-4">
+            <ShareButton 
+              url={`/artikel/${artikel.slug}`} 
+              title={artikel.judul} 
+              text={`Baca artikel menarik dari YAMUTI Tasikmalaya: ${artikel.judul}`}
+              className="h-10 px-4 rounded-xl text-xs font-semibold"
+            />
+            <Link href="/artikel" className="font-bold text-red-600 hover:text-red-700 hover:underline text-sm">
+              Artikel Lainnya &rarr;
+            </Link>
+          </div>
         </div>
       </div>
     </div>
