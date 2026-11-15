@@ -20,17 +20,14 @@ function AuthCallbackContent() {
 
   useEffect(() => {
     const handleCallback = async () => {
-      const token = searchParams.get("token");
+      // Ambil token dari query string atau fallback ke localStorage (misal setelah status need_phone)
+      const token = searchParams.get("token") || (typeof window !== "undefined" ? localStorage.getItem("token") : null);
 
       if (token) {
         localStorage.setItem("token", token);
-        // Bersihkan query string token dari window history agar tidak terekspos di browser history atau screenshot
-        if (typeof window !== "undefined" && window.history?.replaceState) {
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
         
         try {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/auth/me`, {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002/api"}/auth/me`, {
             headers: {
               "Accept": "application/json",
               "Authorization": `Bearer ${token}`
@@ -42,16 +39,21 @@ function AuthCallbackContent() {
             const userData = result.data || result; // Menyesuaikan dengan format response auth/me backend
             localStorage.setItem("user", JSON.stringify(userData));
             
-            // Interceptor logic
+            // Interceptor logic jika belum melengkapi nomor WhatsApp
             if (!userData.no_hp) {
               setStatus("need_phone");
-              return; // Berhenti di sini, tampilkan form
+              return; // Berhenti di sini, biarkan pengguna mengisi nomor WA
             }
           }
           
+          // Bersihkan query string token dari window history saat proses login selesai
+          if (typeof window !== "undefined" && window.history?.replaceState) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+
           setStatus("success");
           
-          // Redirect ke Beranda/Dashboard setelah 1.5 detik
+          // Redirect ke Beranda setelah 1.5 detik
           setTimeout(() => {
             window.location.href = "/";
           }, 1500);
@@ -116,7 +118,7 @@ function AuthCallbackContent() {
                 }
                 try {
                   const token = localStorage.getItem("token") || undefined;
-                  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/profile`, {
+                  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002/api"}/profile`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json", "Accept": "application/json", "Authorization": `Bearer ${token}` },
                     body: JSON.stringify({ no_hp: phoneInput })
