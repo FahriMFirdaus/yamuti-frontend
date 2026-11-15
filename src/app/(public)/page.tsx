@@ -254,80 +254,80 @@ export default function Home() {
   return (
     <div className="relative overflow-hidden bg-[#faf9f6] dark:bg-zinc-950 pb-24">
       {/* --- HERO SECTION: BESPOKE DESIGN --- */}
-      <section className="relative w-full pt-12 pb-24 lg:pt-24 lg:pb-32 overflow-hidden">
+      <section className="relative w-full pt-6 pb-16 sm:pt-10 sm:pb-20 lg:pt-20 lg:pb-28 overflow-hidden">
         {/* Soft blob background */}
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-[500px] h-[500px] rounded-full bg-amber-300/30 blur-[100px] dark:bg-amber-900/20" />
-        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-[600px] h-[600px] rounded-full bg-red-400/20 blur-[120px] dark:bg-red-900/20" />
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full bg-amber-300/30 blur-[80px] sm:blur-[100px] dark:bg-amber-900/20 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-[350px] h-[350px] sm:w-[600px] sm:h-[600px] rounded-full bg-red-400/20 blur-[90px] sm:blur-[120px] dark:bg-red-900/20 pointer-events-none" />
 
-        <div className="container relative z-10 mx-auto px-4 md:px-8 flex flex-col lg:flex-row items-center gap-12 lg:gap-8">
+        <div className="container relative z-10 mx-auto px-4 md:px-8 flex flex-col lg:flex-row items-center gap-8 sm:gap-10 lg:gap-8">
           
           {/* Left: Typography & CTA */}
-          <div className="flex-1 text-center lg:text-left space-y-8">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-red-600 shadow-sm border border-red-100 dark:bg-zinc-900 dark:border-zinc-800 dark:text-red-400">
-              <Heart className="h-4 w-4 animate-pulse" />
+          <div className="flex-1 text-center lg:text-left space-y-5 sm:space-y-6">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-red-600 shadow-sm border border-red-100 dark:bg-zinc-900 dark:border-zinc-800 dark:text-red-400">
+              <Heart className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-pulse text-red-600" />
               <span>Bersama Membangun Harapan</span>
             </div>
             
-            <h1 className="text-5xl font-extrabold tracking-tight text-zinc-900 dark:text-white md:text-6xl lg:text-7xl leading-[1.1]">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-zinc-900 dark:text-white leading-[1.2] sm:leading-[1.15]">
               Wujudkan <span className="text-red-600">Masa Depan</span> Cerah Untuk Mereka.
             </h1>
             
-            <p className="text-lg md:text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+            <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
               YAMUTI Tasikmalaya hadir sebagai jembatan kebaikan Anda. Setiap rupiah yang disalurkan menjadi senyum, pendidikan, dan kehidupan yang lebih layak bagi anak-anak asuh kami.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
+            <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start pt-2">
               <Link 
                 href="/program" 
-                className={cn(buttonVariants({ size: "lg" }), "h-14 px-8 text-lg rounded-full bg-red-600 hover:bg-red-700 text-white shadow-xl shadow-red-500/30 transition-all hover:-translate-y-1")}
+                className={cn(buttonVariants({ size: "lg" }), "w-full sm:w-auto h-13 sm:h-14 px-8 text-base sm:text-lg rounded-2xl bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-500/25 transition-all hover:-translate-y-0.5 flex items-center justify-center")}
               >
                 Mulai Berdonasi <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
-              <div className="flex items-center gap-3 text-sm font-medium text-zinc-600 dark:text-zinc-400">
+              <div className="flex items-center gap-3 text-sm font-medium text-zinc-600 dark:text-zinc-400 pt-1 sm:pt-0">
                 <div className="flex -space-x-2.5">
-                  <div className="w-9 h-9 rounded-full border-2 border-white dark:border-zinc-950 bg-red-100 dark:bg-red-950/60 flex items-center justify-center text-red-600 dark:text-red-400 font-bold text-xs shadow-sm">
-                    <Heart className="w-4 h-4 fill-current" />
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-white dark:border-zinc-950 bg-red-100 dark:bg-red-950/60 flex items-center justify-center text-red-600 dark:text-red-400 font-bold text-xs shadow-sm">
+                    <Heart className="w-3.5 h-3.5 fill-current" />
                   </div>
-                  <div className="w-9 h-9 rounded-full border-2 border-white dark:border-zinc-950 bg-emerald-100 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-700 dark:text-emerald-400 font-bold text-xs shadow-sm">
-                    <Users className="w-4 h-4" />
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-white dark:border-zinc-950 bg-emerald-100 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-700 dark:text-emerald-400 font-bold text-xs shadow-sm">
+                    <Users className="w-3.5 h-3.5" />
                   </div>
-                  <div className="w-9 h-9 rounded-full border-2 border-white dark:border-zinc-950 bg-amber-500 text-white flex items-center justify-center font-black text-[11px] shadow-sm">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-white dark:border-zinc-950 bg-amber-500 text-white flex items-center justify-center font-black text-[10px] sm:text-[11px] shadow-sm">
                     {impactStats.totalDonatur}
                   </div>
                 </div>
-                <div className="flex flex-col">
+                <div className="flex flex-col text-left">
                   <span className="font-bold text-zinc-900 dark:text-zinc-100 text-xs">Donatur Terdaftar</span>
-                  <span className="text-[11px] text-zinc-500">Pemberi Manfaat</span>
+                  <span className="text-[10px] sm:text-[11px] text-zinc-500">Pemberi Manfaat</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Right: Bespoke Masonry Image Grid */}
-          <div className="flex-1 w-full max-w-lg lg:max-w-none relative">
-            <div className="grid grid-cols-2 gap-4 md:gap-6 relative z-10">
-              <div className="space-y-4 md:space-y-6 mt-12">
+          <div className="flex-1 w-full max-w-lg lg:max-w-none relative mt-4 lg:mt-0">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 relative z-10">
+              <div className="space-y-3 sm:space-y-4 md:space-y-6 mt-4 sm:mt-8 lg:mt-12">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img 
                   src={heroImages.fotoLogistik} 
                   alt="Kegiatan Penyaluran Logistik YAMUTI" 
-                  className="w-full h-48 md:h-64 object-cover rounded-3xl shadow-2xl" 
+                  className="w-full h-36 sm:h-48 md:h-64 object-cover rounded-2xl sm:rounded-3xl shadow-xl" 
                 />
-                <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl shadow-xl border border-zinc-100 dark:border-zinc-800">
-                  <h3 className="font-bold text-3xl text-red-600">{impactStats.anakAsuh}</h3>
-                  <p className="text-zinc-600 dark:text-zinc-400 font-medium">Anak Asuh Dibina</p>
+                <div className="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-lg border border-zinc-100 dark:border-zinc-800">
+                  <h3 className="font-extrabold text-2xl sm:text-3xl text-red-600">{impactStats.anakAsuh}</h3>
+                  <p className="text-zinc-600 dark:text-zinc-400 font-medium text-xs sm:text-sm">Anak Asuh Dibina</p>
                 </div>
               </div>
-              <div className="space-y-4 md:space-y-6">
-                <div className="bg-amber-400 p-6 rounded-3xl shadow-xl text-zinc-900">
-                  <Heart className="h-8 w-8 mb-4 opacity-80" />
-                  <h3 className="font-bold text-xl leading-tight">Berbagi Adalah Bukti Peduli</h3>
+              <div className="space-y-3 sm:space-y-4 md:space-y-6">
+                <div className="bg-amber-400 p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-lg text-zinc-900">
+                  <Heart className="h-6 w-6 sm:h-8 sm:w-8 mb-2 sm:mb-4 opacity-80" />
+                  <h3 className="font-bold text-base sm:text-xl leading-tight">Berbagi Adalah Bukti Peduli</h3>
                 </div>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img 
                   src={heroImages.fotoAnak} 
                   alt="Senyum Anak Asuh YAMUTI" 
-                  className="w-full h-56 md:h-72 object-cover rounded-3xl shadow-2xl" 
+                  className="w-full h-44 sm:h-56 md:h-72 object-cover rounded-2xl sm:rounded-3xl shadow-xl" 
                 />
               </div>
             </div>
@@ -336,51 +336,51 @@ export default function Home() {
       </section>
 
       {/* --- INSPIRASI AL-QURAN SECTION --- */}
-      <section className="relative my-12 mx-4 md:mx-8 rounded-[3rem] overflow-hidden shadow-2xl">
+      <section className="relative my-8 sm:my-12 mx-3 sm:mx-6 md:mx-8 rounded-2xl sm:rounded-[3rem] overflow-hidden shadow-xl sm:shadow-2xl">
         {/* Aesthetic Background Image (Floral/Nature) */}
         <div 
           className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: "url('https://images.unsplash.com/photo-1501183638710-841dd1904471?q=80&w=1600&auto=format&fit=crop')" }} 
         />
         {/* Glassmorphism Overlay */}
-        <div className="absolute inset-0 z-0 bg-white/80 dark:bg-zinc-950/85 backdrop-blur-md" />
+        <div className="absolute inset-0 z-0 bg-white/85 dark:bg-zinc-950/85 backdrop-blur-md" />
 
-        <div className="container relative z-10 mx-auto px-4 py-16 md:px-8 max-w-4xl text-center">
-          <div className="inline-flex items-center justify-center p-3 bg-red-50 dark:bg-zinc-900 text-red-600 dark:text-red-400 rounded-full mb-8 shadow-sm border border-red-100 dark:border-zinc-800">
-            <BookOpen className="h-8 w-8" />
+        <div className="container relative z-10 mx-auto px-4 py-10 sm:py-16 md:px-8 max-w-4xl text-center">
+          <div className="inline-flex items-center justify-center p-2.5 sm:p-3 bg-red-50 dark:bg-zinc-900 text-red-600 dark:text-red-400 rounded-full mb-6 sm:mb-8 shadow-sm border border-red-100 dark:border-zinc-800">
+            <BookOpen className="h-6 w-6 sm:h-8 sm:w-8" />
           </div>
           
           {loadingQuran ? (
-            <div className="animate-pulse space-y-6">
+            <div className="animate-pulse space-y-4 sm:space-y-6">
               <div className="h-8 bg-zinc-200 dark:bg-zinc-800 rounded-md w-3/4 mx-auto" />
               <div className="h-4 bg-zinc-200 dark:bg-zinc-800 rounded-md w-full mx-auto" />
               <div className="h-4 bg-zinc-200 dark:bg-zinc-800 rounded-md w-5/6 mx-auto" />
             </div>
           ) : quranData ? (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-              <Quote className="h-10 w-10 text-red-600/30 mx-auto rotate-180" />
+            <div className="space-y-4 sm:space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+              <Quote className="h-8 w-8 sm:h-10 sm:w-10 text-red-600/30 mx-auto rotate-180" />
               <p 
-                className="text-3xl md:text-5xl text-zinc-900 dark:text-zinc-100" 
+                className="text-2xl sm:text-3xl md:text-5xl text-zinc-900 dark:text-zinc-100 px-2" 
                 dir="rtl" 
                 lang="ar"
-                style={{ fontFamily: "var(--font-amiri-quran), serif", lineHeight: "2.2" }}
+                style={{ fontFamily: "var(--font-amiri-quran), serif", lineHeight: "2.1" }}
               >
                 {quranData.arabic}
               </p>
-              <div className="w-16 h-1 bg-red-600 mx-auto rounded-full my-6 opacity-70" />
-              <p className="text-lg text-zinc-700 dark:text-zinc-300 italic font-medium max-w-3xl mx-auto leading-relaxed">
+              <div className="w-12 sm:w-16 h-1 bg-red-600 mx-auto rounded-full my-4 sm:my-6 opacity-70" />
+              <p className="text-sm sm:text-base md:text-lg text-zinc-700 dark:text-zinc-300 italic font-medium max-w-3xl mx-auto leading-relaxed px-2">
                 "{quranData.terjemahan}"
               </p>
-              <Badge variant="outline" className="text-zinc-800 dark:text-zinc-200 border-zinc-300 dark:border-zinc-700 bg-white/50 dark:bg-zinc-900/50 px-4 py-1.5 mt-6 font-semibold shadow-sm backdrop-blur-sm">
+              <Badge variant="outline" className="text-zinc-800 dark:text-zinc-200 border-zinc-300 dark:border-zinc-700 bg-white/50 dark:bg-zinc-900/50 px-3 py-1 sm:px-4 sm:py-1.5 mt-4 sm:mt-6 text-xs sm:text-sm font-semibold shadow-sm backdrop-blur-sm">
                 QS. {quranData.surah} : {quranData.nomor}
               </Badge>
             </div>
           ) : (
-            <div className="space-y-6">
-              <p className="text-lg text-zinc-700 dark:text-zinc-300 italic font-medium max-w-3xl mx-auto leading-relaxed">
+            <div className="space-y-4 sm:space-y-6">
+              <p className="text-sm sm:text-base md:text-lg text-zinc-700 dark:text-zinc-300 italic font-medium max-w-3xl mx-auto leading-relaxed px-2">
                 "Maka terhadap anak yatim janganlah engkau berlaku sewenang-wenang. Dan terhadap orang yang meminta-minta janganlah engkau menghardik(nya)."
               </p>
-              <Badge variant="outline" className="text-zinc-800 dark:text-zinc-200 border-zinc-300 dark:border-zinc-700 bg-white/50 dark:bg-zinc-900/50 px-4 py-1.5 mt-6 font-semibold shadow-sm backdrop-blur-sm">
+              <Badge variant="outline" className="text-zinc-800 dark:text-zinc-200 border-zinc-300 dark:border-zinc-700 bg-white/50 dark:bg-zinc-900/50 px-3 py-1 sm:px-4 sm:py-1.5 mt-4 sm:mt-6 text-xs sm:text-sm font-semibold shadow-sm backdrop-blur-sm">
                 QS. Ad-Duha : 9-10
               </Badge>
             </div>
@@ -513,18 +513,17 @@ export default function Home() {
       </section>
 
       {/* --- LATEST STORIES (BESPOKE LAYOUT) --- */}
-      <section className="container mx-auto px-4 md:px-8 mt-32 relative">
-        <div className="bg-white dark:bg-zinc-900 rounded-[3rem] p-8 md:p-12 lg:p-16 shadow-2xl border border-zinc-100 dark:border-zinc-800 flex flex-col lg:flex-row gap-12 items-center">
-          <div className="lg:w-1/3 space-y-6">
-            <h2 className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-white leading-tight">Cerita & Dampak Kebaikan Anda</h2>
-            <p className="text-zinc-600 dark:text-zinc-400 text-lg">Setiap donasi mengukir senyuman. Baca laporan kegiatan terbaru kami.</p>
-            <Link href="/artikel" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "rounded-full font-bold border-2")}>
+      <section className="container mx-auto px-4 md:px-8 mt-16 sm:mt-24 lg:mt-32 relative">
+        <div className="bg-white dark:bg-zinc-900 rounded-3xl sm:rounded-[3rem] p-6 sm:p-8 md:p-12 lg:p-16 shadow-xl sm:shadow-2xl border border-zinc-100 dark:border-zinc-800 flex flex-col lg:flex-row gap-8 sm:gap-12 items-center">
+          <div className="lg:w-1/3 space-y-4 sm:space-y-6 text-center lg:text-left w-full">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-900 dark:text-white leading-tight">Cerita & Dampak Kebaikan Anda</h2>
+            <p className="text-zinc-600 dark:text-zinc-400 text-sm sm:text-base md:text-lg">Setiap donasi mengukir senyuman. Baca laporan kegiatan terbaru kami.</p>
+            <Link href="/artikel" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "w-full sm:w-auto rounded-xl sm:rounded-full font-bold border-2")}>
               Baca Selengkapnya
             </Link>
           </div>
           
           <div className="lg:w-2/3 w-full">
-            {/* 3D Stacked Articles Slider with Prev/Next Navigation */}
             {isClient && (() => {
               const count = randomArticles.length;
               
@@ -542,25 +541,53 @@ export default function Home() {
 
               return (
                 <div className="relative w-full flex flex-col items-center">
-                  {/* Slider Viewport with Stacking */}
-                  <div className="relative w-full h-[360px] md:h-[400px] flex items-center justify-center overflow-hidden">
+                  {/* MOBILE VIEW: Clean Snap Horizontal Carousel (< md) */}
+                  <div className="flex md:hidden w-full overflow-x-auto snap-x snap-mandatory gap-4 pb-4 scrollbar-none px-1">
+                    {randomArticles.map((artikel) => (
+                      <div 
+                        key={artikel.id}
+                        className="w-[85vw] sm:w-[320px] flex-shrink-0 snap-center rounded-2xl overflow-hidden bg-zinc-900 relative shadow-lg h-[300px]"
+                      >
+                        <Link href={`/artikel/${artikel.slug}`} className="block w-full h-full relative group">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={artikel.thumbnail}
+                            alt={artikel.judul}
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
+                          <div className="absolute top-3.5 left-3.5">
+                            <Badge className="bg-red-600 text-white font-medium text-xs border-none px-2.5 py-0.5 shadow-sm">
+                              {artikel.kategori}
+                            </Badge>
+                          </div>
+                          <div className="absolute bottom-0 left-0 right-0 p-4 text-left">
+                            <h3 className="text-white font-bold text-base leading-snug line-clamp-2">
+                              {artikel.judul}
+                            </h3>
+                            <p className="text-zinc-300 text-xs mt-2 flex items-center justify-between">
+                              <span>{artikel.tanggal}</span>
+                              <span className="text-red-400 font-semibold inline-flex items-center gap-1">
+                                Baca &rarr;
+                              </span>
+                            </p>
+                          </div>
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* DESKTOP/TABLET VIEW: 3D Stacked Articles Slider (>= md) */}
+                  <div className="hidden md:flex relative w-full h-[360px] md:h-[400px] items-center justify-center overflow-hidden">
                     {randomArticles.map((artikel, idx) => {
-                      // Calculate offset relative to activeArticleIndex
                       let offset = idx - activeArticleIndex;
                       if (offset > count / 2) offset -= count;
                       if (offset < -count / 2) offset += count;
 
                       const isCenter = offset === 0;
-                      const isLeft = offset === -1;
-                      const isRight = offset === 1;
                       const isVisible = Math.abs(offset) <= 2;
-
                       if (!isVisible) return null;
 
-                      // Stacking transformation
-                      // Center: scale 1, zIndex 30, opacity 1
-                      // Side: scale 0.88, zIndex 20, shifted sideways, opacity 0.75
-                      // Further side: scale 0.78, zIndex 10, opacity 0.4
                       let translateX = "0%";
                       let scale = 1;
                       let zIndex = 30;
@@ -621,9 +648,7 @@ export default function Home() {
                           <Link
                             href={isCenter ? `/artikel/${artikel.slug}` : "#"}
                             onClick={(e) => {
-                              if (!isCenter) {
-                                e.preventDefault();
-                              }
+                              if (!isCenter) e.preventDefault();
                             }}
                             className="block w-full h-full relative group"
                           >
@@ -660,9 +685,9 @@ export default function Home() {
                     })}
                   </div>
 
-                  {/* Navigation Arrows & Pagination Dots */}
+                  {/* Navigation Arrows & Pagination Dots for Desktop */}
                   {count > 1 && (
-                    <div className="flex items-center justify-between w-full mt-4 px-2">
+                    <div className="hidden md:flex items-center justify-between w-full mt-4 px-2">
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
@@ -866,9 +891,9 @@ export default function Home() {
           }
 
           if (displayCount === 5) {
-            // Perfect 5-piece Bento (1 Large, 4 Small)
+            // Perfect 5-piece Bento (1 Large, 4 Small) - fluid height on mobile
             return (
-              <div className="grid grid-cols-2 md:grid-cols-4 md:grid-rows-2 gap-2 md:gap-4 h-[600px] md:h-[500px]">
+              <div className="grid grid-cols-2 md:grid-cols-4 md:grid-rows-2 gap-2.5 sm:gap-4 auto-rows-[160px] sm:auto-rows-[200px] md:h-[500px]">
                 {renderItem(randomGallery[0], "col-span-2 row-span-2")}
                 {renderItem(randomGallery[1], "col-span-1 row-span-1")}
                 {renderItem(randomGallery[2], "col-span-1 row-span-1")}
@@ -878,9 +903,9 @@ export default function Home() {
             );
           }
 
-          // 10 items (Massive Double Bento Grid)
+          // 10 items (Double Bento Grid) - fluid auto-rows on mobile
           return (
-            <div className="grid grid-cols-2 md:grid-cols-4 md:grid-rows-4 gap-2 md:gap-4 h-[1200px] md:h-[1000px]">
+            <div className="grid grid-cols-2 md:grid-cols-4 md:grid-rows-4 gap-2.5 sm:gap-4 auto-rows-[160px] sm:auto-rows-[180px] md:h-[1000px]">
               {/* TOP HALF: Large on Left, 4 Smalls on Right */}
               {renderItem(randomGallery[0], "col-span-2 row-span-2")}
               {renderItem(randomGallery[1], "col-span-1 row-span-1")}
@@ -889,8 +914,8 @@ export default function Home() {
               {renderItem(randomGallery[4], "col-span-1 row-span-1")}
               
               {/* BOTTOM HALF: 4 Smalls on Left, Large on Right */}
-              {renderItem(randomGallery[5], "col-span-1 row-span-1 hidden md:block")}
-              {renderItem(randomGallery[6], "col-span-1 row-span-1 hidden md:block")}
+              {renderItem(randomGallery[5], "col-span-1 row-span-1")}
+              {renderItem(randomGallery[6], "col-span-1 row-span-1")}
               {renderItem(randomGallery[7], "col-span-1 row-span-1 hidden md:block")}
               {renderItem(randomGallery[8], "col-span-1 row-span-1 hidden md:block")}
               {renderItem(randomGallery[9], "col-span-2 row-span-2 md:col-start-3 md:row-start-3")}

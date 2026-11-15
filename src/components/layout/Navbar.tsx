@@ -124,7 +124,7 @@ export default function Navbar() {
           </nav>
         </div>
         
-        <div className="flex items-center gap-3 lg:gap-4">
+        <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
           <ThemeToggle />
           
           {!user ? (
@@ -137,15 +137,15 @@ export default function Navbar() {
               </Link>
               <Link 
                 href="/donasi"
-                className={cn(buttonVariants(), "h-11 text-sm md:text-base px-6 md:px-8 bg-red-600 hover:bg-red-700 text-white rounded-full font-bold shadow-lg shadow-red-500/20 transition-all hover:shadow-red-500/40 hover:-translate-y-0.5")}
+                className={cn(buttonVariants(), "hidden sm:inline-flex h-10 sm:h-11 text-xs sm:text-base px-4 sm:px-8 bg-red-600 hover:bg-red-700 text-white rounded-full font-bold shadow-md shadow-red-500/20 transition-all hover:shadow-red-500/40 hover:-translate-y-0.5")}
               >
                 Donasi Sekarang
               </Link>
             </>
           ) : (
-            <div className="flex items-center gap-3 md:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
               {/* Keranjang Donasi */}
-              <Link href="/keranjang" className="relative p-2 text-zinc-600 hover:text-red-600 transition-colors bg-zinc-50 dark:bg-zinc-800 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20">
+              <Link href="/keranjang" className="relative p-2 text-zinc-600 hover:text-red-600 transition-colors bg-zinc-50 dark:bg-zinc-800 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20" aria-label="Keranjang Donasi">
                 <ShoppingCart className="h-5 w-5" />
                 {cartCount > 0 && (
                   <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-[11px] font-bold text-white shadow-sm ring-2 ring-white dark:ring-zinc-950">
@@ -156,14 +156,14 @@ export default function Navbar() {
 
               {/* User Dropdown */}
               <DropdownMenu>
-                <DropdownMenuTrigger className="flex items-center gap-2 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-1 pr-3 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors focus:outline-none">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 font-bold text-sm">
+                <DropdownMenuTrigger className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-1 sm:pr-3 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors focus:outline-none">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 font-bold text-xs sm:text-sm">
                     {getInitials(user.name)}
                   </div>
                   <span className="hidden md:inline-block text-sm font-semibold text-zinc-700 dark:text-zinc-300 truncate max-w-[120px]">
                     {user.name.split(" ")[0]}
                   </span>
-                  <ChevronDown className="h-4 w-4 text-zinc-400" />
+                  <ChevronDown className="h-4 w-4 text-zinc-400 hidden sm:inline-block" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-64 rounded-xl border-zinc-200 dark:border-zinc-800">
                   <div className="p-4 flex flex-col">
@@ -199,7 +199,7 @@ export default function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Donasi Button (Selalu Tampil) */}
+              {/* Donasi Button (Desktop) */}
               <Link 
                 href="/donasi"
                 className={cn(buttonVariants(), "hidden lg:flex h-11 text-sm md:text-base px-6 bg-red-600 hover:bg-red-700 text-white rounded-full font-bold shadow-lg shadow-red-500/20 transition-all hover:shadow-red-500/40 hover:-translate-y-0.5")}
@@ -212,7 +212,7 @@ export default function Navbar() {
           {/* Hamburger Button untuk Mobile */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="flex items-center justify-center p-2 rounded-lg text-zinc-600 hover:text-red-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:text-red-400 dark:hover:bg-zinc-800 md:hidden focus:outline-none transition-colors"
+            className="flex items-center justify-center w-10 h-10 rounded-xl text-zinc-700 hover:text-red-600 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:text-red-400 dark:hover:bg-zinc-800 md:hidden focus:outline-none transition-colors border border-zinc-200 dark:border-zinc-800"
             aria-label="Toggle Menu Navigasi"
           >
             {isMobileMenuOpen ? (
@@ -226,7 +226,15 @@ export default function Navbar() {
 
       {/* Mobile Navigation Drawer / Dropdown */}
       {isMobileMenuOpen && (
-        <div className="md:hidden border-t border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md px-4 pt-3 pb-6 space-y-3 animate-in slide-in-from-top-2 duration-200 shadow-xl">
+        <div className="md:hidden border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-4 pt-4 pb-8 space-y-4 animate-in slide-in-from-top-2 duration-200 shadow-2xl safe-area-bottom">
+          <Link
+            href="/donasi"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="flex sm:hidden items-center justify-center w-full h-12 rounded-xl text-base font-bold bg-red-600 hover:bg-red-700 text-white shadow-md shadow-red-500/20 transition-all"
+          >
+            Donasi Sekarang &rarr;
+          </Link>
+
           <nav className="flex flex-col space-y-1">
             <Link
               href="/"

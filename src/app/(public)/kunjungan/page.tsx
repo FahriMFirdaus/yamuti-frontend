@@ -183,59 +183,57 @@ export default function KunjunganPage() {
   return (
     <div className="min-h-screen bg-zinc-50 pb-24 dark:bg-zinc-950">
       {/* Header Section */}
-      <div className="relative bg-zinc-900 py-16 text-center dark:bg-zinc-950 overflow-hidden">
+      <div className="relative bg-zinc-900 py-12 sm:py-16 text-center dark:bg-zinc-950 overflow-hidden">
         <div className="absolute inset-0 z-0 pointer-events-none">
           <div className="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-red-600/20 blur-[120px]" />
           <div className="absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-rose-500/20 blur-[120px]" />
         </div>
         <div className="relative z-10 container mx-auto px-4">
-          <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl md:text-5xl">
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold tracking-tight text-white">
             Jadwalkan Kunjungan Anda
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-zinc-300">
+          <p className="mx-auto mt-3 sm:mt-4 max-w-2xl text-sm sm:text-base md:text-lg text-zinc-300 leading-relaxed">
             Kehadiran Anda adalah semangat baru bagi anak-anak asuh kami. Mari jadwalkan kunjungan Anda dan buat kenangan berharga bersama mereka.
           </p>
         </div>
       </div>
 
-      <div className="container mx-auto mt-16 px-4 flex justify-center">
-        <Card className="w-full max-w-3xl border-zinc-200 shadow-xl dark:border-zinc-800 rounded-3xl overflow-hidden bg-white dark:bg-zinc-900">
+      <div className="container mx-auto mt-8 sm:mt-16 px-3 sm:px-4 flex justify-center">
+        <Card className="w-full max-w-3xl border-zinc-200 shadow-xl dark:border-zinc-800 rounded-2xl sm:rounded-3xl overflow-hidden bg-white dark:bg-zinc-900">
           
           {/* Premium Step Indicator */}
-          <div className="flex justify-center pt-10 pb-2 bg-white dark:bg-zinc-900">
+          <div className="flex justify-center pt-6 sm:pt-10 pb-2 bg-white dark:bg-zinc-900">
             <div className="flex items-center space-x-2 md:space-x-4">
               <button 
                 onClick={() => step === 2 && setStep(1)}
-                className={cn("flex items-center gap-2 md:gap-3 px-4 py-2 rounded-full transition-all", step === 1 ? "bg-red-50 dark:bg-red-900/20 text-red-600" : "text-zinc-400 hover:text-zinc-600")}
+                className={cn("flex items-center gap-1.5 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full transition-all text-xs sm:text-sm md:text-base", step === 1 ? "bg-red-50 dark:bg-red-900/20 text-red-600 font-bold" : "text-zinc-400 hover:text-zinc-600 font-medium")}
               >
-                <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold", step === 1 ? "bg-red-600 text-white shadow-md shadow-red-500/30" : "bg-zinc-100 dark:bg-zinc-800")}>1</div>
-                <span className="font-bold text-sm md:text-base">Pilih Jadwal</span>
+                <div className={cn("w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold", step === 1 ? "bg-red-600 text-white shadow-md shadow-red-500/30" : "bg-zinc-100 dark:bg-zinc-800")}>1</div>
+                <span>Pilih Jadwal</span>
               </button>
               
-              <div className="w-8 md:w-16 h-1 rounded-full bg-zinc-100 dark:bg-zinc-800 relative overflow-hidden">
+              <div className="w-6 sm:w-16 h-1 rounded-full bg-zinc-100 dark:bg-zinc-800 relative overflow-hidden">
                 <div className="absolute top-0 left-0 h-full bg-red-600 transition-all duration-500 ease-in-out" style={{ width: step === 2 ? '100%' : '0%' }} />
               </div>
               
-              <div className={cn("flex items-center gap-2 md:gap-3 px-4 py-2 rounded-full transition-all", step === 2 ? "bg-red-50 dark:bg-red-900/20 text-red-600" : "text-zinc-400")}>
-                <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold", step === 2 ? "bg-red-600 text-white shadow-md shadow-red-500/30" : "bg-zinc-100 dark:bg-zinc-800")}>2</div>
-                <span className="font-bold text-sm md:text-base">Data Diri</span>
+              <div className={cn("flex items-center gap-1.5 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full transition-all text-xs sm:text-sm md:text-base", step === 2 ? "bg-red-50 dark:bg-red-900/20 text-red-600 font-bold" : "text-zinc-400 font-medium")}>
+                <div className={cn("w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold", step === 2 ? "bg-red-600 text-white shadow-md shadow-red-500/30" : "bg-zinc-100 dark:bg-zinc-800")}>2</div>
+                <span>Data Diri</span>
               </div>
             </div>
           </div>
 
-          <CardContent className="p-8">
+          <CardContent className="p-4 sm:p-6 md:p-8">
             {step === 1 && (
-              <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+              <div className="space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                 <div className="text-center">
-                  <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Kapan Anda ingin berkunjung?</h2>
-                  <p className="text-zinc-500 dark:text-zinc-400 mt-2">Pilih tanggal dan jam ketersediaan yang cocok untuk Anda.</p>
-                  
-
+                  <h2 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">Kapan Anda ingin berkunjung?</h2>
+                  <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1.5 sm:mt-2">Pilih tanggal dan jam ketersediaan yang cocok untuk Anda.</p>
                 </div>
                 
-                <div className="flex flex-col md:flex-row gap-8 justify-center items-start">
+                <div className="flex flex-col md:flex-row gap-6 sm:gap-8 justify-center items-stretch md:items-start">
                   {/* Kalender */}
-                  <div className="bg-white dark:bg-zinc-950 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm mx-auto">
+                  <div className="w-full md:w-auto flex justify-center bg-white dark:bg-zinc-950 p-2 sm:p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-x-auto">
                     <Calendar
                       mode="single"
                       selected={date}
@@ -247,12 +245,12 @@ export default function KunjunganPage() {
 
                   {/* Waktu */}
                   <div className="flex-1 w-full space-y-4">
-                    <h3 className="font-semibold text-zinc-700 dark:text-zinc-300">
+                    <h3 className="font-semibold text-zinc-700 dark:text-zinc-300 text-sm sm:text-base">
                       Slot Jam {date ? format(date, "d MMMM yyyy", { locale: idLocale }) : ""}
                     </h3>
                     
                     {!date ? (
-                      <div className="p-6 text-center border border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl text-zinc-400 text-sm">
+                      <div className="p-6 text-center border border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl text-zinc-400 text-xs sm:text-sm">
                         Pilih tanggal di kalender terlebih dahulu untuk melihat slot jam.
                       </div>
                     ) : isLoadingSlots ? (
@@ -262,7 +260,7 @@ export default function KunjunganPage() {
                       </div>
                     ) : timeSlots.length > 0 ? (
                       <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
                           {timeSlots.map((slot, i) => {
                             const isFullDayBtn = slot.jam === "FULL DAY";
                             const isSelected = !isCustomTime && time === slot.jam;
@@ -272,7 +270,7 @@ export default function KunjunganPage() {
                                 type="button"
                                 variant={isSelected ? "default" : "outline"}
                                 className={cn(
-                                  "h-12 rounded-xl border-zinc-200 dark:border-zinc-800 transition-all",
+                                  "min-h-[48px] h-12 rounded-xl border-zinc-200 dark:border-zinc-800 text-xs sm:text-sm transition-all",
                                   isFullDayBtn ? "col-span-2" : "",
                                   isSelected ? "bg-red-600 hover:bg-red-700 text-white ring-2 ring-red-600/20" : "",
                                   !slot.is_available ? "opacity-50 cursor-not-allowed bg-zinc-50 dark:bg-zinc-900" : "hover:border-red-400 hover:text-red-600"
@@ -284,7 +282,7 @@ export default function KunjunganPage() {
                                 }}
                               >
                                 {slot.jam}
-                                {!slot.is_available && <span className="ml-2 text-xs font-normal">(Penuh)</span>}
+                                {!slot.is_available && <span className="ml-1.5 text-xs font-normal">(Penuh)</span>}
                               </Button>
                             );
                           })}

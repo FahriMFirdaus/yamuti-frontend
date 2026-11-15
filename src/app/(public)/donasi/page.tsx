@@ -240,40 +240,40 @@ function DonasiContent() {
         strategy="lazyOnload"
       />
 
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-24 pt-32">
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-20 sm:pb-24 pt-24 sm:pt-32">
         <div className="container mx-auto px-4 max-w-6xl">
           
-          {/* Sederhana, Bersih, Profesional */}
-          <div className="mb-12">
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-white mb-3">
+          {/* Header Donasi Responsive */}
+          <div className="mb-8 sm:mb-12">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-white mb-2 sm:mb-3">
               Mulai <span className="text-red-600">Berdonasi</span>
             </h1>
-            <p className="text-lg text-zinc-500 dark:text-zinc-400 max-w-2xl">
+            <p className="text-sm sm:text-base md:text-lg text-zinc-500 dark:text-zinc-400 max-w-2xl leading-relaxed">
               Lengkapi detail di bawah ini. Proses pembayaran cepat, aman, dan transparan.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-start">
             
             {/* --- KIRI: FORMULIR DONASI (COL-SPAN 7) --- */}
-            <div className="lg:col-span-7 space-y-8">
+            <div className="lg:col-span-7 space-y-6 sm:space-y-8">
               
-              <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 md:p-8 shadow-sm border border-zinc-200 dark:border-zinc-800">
-                <div className="flex items-center gap-3 mb-6">
+              <div className="bg-white dark:bg-zinc-900 rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8 shadow-sm border border-zinc-200 dark:border-zinc-800">
+                <div className="flex items-center gap-3 mb-5 sm:mb-6">
                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 font-bold text-sm">1</div>
-                  <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Pilih Nominal</h2>
+                  <h2 className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-white">Pilih Nominal</h2>
                 </div>
                 
-                <div className="space-y-6">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="space-y-5 sm:space-y-6">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
                     {PRESET_AMOUNTS.map((preset) => (
                       <button
                         key={preset}
                         onClick={() => handleAmountClick(preset)}
                         className={cn(
-                          "py-3 px-2 rounded-xl border-2 text-sm font-bold transition-all",
+                          "min-h-[48px] py-2.5 px-2 rounded-xl border-2 text-xs sm:text-sm font-bold transition-all flex items-center justify-center text-center",
                           amount === preset && !customAmount
-                            ? "bg-red-50 border-red-500 text-red-700 dark:bg-red-900/20 dark:border-red-500 dark:text-red-400"
+                            ? "bg-red-50 border-red-500 text-red-700 dark:bg-red-900/20 dark:border-red-500 dark:text-red-400 shadow-sm"
                             : "bg-white border-zinc-200 text-zinc-600 hover:border-red-200 hover:bg-red-50/50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-400 dark:hover:border-red-900/50"
                         )}
                       >
@@ -304,10 +304,10 @@ function DonasiContent() {
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 md:p-8 shadow-sm border border-zinc-200 dark:border-zinc-800">
-                <div className="flex items-center gap-3 mb-6">
+              <div className="bg-white dark:bg-zinc-900 rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8 shadow-sm border border-zinc-200 dark:border-zinc-800">
+                <div className="flex items-center gap-3 mb-5 sm:mb-6">
                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 font-bold text-sm">2</div>
-                  <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Data Donatur</h2>
+                  <h2 className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-white">Data Donatur</h2>
                 </div>
                 
                 <div className="space-y-5">
@@ -410,14 +410,14 @@ function DonasiContent() {
             <div className="lg:col-span-5 space-y-6">
               
               {/* Box Ringkasan atau Midtrans Embed */}
-              <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-xl shadow-zinc-200/40 dark:shadow-black/40 border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+              <div className="bg-white dark:bg-zinc-900 rounded-2xl sm:rounded-3xl shadow-xl shadow-zinc-200/40 dark:shadow-black/40 border border-zinc-200 dark:border-zinc-800 overflow-hidden">
                 {snapToken ? (
                   // Midtrans Embed Container
-                  <div id="snap-container" className="w-full min-h-[500px] bg-white rounded-3xl" />
+                  <div id="snap-container" className="w-full min-h-[500px] bg-white rounded-2xl sm:rounded-3xl" />
                 ) : (
                   // Ringkasan Biasa
-                  <div className="p-6 md:p-8">
-                    <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-6 border-b border-zinc-100 dark:border-zinc-800 pb-4">
+                  <div className="p-5 sm:p-6 md:p-8">
+                    <h3 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-white mb-5 sm:mb-6 border-b border-zinc-100 dark:border-zinc-800 pb-3 sm:pb-4">
                       Ringkasan Donasi
                     </h3>
                     
@@ -425,7 +425,7 @@ function DonasiContent() {
                       <div className="flex justify-between items-start gap-4">
                         <span className="text-zinc-500 dark:text-zinc-400 text-sm">Jenis Donasi</span>
                         <div className="text-right">
-                          <span className="font-semibold text-zinc-900 dark:text-zinc-100 block">
+                          <span className="font-semibold text-zinc-900 dark:text-zinc-100 block text-sm sm:text-base">
                             {kampanye ? "Donasi Khusus Program" : "Donasi Umum"}
                           </span>
                           {kampanye && (
@@ -438,14 +438,14 @@ function DonasiContent() {
                       
                       <div className="flex justify-between items-center pt-2 border-t border-zinc-100 dark:border-zinc-800">
                         <span className="text-zinc-500 dark:text-zinc-400 text-sm">Nominal Donasi</span>
-                        <span className="font-semibold text-zinc-900 dark:text-zinc-100">{formatRupiah(amount)}</span>
+                        <span className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm sm:text-base">{formatRupiah(amount)}</span>
                       </div>
                     </div>
                     
-                    <div className="pt-4 border-t border-dashed border-zinc-200 dark:border-zinc-800 mb-8">
-                      <div className="flex flex-col gap-2">
+                    <div className="pt-4 border-t border-dashed border-zinc-200 dark:border-zinc-800 mb-6 sm:mb-8">
+                      <div className="flex flex-col gap-1.5">
                         <span className="text-xs text-zinc-500">Total Donasi (Metode pembayaran dapat dipilih di halaman Midtrans berikutnya)</span>
-                        <span className="text-3xl font-black text-red-600 dark:text-red-400">
+                        <span className="text-2xl sm:text-3xl font-black text-red-600 dark:text-red-400">
                           {formatRupiah(amount)}
                         </span>
                       </div>
@@ -464,10 +464,10 @@ function DonasiContent() {
                       </div>
                     )}
 
-                    <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="flex flex-col gap-3">
                       <Button 
                         size="lg" 
-                        className="flex-1 h-14 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-lg transition-all"
+                        className="w-full h-12 sm:h-14 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-base sm:text-lg transition-all"
                         onClick={() => handlePayment(false)}
                         disabled={isLoading}
                       >
@@ -484,7 +484,7 @@ function DonasiContent() {
                       <Button 
                         size="lg" 
                         variant="outline"
-                        className="flex-1 h-14 rounded-xl border-red-200 dark:border-red-900/30 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20 font-bold text-base transition-all"
+                        className="w-full h-12 sm:h-14 rounded-xl border-red-200 dark:border-red-900/30 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20 font-bold text-sm sm:text-base transition-all"
                         onClick={async () => {
                           setIsAddingToCart(true);
                           await handlePayment(true);
