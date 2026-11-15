@@ -1578,91 +1578,95 @@ function ProfilContent() {
                       </div>
                     )}
 
-                    {isLoadingPota ? (
-                      <div className="py-12 text-center text-zinc-500">Memuat data anak asuh binaan...</div>
-                    ) : anakAsuhSaya.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center p-12 text-center">
-                        <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4">
-                          <HeartHandshake className="w-8 h-8 text-red-500" />
-                        </div>
-                        <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">Belum Memiliki Anak Asuh Binaan</h3>
-                        <p className="text-zinc-500 dark:text-zinc-400 max-w-sm mb-6">
-                          Mari dampingi masa depan anak yatim & dhuafa melalui beasiswa rutin bulanan program Orang Tua Asuh (POTA).
-                        </p>
-                        <Button 
-                          onClick={() => {
-                            setShowPotaForm(true);
-                            fetchAvailableAnakAsuh();
-                          }} 
-                          className="bg-red-600 hover:bg-red-700 text-white rounded-full px-8 shadow-lg shadow-red-500/20 cursor-pointer font-bold"
-                        >
-                          Pilih Anak Asuh Sekarang
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {anakAsuhSaya.map((pota, idx) => (
-                          <div 
-                            key={pota.id || idx}
-                            className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 bg-gradient-to-br from-white to-zinc-50/50 dark:from-zinc-900 dark:to-zinc-950 shadow-sm hover:shadow-md transition-shadow"
-                          >
-                            <div className="flex items-start gap-4">
-                              <div className="h-16 w-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-700 font-bold text-xl shrink-0 border border-amber-200">
-                                {pota.anak_asuh?.nama?.charAt(0) || "A"}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
-                                  Status: {pota.status || "Aktif"}
-                                </span>
-                                <h4 className="font-bold text-base text-zinc-900 dark:text-zinc-100 mt-1 truncate">
-                                  {pota.anak_asuh?.nama || "Ananda Asuh"}
-                                </h4>
-                                <p className="text-xs text-zinc-500 flex items-center gap-1.5 mt-0.5">
-                                  <School className="w-3.5 h-3.5 text-zinc-400" />
-                                  {pota.anak_asuh?.tingkat_pendidikan || "Sekolah"} • {pota.anak_asuh?.nama_sekolah || "Tasikmalaya"}
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 space-y-2 text-xs">
-                              <div className="flex justify-between">
-                                <span className="text-zinc-500">Komitmen Donasi:</span>
-                                <span className="font-bold font-mono text-red-600 dark:text-red-400">
-                                  Rp {Number(pota.nominal_bulanan || 250000).toLocaleString('id-ID')} / bulan
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-zinc-500">Jadwal Salur Bulanan:</span>
-                                <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                                  Setiap Tanggal {pota.hari_tagihan_per_bulan || "1"}
-                                </span>
-                              </div>
-                            </div>
-
-                            {pota.catatan_doa && (
-                              <div className="mt-3 p-2.5 rounded-lg bg-zinc-100 dark:bg-zinc-800/60 text-[11px] text-zinc-600 dark:text-zinc-400 italic">
-                                &ldquo;{pota.catatan_doa}&rdquo;
-                              </div>
-                            )}
-
-                            <div className="mt-4 flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  const text = encodeURIComponent(
-                                    `Assalamu'alaikum Pengurus YAMUTI, saya donatur orang tua asuh dari ananda ${pota.anak_asuh?.nama || 'binaan'}. Ingin menanyakan kabar & kebutuhan ananda saat ini.`
-                                  );
-                                  window.open(`https://wa.me/6281221650050?text=${text}`, '_blank');
-                                }}
-                                className="w-full text-xs text-emerald-700 border-emerald-300 hover:bg-emerald-50 dark:text-emerald-400"
-                              >
-                                Hubungi Pembina Asrama
-                              </Button>
-                            </div>
+                    {/* Jika form registrasi POTA sedang aktif (showPotaForm = true), sembunyikan list atau empty-state di bawahnya */}
+                    {!showPotaForm && (
+                      isLoadingPota ? (
+                        <div className="py-12 text-center text-zinc-500">Memuat data anak asuh binaan...</div>
+                      ) : anakAsuhSaya.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center p-12 text-center">
+                          <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4">
+                            <HeartHandshake className="w-8 h-8 text-red-500" />
                           </div>
-                        ))}
-                      </div>
+                          <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">Belum Memiliki Anak Asuh Binaan</h3>
+                          <p className="text-zinc-500 dark:text-zinc-400 max-w-sm mb-6">
+                            Mari dampingi masa depan anak yatim & dhuafa melalui beasiswa rutin bulanan program Orang Tua Asuh (POTA).
+                          </p>
+                          <Button 
+                            onClick={() => {
+                              setShowPotaForm(true);
+                              setPotaStep(1);
+                              fetchAvailableAnakAsuh();
+                            }} 
+                            className="bg-red-600 hover:bg-red-700 text-white rounded-full px-8 shadow-lg shadow-red-500/20 cursor-pointer font-bold"
+                          >
+                            Pilih Anak Asuh Sekarang
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {anakAsuhSaya.map((pota, idx) => (
+                            <div 
+                              key={pota.id || idx}
+                              className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 bg-gradient-to-br from-white to-zinc-50/50 dark:from-zinc-900 dark:to-zinc-950 shadow-sm hover:shadow-md transition-shadow"
+                            >
+                              <div className="flex items-start gap-4">
+                                <div className="h-16 w-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-700 font-bold text-xl shrink-0 border border-amber-200">
+                                  {pota.anak_asuh?.nama?.charAt(0) || "A"}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+                                    Status: {pota.status || "Aktif"}
+                                  </span>
+                                  <h4 className="font-bold text-base text-zinc-900 dark:text-zinc-100 mt-1 truncate">
+                                    {pota.anak_asuh?.nama || "Ananda Asuh"}
+                                  </h4>
+                                  <p className="text-xs text-zinc-500 flex items-center gap-1.5 mt-0.5">
+                                    <School className="w-3.5 h-3.5 text-zinc-400" />
+                                    {pota.anak_asuh?.tingkat_pendidikan || "Sekolah"} • {pota.anak_asuh?.nama_sekolah || "Tasikmalaya"}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 space-y-2 text-xs">
+                                <div className="flex justify-between">
+                                  <span className="text-zinc-500">Komitmen Donasi:</span>
+                                  <span className="font-bold font-mono text-red-600 dark:text-red-400">
+                                    Rp {Number(pota.nominal_bulanan || 250000).toLocaleString('id-ID')} / bulan
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-zinc-500">Jadwal Salur Bulanan:</span>
+                                  <span className="font-medium text-zinc-700 dark:text-zinc-300">
+                                    Setiap Tanggal {pota.hari_tagihan_per_bulan || "1"}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {pota.catatan_doa && (
+                                <div className="mt-3 p-2.5 rounded-lg bg-zinc-100 dark:bg-zinc-800/60 text-[11px] text-zinc-600 dark:text-zinc-400 italic">
+                                  &ldquo;{pota.catatan_doa}&rdquo;
+                                </div>
+                              )}
+
+                              <div className="mt-4 flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    const text = encodeURIComponent(
+                                      `Assalamu'alaikum Pengurus YAMUTI, saya donatur orang tua asuh dari ananda ${pota.anak_asuh?.nama || 'binaan'}. Ingin menanyakan kabar & kebutuhan ananda saat ini.`
+                                    );
+                                    window.open(`https://wa.me/6281221650050?text=${text}`, '_blank');
+                                  }}
+                                  className="w-full text-xs text-emerald-700 border-emerald-300 hover:bg-emerald-50 dark:text-emerald-400"
+                                >
+                                  Hubungi Pembina Asrama
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )
                     )}
                   </CardContent>
                 </Card>
