@@ -91,6 +91,11 @@ function ProfilContent() {
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState<{type: 'success'|'error', text: string} | null>(null);
 
+  // Profile Form States (Controlled Inputs)
+  const [profileName, setProfileName] = useState("");
+  const [profileWhatsapp, setProfileWhatsapp] = useState("");
+  const [profileEmail, setProfileEmail] = useState("");
+
   const itemsPerPage = 3;
 
   useEffect(() => {
@@ -105,6 +110,9 @@ function ProfilContent() {
       try {
         const parsed = JSON.parse(userData);
         setUser(parsed);
+        setProfileName(parsed.name || "");
+        setProfileWhatsapp(parsed.no_hp || "");
+        setProfileEmail(parsed.email || "");
         if (parsed.foto_identitas) setPreviewUrl(parsed.foto_identitas);
       } catch (e) {
         // ignore
@@ -247,7 +255,7 @@ function ProfilContent() {
     setIsLoadingPota(true);
     try {
       const token = localStorage.getItem("token") || undefined;
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002/api"}/orang-tua-asuh?per_page=100`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002/api"}/user/orang-tua-asuh`, {
         headers: {
           "Accept": "application/json",
           ...(token ? { "Authorization": `Bearer ${token}` } : {})
@@ -261,14 +269,8 @@ function ProfilContent() {
       }
       if (res.ok) {
         const json = await res.json();
-        const potaData = json.data?.data || json.data || [];
-        // Filter pota milik user ini berdasarkan email/nama atau donatur jika ada kecocokan
-        const myPota = potaData.filter((p: any) => 
-          (user?.email && p.email?.toLowerCase() === user.email?.toLowerCase()) ||
-          (user?.no_hp && p.no_hp === user.no_hp)
-        );
-        // Jika belum ada data spesifik (karena belum terdaftar), sediakan daftar POTA atau contoh binaan jika terdaftar
-        setAnakAsuhSaya(myPota.length > 0 ? myPota : potaData.slice(0, 2));
+        const potaData = json.data || [];
+        setAnakAsuhSaya(potaData);
       }
     } catch (e) {
       console.error("Gagal load POTA", e);
@@ -305,9 +307,9 @@ function ProfilContent() {
   const handleUpdateProfile = async () => {
     if (!user) return;
     
-    const nama = (document.getElementById('nama') as HTMLInputElement)?.value;
-    const whatsapp = (document.getElementById('whatsapp') as HTMLInputElement)?.value;
-    const email = (document.getElementById('email') as HTMLInputElement)?.value;
+    const nama = profileName.trim();
+    const whatsapp = profileWhatsapp.trim();
+    const email = profileEmail.trim();
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
@@ -355,6 +357,9 @@ function ProfilContent() {
       // Update local storage and state with new user data
       localStorage.setItem("user", JSON.stringify(result.data));
       setUser(result.data);
+      setProfileName(result.data.name || "");
+      setProfileWhatsapp(result.data.no_hp || "");
+      setProfileEmail(result.data.email || "");
       if (result.data.foto_identitas) setPreviewUrl(result.data.foto_identitas);
       setUpdateMessage({ type: 'success', text: 'Profil berhasil diperbarui!' });
       
@@ -576,16 +581,32 @@ function ProfilContent() {
                         <div className="grid gap-6 sm:grid-cols-2">
                           <div className="space-y-2">
                             <Label htmlFor="nama" className="font-semibold text-zinc-700 dark:text-zinc-300">Nama Lengkap</Label>
-                            <Input id="nama" defaultValue={user.name} className="h-11 bg-white dark:bg-zinc-900" />
+                            <Input 
+                              id="nama" 
+                              value={profileName} 
+                              onChange={(e) => setProfileName(e.target.value)}
+                              className="h-11 bg-white dark:bg-zinc-900" 
+                            />
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="whatsapp" className="font-semibold text-zinc-700 dark:text-zinc-300">No. WhatsApp</Label>
-                            <Input id="whatsapp" defaultValue={user.no_hp || ""} className="h-11 bg-white dark:bg-zinc-900" />
+                            <Input 
+                              id="whatsapp" 
+                              value={profileWhatsapp} 
+                              onChange={(e) => setProfileWhatsapp(e.target.value)}
+                              className="h-11 bg-white dark:bg-zinc-900" 
+                            />
                           </div>
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="email" className="font-semibold text-zinc-700 dark:text-zinc-300">Alamat Email</Label>
-                          <Input id="email" type="email" defaultValue={user.email} className="h-11 bg-white dark:bg-zinc-900" />
+                          <Input 
+                            id="email" 
+                            type="email" 
+                            value={profileEmail} 
+                            onChange={(e) => setProfileEmail(e.target.value)}
+                            className="h-11 bg-white dark:bg-zinc-900" 
+                          />
                           <p className="text-xs text-zinc-500">Anda akan menerima pemberitahuan WhatsApp ke nomor terdaftar jika Anda mengubah alamat email.</p>
                         </div>
                       </>
