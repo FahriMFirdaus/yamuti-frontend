@@ -441,7 +441,7 @@ function ProfilContent() {
               className={cn(
                 "flex items-center gap-2 whitespace-nowrap px-4 py-2.5 rounded-full text-sm font-semibold transition-all shrink-0 border",
                 activeTab === "profil"
-                  ? "bg-red-600 text-white border-red-600 shadow-sm shadow-red-500/20"
+                  ? "bg-emerald-700 text-white border-emerald-700 shadow-sm shadow-emerald-700/20"
                   : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50"
               )}
             >
@@ -452,7 +452,7 @@ function ProfilContent() {
               className={cn(
                 "flex items-center gap-2 whitespace-nowrap px-4 py-2.5 rounded-full text-sm font-semibold transition-all shrink-0 border",
                 activeTab === "donasi"
-                  ? "bg-red-600 text-white border-red-600 shadow-sm shadow-red-500/20"
+                  ? "bg-emerald-700 text-white border-emerald-700 shadow-sm shadow-emerald-700/20"
                   : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50"
               )}
             >
@@ -463,7 +463,7 @@ function ProfilContent() {
               className={cn(
                 "flex items-center gap-2 whitespace-nowrap px-4 py-2.5 rounded-full text-sm font-semibold transition-all shrink-0 border",
                 activeTab === "anak-asuh"
-                  ? "bg-red-600 text-white border-red-600 shadow-sm shadow-red-500/20"
+                  ? "bg-emerald-700 text-white border-emerald-700 shadow-sm shadow-emerald-700/20"
                   : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50"
               )}
             >
@@ -474,7 +474,7 @@ function ProfilContent() {
               className={cn(
                 "flex items-center gap-2 whitespace-nowrap px-4 py-2.5 rounded-full text-sm font-semibold transition-all shrink-0 border",
                 activeTab === "zakat"
-                  ? "bg-red-600 text-white border-red-600 shadow-sm shadow-red-500/20"
+                  ? "bg-emerald-700 text-white border-emerald-700 shadow-sm shadow-emerald-700/20"
                   : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50"
               )}
             >
@@ -485,7 +485,7 @@ function ProfilContent() {
               className={cn(
                 "flex items-center gap-2 whitespace-nowrap px-4 py-2.5 rounded-full text-sm font-semibold transition-all shrink-0 border",
                 activeTab === "kunjungan"
-                  ? "bg-red-600 text-white border-red-600 shadow-sm shadow-red-500/20"
+                  ? "bg-emerald-700 text-white border-emerald-700 shadow-sm shadow-emerald-700/20"
                   : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50"
               )}
             >
@@ -504,7 +504,7 @@ function ProfilContent() {
                 <div className="relative w-max mx-auto mb-4">
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="relative flex h-24 w-24 cursor-pointer items-center justify-center rounded-full bg-gradient-to-br from-red-100 to-amber-100 text-3xl font-bold text-red-600 shadow-inner overflow-hidden dark:from-red-900/40 dark:to-amber-900/40 dark:text-red-400 group ring-4 ring-white dark:ring-zinc-950 hover:ring-red-100 dark:hover:ring-red-900/30 transition-all"
+                    className="relative flex h-24 w-24 cursor-pointer items-center justify-center rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 text-3xl font-bold text-emerald-800 shadow-inner overflow-hidden dark:from-emerald-950/40 dark:to-teal-950/40 dark:text-emerald-300 group ring-4 ring-white dark:ring-zinc-950 hover:ring-emerald-100 dark:hover:ring-emerald-900/30 transition-all"
                   >
                     {previewUrl ? (
                       <Image src={previewUrl} alt="Foto Profil" fill className="object-cover" />
@@ -518,7 +518,7 @@ function ProfilContent() {
                   </div>
                   {/* Pensil Icon Kecil di Sudut (Selalu Tampil) */}
                   <div
-                    className="absolute bottom-0 right-0 bg-red-600 rounded-full p-1.5 border-2 border-white dark:border-zinc-900 shadow-sm pointer-events-none"
+                    className="absolute bottom-0 right-0 bg-emerald-700 rounded-full p-1.5 border-2 border-white dark:border-zinc-900 shadow-sm pointer-events-none"
                   >
                     <Pencil className="h-3.5 w-3.5 text-white" />
                   </div>
@@ -534,7 +534,7 @@ function ProfilContent() {
 
                 <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{user?.name || "Memuat..."}</h2>
                 <p className="text-sm text-zinc-500">{user?.email || "..."}</p>
-                <div className="mt-4 inline-flex items-center rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-600 dark:bg-red-900/30 dark:text-red-400">
+                <div className="mt-4 inline-flex items-center rounded-full bg-emerald-50 px-3.5 py-1 text-xs font-bold text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/50">
                   Donatur Aktif
                 </div>
               </CardContent>
@@ -546,9 +546,9 @@ function ProfilContent() {
                 <button
                   onClick={() => setActiveTab("profil")}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-md text-sm font-semibold transition-all",
+                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer",
                     activeTab === 'profil'
-                      ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400"
+                      ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 font-bold"
                       : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800/50"
                   )}
                 >
@@ -557,9 +557,9 @@ function ProfilContent() {
                 <button
                   onClick={() => setActiveTab("donasi")}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-md text-sm font-semibold transition-all",
+                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer",
                     activeTab === 'donasi'
-                      ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400"
+                      ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 font-bold"
                       : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800/50"
                   )}
                 >
@@ -568,9 +568,9 @@ function ProfilContent() {
                 <button
                   onClick={() => setActiveTab("anak-asuh")}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-md text-sm font-semibold transition-all",
+                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer",
                     activeTab === 'anak-asuh'
-                      ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400"
+                      ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 font-bold"
                       : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800/50"
                   )}
                 >
@@ -579,9 +579,9 @@ function ProfilContent() {
                 <button
                   onClick={() => setActiveTab("zakat")}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-md text-sm font-semibold transition-all",
+                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer",
                     activeTab === 'zakat'
-                      ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400"
+                      ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 font-bold"
                       : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800/50"
                   )}
                 >
@@ -590,9 +590,9 @@ function ProfilContent() {
                 <button
                   onClick={() => setActiveTab("kunjungan")}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-md text-sm font-semibold transition-all",
+                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer",
                     activeTab === 'kunjungan'
-                      ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400"
+                      ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 font-bold"
                       : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800/50"
                   )}
                 >
@@ -783,7 +783,7 @@ function ProfilContent() {
                               <Button
                                 type="submit"
                                 disabled={isUpdatingPassword}
-                                className="h-11 px-8 bg-red-600 hover:bg-red-700 text-white font-bold cursor-pointer"
+                                className="h-11 px-8 bg-emerald-700 hover:bg-emerald-800 text-white font-bold cursor-pointer rounded-xl"
                               >
                                 {isUpdatingPassword ? "Menyimpan..." : "Perbarui Kata Sandi"}
                               </Button>
@@ -819,12 +819,12 @@ function ProfilContent() {
                       <div className="p-8 text-center text-zinc-500">Memuat riwayat donasi...</div>
                     ) : riwayatDonasi.length === 0 ? (
                       <div className="flex flex-col items-center justify-center p-12 text-center">
-                        <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4">
-                          <Heart className="w-8 h-8 text-red-500" />
+                        <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-full flex items-center justify-center mb-4">
+                          <Heart className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
                         </div>
                         <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">Belum Ada Riwayat Donasi</h3>
-                        <p className="text-zinc-500 dark:text-zinc-400 max-w-sm mb-6">Anda belum melakukan donasi apa pun. Mari mulai langkah kebaikan Anda hari ini dengan membantu anak-anak asuh kami.</p>
-                        <Button onClick={() => router.push('/donasi')} className="h-11 text-base font-semibold bg-red-600 hover:bg-red-700 text-white rounded-full px-8 shadow-lg shadow-red-500/20 transition-all hover:shadow-red-500/40 hover:-translate-y-0.5">
+                        <p className="text-zinc-500 dark:text-zinc-400 max-w-sm mb-6 text-sm">Anda belum melakukan donasi apa pun. Mari mulai langkah kebaikan Anda hari ini dengan membantu anak-anak asuh kami.</p>
+                        <Button onClick={() => router.push('/donasi')} className="h-11 text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white rounded-full px-8 shadow-sm transition-all cursor-pointer">
                           Donasi Sekarang
                         </Button>
                       </div>
@@ -845,13 +845,13 @@ function ProfilContent() {
                           </div>
                           <div className="flex items-center gap-4 sm:flex-col sm:items-end sm:gap-2">
                             <div className="flex items-center gap-3">
-                              <span className="font-extrabold text-red-600 text-lg dark:text-red-400">
+                              <span className="font-extrabold text-emerald-700 text-lg dark:text-emerald-400 font-mono">
                                 Rp {Number(donasi.gross_amount || donasi.nominal || 0).toLocaleString('id-ID')}
                               </span>
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="hidden sm:flex text-xs h-7 px-2 border-zinc-200 dark:border-zinc-800 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/30"
+                                className="hidden sm:flex text-xs h-7 px-2 border-zinc-200 dark:border-zinc-800 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/30"
                                 onClick={() => {
                                   setSelectedDonasi(donasi);
                                   setIsDonasiModalOpen(true);
@@ -996,7 +996,7 @@ function ProfilContent() {
                         </div>
                         <div>
                           <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Nominal</p>
-                          <p className="text-lg font-extrabold text-red-600 dark:text-red-400">
+                          <p className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">
                             Rp {Number(selectedDonasi.gross_amount || selectedDonasi.nominal || 0).toLocaleString('id-ID')}
                           </p>
                         </div>
@@ -1014,7 +1014,7 @@ function ProfilContent() {
                     {(selectedDonasi.status === 'pending' || selectedDonasi.status === 'Pending') && selectedDonasi.payment_url && (
                       <div className="pt-4 mt-2 border-t border-zinc-100 dark:border-zinc-800">
                         <Button
-                          className="w-full bg-red-600 hover:bg-red-700 text-white font-bold"
+                          className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold h-11 rounded-xl shadow-sm"
                           onClick={() => window.open(selectedDonasi.payment_url, '_blank')}
                         >
                           Lanjutkan Pembayaran
@@ -1040,12 +1040,12 @@ function ProfilContent() {
                       <div className="p-8 text-center text-zinc-500">Memuat jadwal kunjungan...</div>
                     ) : riwayatKunjungan.length === 0 ? (
                       <div className="flex flex-col items-center justify-center p-12 text-center">
-                        <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4">
-                          <CalendarDays className="w-8 h-8 text-red-500" />
+                        <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-full flex items-center justify-center mb-4">
+                          <CalendarDays className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
                         </div>
                         <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">Belum Ada Jadwal Kunjungan</h3>
-                        <p className="text-zinc-500 dark:text-zinc-400 max-w-sm mb-6">Anda belum pernah mengajukan jadwal kunjungan. Jadwalkan kehadiran Anda sekarang untuk bersilaturahmi dengan anak-anak asuh kami.</p>
-                        <Button onClick={() => router.push('/kunjungan')} className="h-11 text-base font-semibold bg-red-600 hover:bg-red-700 text-white rounded-full px-8 shadow-lg shadow-red-500/20 transition-all hover:shadow-red-500/40 hover:-translate-y-0.5">
+                        <p className="text-zinc-500 dark:text-zinc-400 max-w-sm mb-6 text-sm">Anda belum pernah mengajukan jadwal kunjungan. Jadwalkan kehadiran Anda sekarang untuk bersilaturahmi dengan anak-anak asuh kami.</p>
+                        <Button onClick={() => router.push('/kunjungan')} className="h-11 text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white rounded-full px-8 shadow-sm transition-all cursor-pointer">
                           Jadwalkan Kunjungan
                         </Button>
                       </div>
@@ -1081,7 +1081,7 @@ function ProfilContent() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="text-xs h-7 px-2 border-zinc-200 dark:border-zinc-800 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/30"
+                              className="text-xs h-7 px-2 border-zinc-200 dark:border-zinc-800 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/30"
                               onClick={() => {
                                 setSelectedKunjungan(kunjungan);
                                 setIsKunjunganModalOpen(true);
