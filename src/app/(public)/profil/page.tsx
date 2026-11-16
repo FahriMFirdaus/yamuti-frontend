@@ -7,19 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  User, 
-  Heart, 
-  CalendarDays, 
-  LogOut, 
-  CheckCircle2, 
-  Clock, 
-  Pencil, 
-  Camera, 
-  ChevronDown, 
-  Printer, 
-  HeartHandshake, 
-  Calculator, 
+import {
+  User,
+  Heart,
+  CalendarDays,
+  LogOut,
+  CheckCircle2,
+  Clock,
+  Pencil,
+  Camera,
+  ChevronDown,
+  Printer,
+  HeartHandshake,
+  Calculator,
   FileText,
   School,
   GraduationCap,
@@ -41,6 +41,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import Script from "next/script";
+import { PotaCard } from "@/components/pota/PotaCard";
+import { PotaReportModal } from "@/components/pota/PotaReportModal";
+import { PotaQuickPayModal } from "@/components/pota/PotaQuickPayModal";
 
 
 
@@ -52,7 +56,7 @@ function ProfilContent() {
   const [kunjunganPage, setKunjunganPage] = useState(1);
   const [user, setUser] = useState<any>(null);
   const [isPasswordOpen, setIsPasswordOpen] = useState(false);
-  
+
   // API states
   const [riwayatDonasi, setRiwayatDonasi] = useState<any[]>([]);
   const [donasiMeta, setDonasiMeta] = useState<any>(null);
@@ -69,18 +73,18 @@ function ProfilContent() {
   // Zakat Calculator
   const [penghasilanBulan, setPenghasilanBulan] = useState<number>(0);
   const [emasGram, setEmasGram] = useState<number>(0);
-  
+
   const [riwayatKunjungan, setRiwayatKunjungan] = useState<any[]>([]);
   const [kunjunganMeta, setKunjunganMeta] = useState<any>(null);
   const [isLoadingKunjungan, setIsLoadingKunjungan] = useState(false);
   const [selectedKunjungan, setSelectedKunjungan] = useState<any>(null);
   const [isKunjunganModalOpen, setIsKunjunganModalOpen] = useState(false);
-  
+
   // States for avatar upload
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Password Form States
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -89,7 +93,7 @@ function ProfilContent() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
-  const [passwordMessage, setPasswordMessage] = useState<{type: 'success'|'error', text: string} | null>(null);
+  const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   // Profile Form States (Controlled Inputs)
   const [profileName, setProfileName] = useState("");
@@ -104,8 +108,10 @@ function ProfilContent() {
   const [selectedAnakIds, setSelectedAnakIds] = useState<string[]>([]);
   const [childCommitments, setChildCommitments] = useState<Record<string, { nominal: number; hari: number; doa: string }>>({});
   const [activeChildModalDetail, setActiveChildModalDetail] = useState<any | null>(null);
+  const [selectedPotaForReport, setSelectedPotaForReport] = useState<any | null>(null);
+  const [selectedPotaForPay, setSelectedPotaForPay] = useState<any | null>(null);
   const [isSubmittingPota, setIsSubmittingPota] = useState(false);
-  const [potaFormMessage, setPotaFormMessage] = useState<{type: 'success'|'error', text: string} | null>(null);
+  const [potaFormMessage, setPotaFormMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   const itemsPerPage = 3;
 
@@ -114,7 +120,7 @@ function ProfilContent() {
     if (tab && ["profil", "donasi", "anak-asuh", "zakat", "kunjungan"].includes(tab)) {
       setActiveTab(tab);
     }
-    
+
     // Ambil data user dari localStorage
     const userData = localStorage.getItem("user");
     if (userData) {
@@ -432,11 +438,11 @@ function ProfilContent() {
   };
 
   const [isUpdating, setIsUpdating] = useState(false);
-  const [updateMessage, setUpdateMessage] = useState<{type: 'success'|'error', text: string} | null>(null);
+  const [updateMessage, setUpdateMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   const handleUpdateProfile = async () => {
     if (!user) return;
-    
+
     const nama = profileName.trim();
     const whatsapp = profileWhatsapp.trim();
     const email = profileEmail.trim();
@@ -449,10 +455,10 @@ function ProfilContent() {
 
     setIsUpdating(true);
     setUpdateMessage(null);
-    
+
     try {
       const token = localStorage.getItem("token") || undefined;
-      
+
       // Menggunakan FormData agar bisa mengirim file gambar ke backend Laravel
       const formData = new FormData();
       formData.append('_method', 'PUT'); // Trick Laravel untuk method PUT menggunakan POST
@@ -470,9 +476,9 @@ function ProfilContent() {
         },
         body: formData
       });
-      
+
       const result = await res.json();
-      
+
       if (res.status === 401) {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
@@ -483,7 +489,7 @@ function ProfilContent() {
       if (!res.ok) {
         throw new Error(result.message || "Gagal memperbarui profil");
       }
-      
+
       // Update local storage and state with new user data
       localStorage.setItem("user", JSON.stringify(result.data));
       setUser(result.data);
@@ -492,7 +498,7 @@ function ProfilContent() {
       setProfileEmail(result.data.email || "");
       if (result.data.foto_identitas) setPreviewUrl(result.data.foto_identitas);
       setUpdateMessage({ type: 'success', text: 'Profil berhasil diperbarui!' });
-      
+
       // Hide message after 3 seconds
       setTimeout(() => setUpdateMessage(null), 3000);
     } catch (err: any) {
@@ -505,7 +511,7 @@ function ProfilContent() {
   return (
     <div className="min-h-screen bg-zinc-50/50 pb-24 pt-12 dark:bg-zinc-950">
       <div className="container mx-auto px-4 md:px-8 max-w-6xl">
-        
+
         {/* Page Header */}
         <div className="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-zinc-200 pb-6 dark:border-zinc-800">
           <div>
@@ -514,8 +520,8 @@ function ProfilContent() {
             </h1>
             <p className="text-zinc-500 mt-2 text-base">Kelola informasi pribadi dan pantau jejak kebaikan Anda.</p>
           </div>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => {
               localStorage.removeItem("token");
               localStorage.removeItem("user");
@@ -596,7 +602,7 @@ function ProfilContent() {
               <CardContent className="p-6 text-center">
                 {/* Avatar / Foto Profil (Clickable) */}
                 <div className="relative w-max mx-auto mb-4">
-                  <div 
+                  <div
                     onClick={() => fileInputRef.current?.click()}
                     className="relative flex h-24 w-24 cursor-pointer items-center justify-center rounded-full bg-gradient-to-br from-red-100 to-amber-100 text-3xl font-bold text-red-600 shadow-inner overflow-hidden dark:from-red-900/40 dark:to-amber-900/40 dark:text-red-400 group ring-4 ring-white dark:ring-zinc-950 hover:ring-red-100 dark:hover:ring-red-900/30 transition-all"
                   >
@@ -611,19 +617,19 @@ function ProfilContent() {
                     </div>
                   </div>
                   {/* Pensil Icon Kecil di Sudut (Selalu Tampil) */}
-                  <div 
+                  <div
                     className="absolute bottom-0 right-0 bg-red-600 rounded-full p-1.5 border-2 border-white dark:border-zinc-900 shadow-sm pointer-events-none"
                   >
                     <Pencil className="h-3.5 w-3.5 text-white" />
                   </div>
                 </div>
                 {/* Hidden File Input */}
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  onChange={handleFileChange} 
-                  accept="image/*" 
-                  className="hidden" 
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  className="hidden"
                 />
 
                 <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{user?.name || "Memuat..."}</h2>
@@ -637,56 +643,56 @@ function ProfilContent() {
             {/* Navigation Menu (Hidden on mobile, shown on lg screens) */}
             <Card className="hidden lg:block border-zinc-200 shadow-sm dark:border-zinc-800">
               <div className="flex flex-col p-2">
-                <button 
+                <button
                   onClick={() => setActiveTab("profil")}
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 rounded-md text-sm font-semibold transition-all",
-                    activeTab === 'profil' 
-                      ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400" 
+                    activeTab === 'profil'
+                      ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400"
                       : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800/50"
                   )}
                 >
                   <User className="h-4 w-4" /> Data Diri Pribadi
                 </button>
-                <button 
+                <button
                   onClick={() => setActiveTab("donasi")}
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 rounded-md text-sm font-semibold transition-all",
-                    activeTab === 'donasi' 
-                      ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400" 
+                    activeTab === 'donasi'
+                      ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400"
                       : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800/50"
                   )}
                 >
                   <Heart className="h-4 w-4" /> Riwayat Donasi & Kwitansi
                 </button>
-                <button 
+                <button
                   onClick={() => setActiveTab("anak-asuh")}
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 rounded-md text-sm font-semibold transition-all",
-                    activeTab === 'anak-asuh' 
-                      ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400" 
+                    activeTab === 'anak-asuh'
+                      ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400"
                       : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800/50"
                   )}
                 >
                   <HeartHandshake className="h-4 w-4 text-emerald-600" /> Anak Asuh Binaan (POTA)
                 </button>
-                <button 
+                <button
                   onClick={() => setActiveTab("zakat")}
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 rounded-md text-sm font-semibold transition-all",
-                    activeTab === 'zakat' 
-                      ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400" 
+                    activeTab === 'zakat'
+                      ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400"
                       : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800/50"
                   )}
                 >
                   <Calculator className="h-4 w-4 text-amber-600" /> Hitung & Bayar Zakat
                 </button>
-                <button 
+                <button
                   onClick={() => setActiveTab("kunjungan")}
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 rounded-md text-sm font-semibold transition-all",
-                    activeTab === 'kunjungan' 
-                      ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400" 
+                    activeTab === 'kunjungan'
+                      ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400"
                       : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800/50"
                   )}
                 >
@@ -711,31 +717,31 @@ function ProfilContent() {
                         <div className="grid gap-6 sm:grid-cols-2">
                           <div className="space-y-2">
                             <Label htmlFor="nama" className="font-semibold text-zinc-700 dark:text-zinc-300">Nama Lengkap</Label>
-                            <Input 
-                              id="nama" 
-                              value={profileName} 
+                            <Input
+                              id="nama"
+                              value={profileName}
                               onChange={(e) => setProfileName(e.target.value)}
-                              className="h-11 bg-white dark:bg-zinc-900" 
+                              className="h-11 bg-white dark:bg-zinc-900"
                             />
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="whatsapp" className="font-semibold text-zinc-700 dark:text-zinc-300">No. WhatsApp</Label>
-                            <Input 
-                              id="whatsapp" 
-                              value={profileWhatsapp} 
+                            <Input
+                              id="whatsapp"
+                              value={profileWhatsapp}
                               onChange={(e) => setProfileWhatsapp(e.target.value)}
-                              className="h-11 bg-white dark:bg-zinc-900" 
+                              className="h-11 bg-white dark:bg-zinc-900"
                             />
                           </div>
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="email" className="font-semibold text-zinc-700 dark:text-zinc-300">Alamat Email</Label>
-                          <Input 
-                            id="email" 
-                            type="email" 
-                            value={profileEmail} 
+                          <Input
+                            id="email"
+                            type="email"
+                            value={profileEmail}
                             onChange={(e) => setProfileEmail(e.target.value)}
-                            className="h-11 bg-white dark:bg-zinc-900" 
+                            className="h-11 bg-white dark:bg-zinc-900"
                           />
                           <p className="text-xs text-zinc-500">Anda akan menerima pemberitahuan WhatsApp ke nomor terdaftar jika Anda mengubah alamat email.</p>
                         </div>
@@ -743,10 +749,10 @@ function ProfilContent() {
                     ) : (
                       <div className="py-8 text-center text-zinc-500">Memuat data profil...</div>
                     )}
-                    
+
                     <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800/50 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                      <Button 
-                        onClick={handleUpdateProfile} 
+                      <Button
+                        onClick={handleUpdateProfile}
                         disabled={isUpdating}
                         className="h-11 w-full sm:w-auto px-8 bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 cursor-pointer font-semibold"
                       >
@@ -755,8 +761,8 @@ function ProfilContent() {
                       {updateMessage && (
                         <div className={cn(
                           "flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium w-full sm:w-auto",
-                          updateMessage.type === 'success' 
-                            ? "bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800" 
+                          updateMessage.type === 'success'
+                            ? "bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
                             : "bg-red-50 text-red-800 border border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800"
                         )}>
                           {updateMessage.type === 'success' ? (
@@ -773,7 +779,7 @@ function ProfilContent() {
 
                 {/* Form Ubah Password (Conditional Rendering) */}
                 <Card className="border-zinc-200 shadow-sm dark:border-zinc-800 overflow-hidden transition-all duration-300">
-                  <div 
+                  <div
                     className="flex items-center justify-between p-6 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
                     onClick={() => setIsPasswordOpen(!isPasswordOpen)}
                   >
@@ -783,7 +789,7 @@ function ProfilContent() {
                     </div>
                     <ChevronDown className={cn("h-5 w-5 text-zinc-500 transition-transform duration-300", isPasswordOpen && "rotate-180")} />
                   </div>
-                  
+
                   {isPasswordOpen && (
                     <div className="border-t border-zinc-100 dark:border-zinc-800/50 animate-in slide-in-from-top-4 fade-in duration-300">
                       <CardContent className="pt-6">
@@ -792,8 +798,8 @@ function ProfilContent() {
                             {passwordMessage && (
                               <div className={cn(
                                 "flex items-center gap-2 p-3.5 rounded-lg text-sm font-medium",
-                                passwordMessage.type === 'success' 
-                                  ? "bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800" 
+                                passwordMessage.type === 'success'
+                                  ? "bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
                                   : "bg-red-50 text-red-800 border border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800"
                               )}>
                                 {passwordMessage.type === 'success' ? (
@@ -809,13 +815,13 @@ function ProfilContent() {
                               <div className="space-y-2">
                                 <Label htmlFor="current-password" className="font-semibold text-zinc-700 dark:text-zinc-300">Kata Sandi Saat Ini</Label>
                                 <div className="relative max-w-md">
-                                  <Input 
-                                    id="current-password" 
-                                    type={showCurrentPassword ? "text" : "password"} 
-                                    placeholder="Masukkan kata sandi saat ini" 
+                                  <Input
+                                    id="current-password"
+                                    type={showCurrentPassword ? "text" : "password"}
+                                    placeholder="Masukkan kata sandi saat ini"
                                     value={currentPassword}
                                     onChange={(e) => setCurrentPassword(e.target.value)}
-                                    className="h-11 pr-10 bg-white dark:bg-zinc-900" 
+                                    className="h-11 pr-10 bg-white dark:bg-zinc-900"
                                     required
                                   />
                                   <button
@@ -831,13 +837,13 @@ function ProfilContent() {
                               <div className="space-y-2">
                                 <Label htmlFor="new-password" className="font-semibold text-zinc-700 dark:text-zinc-300">Kata Sandi Baru</Label>
                                 <div className="relative max-w-md">
-                                  <Input 
-                                    id="new-password" 
-                                    type={showNewPassword ? "text" : "password"} 
-                                    placeholder="Minimal 8 karakter" 
+                                  <Input
+                                    id="new-password"
+                                    type={showNewPassword ? "text" : "password"}
+                                    placeholder="Minimal 8 karakter"
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
-                                    className="h-11 pr-10 bg-white dark:bg-zinc-900" 
+                                    className="h-11 pr-10 bg-white dark:bg-zinc-900"
                                     required
                                   />
                                   <button
@@ -853,13 +859,13 @@ function ProfilContent() {
                               <div className="space-y-2">
                                 <Label htmlFor="confirm-password" className="font-semibold text-zinc-700 dark:text-zinc-300">Konfirmasi Kata Sandi Baru</Label>
                                 <div className="relative max-w-md">
-                                  <Input 
-                                    id="confirm-password" 
-                                    type={showConfirmPassword ? "text" : "password"} 
-                                    placeholder="Ketik ulang kata sandi baru" 
+                                  <Input
+                                    id="confirm-password"
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    placeholder="Ketik ulang kata sandi baru"
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
-                                    className="h-11 pr-10 bg-white dark:bg-zinc-900" 
+                                    className="h-11 pr-10 bg-white dark:bg-zinc-900"
                                     required
                                   />
                                   <button
@@ -874,8 +880,8 @@ function ProfilContent() {
                               </div>
                             </div>
                             <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800/50">
-                              <Button 
-                                type="submit" 
+                              <Button
+                                type="submit"
                                 disabled={isUpdatingPassword}
                                 className="h-11 px-8 bg-red-600 hover:bg-red-700 text-white font-bold cursor-pointer"
                               >
@@ -886,7 +892,7 @@ function ProfilContent() {
                         ) : (
                           <div className="rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-6 text-center">
                             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
-                              <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true"><path d="M12.0003 4.75C13.7703 4.75 15.3553 5.36 16.6053 6.54998L20.0303 3.125C17.9503 1.19 15.2353 0 12.0003 0C7.31028 0 3.25528 2.69 1.25028 6.60998L5.27028 9.72498C6.21528 6.86 8.87028 4.75 12.0003 4.75Z" fill="#EA4335"/><path d="M23.49 12.275C23.49 11.49 23.415 10.73 23.3 10H12V14.51H18.47C18.18 15.99 17.34 17.25 16.08 18.1L20.1 21.215C22.449 19.05 23.49 15.92 23.49 12.275Z" fill="#4285F4"/><path d="M5.26498 14.2949C5.02498 13.5699 4.88501 12.7999 4.88501 11.9999C4.88501 11.1999 5.01998 10.4299 5.26498 9.7049L1.23999 6.58984C0.439987 8.19984 0 10.0299 0 11.9999C0 13.9699 0.444986 15.7999 1.23999 17.4099L5.26498 14.2949Z" fill="#FBBC05"/><path d="M12.0004 24.0001C15.2404 24.0001 17.9654 22.935 19.9454 21.095L15.9204 17.98C14.8454 18.705 13.5354 19.16 12.0004 19.16C8.8704 19.16 6.2154 17.05 5.2704 14.185L1.2454 17.3C3.2504 21.22 7.3104 24.0001 12.0004 24.0001Z" fill="#34A853"/></svg>
+                              <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true"><path d="M12.0003 4.75C13.7703 4.75 15.3553 5.36 16.6053 6.54998L20.0303 3.125C17.9503 1.19 15.2353 0 12.0003 0C7.31028 0 3.25528 2.69 1.25028 6.60998L5.27028 9.72498C6.21528 6.86 8.87028 4.75 12.0003 4.75Z" fill="#EA4335" /><path d="M23.49 12.275C23.49 11.49 23.415 10.73 23.3 10H12V14.51H18.47C18.18 15.99 17.34 17.25 16.08 18.1L20.1 21.215C22.449 19.05 23.49 15.92 23.49 12.275Z" fill="#4285F4" /><path d="M5.26498 14.2949C5.02498 13.5699 4.88501 12.7999 4.88501 11.9999C4.88501 11.1999 5.01998 10.4299 5.26498 9.7049L1.23999 6.58984C0.439987 8.19984 0 10.0299 0 11.9999C0 13.9699 0.444986 15.7999 1.23999 17.4099L5.26498 14.2949Z" fill="#FBBC05" /><path d="M12.0004 24.0001C15.2404 24.0001 17.9654 22.935 19.9454 21.095L15.9204 17.98C14.8454 18.705 13.5354 19.16 12.0004 19.16C8.8704 19.16 6.2154 17.05 5.2704 14.185L1.2454 17.3C3.2504 21.22 7.3104 24.0001 12.0004 24.0001Z" fill="#34A853" /></svg>
                             </div>
                             <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-2">Login dengan Google</h3>
                             <p className="text-sm text-zinc-600 dark:text-zinc-400 max-w-md mx-auto">
@@ -942,8 +948,8 @@ function ProfilContent() {
                               <span className="font-extrabold text-red-600 text-lg dark:text-red-400">
                                 Rp {Number(donasi.gross_amount || donasi.nominal || 0).toLocaleString('id-ID')}
                               </span>
-                              <Button 
-                                variant="outline" 
+                              <Button
+                                variant="outline"
                                 size="sm"
                                 className="hidden sm:flex text-xs h-7 px-2 border-zinc-200 dark:border-zinc-800 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/30"
                                 onClick={() => {
@@ -955,8 +961,8 @@ function ProfilContent() {
                               </Button>
                               {(donasi.status === 'success' || donasi.status === 'settlement' || donasi.status === 'Berhasil' || donasi.status === 'PAID') && (
                                 <>
-                                  <Button 
-                                    variant="outline" 
+                                  <Button
+                                    variant="outline"
                                     size="sm"
                                     className="text-xs h-7 px-2.5 font-semibold text-emerald-700 border-emerald-300 hover:bg-emerald-50 dark:text-emerald-400 dark:border-emerald-800"
                                     onClick={() => setSelectedKwitansi({
@@ -972,8 +978,8 @@ function ProfilContent() {
                                   >
                                     <Printer className="w-3.5 h-3.5 mr-1" /> Kwitansi
                                   </Button>
-                                  <Button 
-                                    variant="outline" 
+                                  <Button
+                                    variant="outline"
                                     size="sm"
                                     className="text-xs h-7 px-2.5 font-semibold text-amber-700 border-amber-300 hover:bg-amber-50 dark:text-amber-400 dark:border-amber-800"
                                     onClick={() => setSelectedSertifikat({
@@ -998,8 +1004,8 @@ function ProfilContent() {
                                   <Clock className="w-3 h-3" /> Pending
                                 </Badge>
                               )}
-                              <Button 
-                                variant="outline" 
+                              <Button
+                                variant="outline"
                                 size="sm"
                                 className="sm:hidden text-xs h-7 px-2 border-zinc-200"
                                 onClick={() => {
@@ -1015,7 +1021,7 @@ function ProfilContent() {
                       ))
                     )}
                   </div>
-                  
+
                   {/* Pagination Controls */}
                   {donasiMeta && donasiMeta.last_page > 1 && (
                     <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-100 dark:border-zinc-800/50">
@@ -1023,17 +1029,17 @@ function ProfilContent() {
                         Menampilkan {donasiMeta.from || 0}-{donasiMeta.to || 0} dari {donasiMeta.total || 0}
                       </span>
                       <div className="flex items-center gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => setDonasiPage(p => Math.max(1, p - 1))}
                           disabled={donasiPage === 1 || isLoadingDonasi}
                         >
                           Sebelumnya
                         </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => setDonasiPage(p => Math.min(donasiMeta.last_page, p + 1))}
                           disabled={donasiPage >= donasiMeta.last_page || isLoadingDonasi}
                         >
@@ -1073,7 +1079,7 @@ function ProfilContent() {
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="space-y-3">
                       <div>
                         <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Program / Tujuan</p>
@@ -1107,7 +1113,7 @@ function ProfilContent() {
 
                     {(selectedDonasi.status === 'pending' || selectedDonasi.status === 'Pending') && selectedDonasi.payment_url && (
                       <div className="pt-4 mt-2 border-t border-zinc-100 dark:border-zinc-800">
-                        <Button 
+                        <Button
                           className="w-full bg-red-600 hover:bg-red-700 text-white font-bold"
                           onClick={() => window.open(selectedDonasi.payment_url, '_blank')}
                         >
@@ -1172,8 +1178,8 @@ function ProfilContent() {
                                 <LogOut className="w-3 h-3" /> Dibatalkan
                               </Badge>
                             )}
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="sm"
                               className="text-xs h-7 px-2 border-zinc-200 dark:border-zinc-800 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/30"
                               onClick={() => {
@@ -1188,7 +1194,7 @@ function ProfilContent() {
                       ))
                     )}
                   </div>
-                  
+
                   {/* Pagination Controls */}
                   {kunjunganMeta && kunjunganMeta.last_page > 1 && (
                     <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-100 dark:border-zinc-800/50">
@@ -1196,17 +1202,17 @@ function ProfilContent() {
                         Menampilkan {kunjunganMeta.from || 0}-{kunjunganMeta.to || 0} dari {kunjunganMeta.total || 0}
                       </span>
                       <div className="flex items-center gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => setKunjunganPage(p => Math.max(1, p - 1))}
                           disabled={kunjunganPage === 1 || isLoadingKunjungan}
                         >
                           Sebelumnya
                         </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => setKunjunganPage(p => Math.min(kunjunganMeta.last_page, p + 1))}
                           disabled={kunjunganPage >= kunjunganMeta.last_page || isLoadingKunjungan}
                         >
@@ -1234,7 +1240,7 @@ function ProfilContent() {
                           Pantau pendidikan, kesehatan, dan perkembangan ananda asuh binaan Anda.
                         </CardDescription>
                       </div>
-                      <Button 
+                      <Button
                         onClick={() => {
                           const nextState = !showPotaForm;
                           setShowPotaForm(nextState);
@@ -1245,8 +1251,8 @@ function ProfilContent() {
                         }}
                         className={cn(
                           "rounded-full text-xs font-semibold cursor-pointer transition-all",
-                          showPotaForm 
-                            ? "bg-zinc-200 text-zinc-800 hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-200" 
+                          showPotaForm
+                            ? "bg-zinc-200 text-zinc-800 hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-200"
                             : "bg-emerald-600 hover:bg-emerald-700 text-white"
                         )}
                       >
@@ -1267,17 +1273,17 @@ function ProfilContent() {
                           <div>
                             <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                               <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                              {potaStep === 1 
-                                ? "Langkah 1: Pilih Calon Ananda Asuh (Bisa Pilih Beberapa)" 
+                              {potaStep === 1
+                                ? "Langkah 1: Pilih Calon Ananda Asuh"
                                 : "Langkah 2: Tentukan Komitmen Beasiswa & Jadwal Salur Tiap Ananda"}
                             </h3>
                             <p className="text-xs text-zinc-500 mt-1">
-                              {potaStep === 1 
-                                ? "Pilih satu atau beberapa anak asuh yang ingin Anda dampingi beasiswanya." 
+                              {potaStep === 1
+                                ? "Pilih satu atau beberapa anak asuh yang ingin Anda dampingi beasiswanya."
                                 : `Mengatur komitmen donasi dan jadwal salur untuk ${selectedAnakIds.length} ananda yang dipilih.`}
                             </p>
                           </div>
-                          
+
                           {/* Step Badges */}
                           <div className="flex items-center gap-2 shrink-0">
                             <button
@@ -1316,8 +1322,8 @@ function ProfilContent() {
                         {potaFormMessage && (
                           <div className={cn(
                             "flex items-center gap-2 p-3.5 rounded-lg text-sm font-medium",
-                            potaFormMessage.type === 'success' 
-                              ? "bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300" 
+                            potaFormMessage.type === 'success'
+                              ? "bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300"
                               : "bg-red-50 text-red-800 border border-red-200 dark:bg-red-950/40 dark:text-red-300"
                           )}>
                             {potaFormMessage.type === 'success' ? (
@@ -1365,7 +1371,7 @@ function ProfilContent() {
                                               <span>{anak.nama?.charAt(0) || "A"}</span>
                                             )}
                                           </div>
-                                          
+
                                           <div className="min-w-0 flex-1">
                                             <div className="flex items-center gap-1.5 flex-wrap">
                                               <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
@@ -1407,8 +1413,8 @@ function ProfilContent() {
                                           </span>
                                           <div className={cn(
                                             "w-5 h-5 rounded-md border flex items-center justify-center text-xs transition-colors",
-                                            isSelected 
-                                              ? "bg-emerald-600 text-white border-emerald-600" 
+                                            isSelected
+                                              ? "bg-emerald-600 text-white border-emerald-600"
                                               : "border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
                                           )}>
                                             {isSelected && "✓"}
@@ -1476,7 +1482,7 @@ function ProfilContent() {
                                 const anak = availableAnakAsuh.find(a => a.id === id);
                                 const comm = childCommitments[id] || { nominal: 250000, hari: 1, doa: "" };
                                 return (
-                                  <div 
+                                  <div
                                     key={id}
                                     className="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-4 shadow-sm"
                                   >
@@ -1761,12 +1767,12 @@ function ProfilContent() {
                           <p className="text-zinc-500 dark:text-zinc-400 max-w-sm mb-6">
                             Mari dampingi masa depan anak yatim & dhuafa melalui beasiswa rutin bulanan program Orang Tua Asuh (POTA).
                           </p>
-                          <Button 
+                          <Button
                             onClick={() => {
                               setShowPotaForm(true);
                               setPotaStep(1);
                               fetchAvailableAnakAsuh();
-                            }} 
+                            }}
                             className="bg-red-600 hover:bg-red-700 text-white rounded-full px-8 shadow-lg shadow-red-500/20 cursor-pointer font-bold"
                           >
                             Pilih Anak Asuh Sekarang
@@ -1775,69 +1781,35 @@ function ProfilContent() {
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {anakAsuhSaya.map((pota, idx) => (
-                            <div 
+                            <PotaCard
                               key={pota.id || idx}
-                              className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 bg-gradient-to-br from-white to-zinc-50/50 dark:from-zinc-900 dark:to-zinc-950 shadow-sm hover:shadow-md transition-shadow"
-                            >
-                              <div className="flex items-start gap-4">
-                                <div className="h-16 w-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-700 font-bold text-xl shrink-0 border border-amber-200">
-                                  {pota.anak_asuh?.nama?.charAt(0) || "A"}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
-                                    Status: {pota.status || "Aktif"}
-                                  </span>
-                                  <h4 className="font-bold text-base text-zinc-900 dark:text-zinc-100 mt-1 truncate">
-                                    {pota.anak_asuh?.nama || "Ananda Asuh"}
-                                  </h4>
-                                  <p className="text-xs text-zinc-500 flex items-center gap-1.5 mt-0.5">
-                                    <School className="w-3.5 h-3.5 text-zinc-400" />
-                                    {pota.anak_asuh?.tingkat_pendidikan || "Sekolah"} • {pota.anak_asuh?.nama_sekolah || "Tasikmalaya"}
-                                  </p>
-                                </div>
-                              </div>
-
-                              <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 space-y-2 text-xs">
-                                <div className="flex justify-between">
-                                  <span className="text-zinc-500">Komitmen Donasi:</span>
-                                  <span className="font-bold font-mono text-red-600 dark:text-red-400">
-                                    Rp {Number(pota.nominal_bulanan || 250000).toLocaleString('id-ID')} / bulan
-                                  </span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-zinc-500">Jadwal Salur Bulanan:</span>
-                                  <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                                    Setiap Tanggal {pota.hari_tagihan_per_bulan || "1"}
-                                  </span>
-                                </div>
-                              </div>
-
-                              {pota.catatan_doa && (
-                                <div className="mt-3 p-2.5 rounded-lg bg-zinc-100 dark:bg-zinc-800/60 text-[11px] text-zinc-600 dark:text-zinc-400 italic">
-                                  &ldquo;{pota.catatan_doa}&rdquo;
-                                </div>
-                              )}
-
-                              <div className="mt-4 flex gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => {
-                                    const text = encodeURIComponent(
-                                      `Assalamu'alaikum Pengurus YAMUTI, saya donatur orang tua asuh dari ananda ${pota.anak_asuh?.nama || 'binaan'}. Ingin menanyakan kabar & kebutuhan ananda saat ini.`
-                                    );
-                                    window.open(`https://wa.me/6281221650050?text=${text}`, '_blank');
-                                  }}
-                                  className="w-full text-xs text-emerald-700 border-emerald-300 hover:bg-emerald-50 dark:text-emerald-400"
-                                >
-                                  Hubungi Pembina Asrama
-                                </Button>
-                              </div>
-                            </div>
+                              pota={pota}
+                              onOpenReport={(item) => setSelectedPotaForReport(item)}
+                              onOpenPay={(item) => setSelectedPotaForPay(item)}
+                            />
                           ))}
                         </div>
                       )
                     )}
+
+                    {/* MODAL RAPOR & PERKEMBANGAN ANANDA */}
+                    <PotaReportModal
+                      isOpen={!!selectedPotaForReport}
+                      onClose={() => setSelectedPotaForReport(null)}
+                      pota={selectedPotaForReport}
+                    />
+
+                    {/* MODAL SALUR BEASISWA INSTAN VIA MIDTRANS */}
+                    <PotaQuickPayModal
+                      isOpen={!!selectedPotaForPay}
+                      onClose={() => setSelectedPotaForPay(null)}
+                      pota={selectedPotaForPay}
+                      user={user}
+                      onSuccess={() => {
+                        fetchDonasi(1);
+                        fetchAnakAsuhPota();
+                      }}
+                    />
                   </CardContent>
                 </Card>
               </div>
@@ -1874,7 +1846,7 @@ function ProfilContent() {
                         <h4 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">1. Zakat Penghasilan / Profesi</h4>
                         <div className="space-y-2">
                           <Label htmlFor="penghasilan" className="text-xs text-zinc-600">Total Penghasilan Bersih per Bulan (Rp)</Label>
-                          <Input 
+                          <Input
                             id="penghasilan"
                             type="number"
                             placeholder="Contoh: 10000000"
@@ -1889,7 +1861,7 @@ function ProfilContent() {
                             Rp {Math.round(penghasilanBulan * 0.025).toLocaleString('id-ID')}
                           </p>
                         </div>
-                        <Button 
+                        <Button
                           onClick={() => {
                             const zakat = Math.round(penghasilanBulan * 0.025);
                             router.push(`/donasi?program=Zakat&nominal=${zakat}`);
@@ -1906,7 +1878,7 @@ function ProfilContent() {
                         <h4 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">2. Zakat Maal / Simpanan Harta</h4>
                         <div className="space-y-2">
                           <Label htmlFor="tabungan" className="text-xs text-zinc-600">Total Tabungan / Deposito Mengendap 1 Tahun (Rp)</Label>
-                          <Input 
+                          <Input
                             id="tabungan"
                             type="number"
                             placeholder="Contoh: 120000000"
@@ -1921,7 +1893,7 @@ function ProfilContent() {
                             Rp {Math.round(emasGram * 0.025).toLocaleString('id-ID')}
                           </p>
                         </div>
-                        <Button 
+                        <Button
                           onClick={() => {
                             const zakat = Math.round(emasGram * 0.025);
                             router.push(`/donasi?program=Zakat%20Maal&nominal=${zakat}`);
@@ -1967,7 +1939,7 @@ function ProfilContent() {
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="space-y-3">
                       <div>
                         <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Nama Perwakilan</p>
@@ -1985,7 +1957,7 @@ function ProfilContent() {
                         <div>
                           <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Tanggal Kunjungan</p>
                           <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                            {new Date(selectedKunjungan.slot_waktu || selectedKunjungan.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute:'2-digit' })}
+                            {new Date(selectedKunjungan.slot_waktu || selectedKunjungan.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                           </p>
                         </div>
                         <div>
@@ -2021,6 +1993,13 @@ function ProfilContent() {
               isOpen={!!selectedSertifikat}
               onClose={() => setSelectedSertifikat(null)}
               data={selectedSertifikat}
+            />
+
+            {/* Midtrans Snap Script untuk Quick Salur Beasiswa POTA */}
+            <Script
+              src={process.env.NEXT_PUBLIC_MIDTRANS_SNAP_URL || "https://app.sandbox.midtrans.com/snap/snap.js"}
+              data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
+              strategy="lazyOnload"
             />
           </div>
         </div>
