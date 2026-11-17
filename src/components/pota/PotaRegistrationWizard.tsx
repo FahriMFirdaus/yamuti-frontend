@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { Sparkles, CheckCircle2, AlertCircle, School, Eye } from "lucide-react";
+import { CheckCircle2, AlertCircle, School, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -226,78 +226,76 @@ export function PotaRegistrationWizard({
       ref={wizardRef}
       className={cn(
         "scroll-mt-20 lg:scroll-mt-24 mb-6 rounded-2xl sm:rounded-3xl",
-        "bg-zinc-50/90 dark:bg-zinc-900/80 border border-emerald-200/90 dark:border-emerald-800/60 shadow-sm relative",
-        "p-3.5 sm:p-5 lg:p-5",
+        "bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm relative",
+        "p-4 sm:p-5",
         "flex flex-col",
-        "max-h-[calc(100dvh-110px)] min-h-[360px] sm:min-h-[440px]",
-        "lg:h-[min(650px,calc(100dvh-130px))] lg:max-h-[650px] lg:min-h-[500px]",
-        "animate-in slide-in-from-top-3 duration-300"
+        "max-h-[calc(100dvh-120px)] min-h-[380px] sm:min-h-[460px]",
+        "lg:h-[min(640px,calc(100dvh-140px))] lg:max-h-[640px] lg:min-h-[500px]"
       )}
     >
-      {/* Header & Stepper (Sticky/Fixed top of card) */}
-      <div className="shrink-0 pb-2.5 sm:pb-3 border-b border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
-            <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 dark:text-emerald-400" />
-            <span className="hidden sm:inline">Pendaftaran Orang Tua Asuh (POTA)</span>
-            <span className="sm:hidden">Pendaftaran POTA</span>
-          </div>
+      {/* Header Stepper Minimalis */}
+      <div className="shrink-0 pb-3 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+            {step === 1 ? "Tahap 1 dari 2: Penentuan Calon" : "Tahap 2 dari 2: Rincian Donasi"}
+          </span>
         </div>
 
-        {/* Step Indicator Badges */}
+        {/* Step Indicator Badges (Bersih, Berbobot, Bebas Slop) */}
         <div
           role="group"
-          aria-label="Tahapan Wizard Pendaftaran"
-          className="flex items-center gap-1.5 sm:gap-2 shrink-0 w-full sm:w-auto justify-between sm:justify-start"
+          aria-label="Tahapan Formulir Pendaftaran"
+          className="flex items-center gap-2 shrink-0"
         >
           <button
             type="button"
             onClick={goToStep1}
             aria-current={step === 1 ? "step" : undefined}
             className={cn(
-              "flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer min-h-[32px] whitespace-nowrap",
+              "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer whitespace-nowrap",
               step === 1
-                ? "bg-emerald-700 text-white border-emerald-700 shadow-sm"
-                : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                ? "bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-200 dark:border-emerald-700 font-semibold"
+                : "bg-zinc-50 dark:bg-zinc-800/60 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100"
             )}
           >
             <span
               className={cn(
                 "w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold",
                 step === 1
-                  ? "bg-white/20 text-white"
-                  : "bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                  ? "bg-emerald-700 text-white"
+                  : "bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300"
               )}
             >
               1
             </span>
-            <span>Pilih ({selectedAnakIds.length})</span>
+            <span>1. Pilih Ananda ({selectedAnakIds.length})</span>
           </button>
-          <span className="text-zinc-300 dark:text-zinc-700 px-0.5 sm:px-1 text-xs select-none" aria-hidden="true">→</span>
+
+          <span className="text-zinc-300 dark:text-zinc-700 text-xs select-none" aria-hidden="true">→</span>
+
           <button
             type="button"
             onClick={goToStep2}
             disabled={selectedAnakIds.length === 0}
             aria-current={step === 2 ? "step" : undefined}
             className={cn(
-              "flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all min-h-[32px] whitespace-nowrap",
+              "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all whitespace-nowrap",
               step === 2
-                ? "bg-emerald-700 text-white border-emerald-700 shadow-sm cursor-default"
-                : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                ? "bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-200 dark:border-emerald-700 font-semibold"
+                : "bg-zinc-50 dark:bg-zinc-800/60 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer hover:bg-zinc-100"
             )}
           >
             <span
               className={cn(
                 "w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold",
                 step === 2
-                  ? "bg-white/20 text-white"
-                  : "bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                  ? "bg-emerald-700 text-white"
+                  : "bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300"
               )}
             >
               2
             </span>
-            <span className="hidden sm:inline">Komitmen Beasiswa</span>
-            <span className="sm:hidden">Komitmen</span>
+            <span>2. Komitmen Donasi</span>
           </button>
         </div>
       </div>
@@ -343,7 +341,7 @@ export function PotaRegistrationWizard({
               ref={step1ScrollRef}
               className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1 sm:pr-2 pb-1 [scrollbar-width:thin]"
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3 p-0.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-0.5">
                 {availableAnakAsuh.map((anak) => {
                   const isSelected = selectedAnakIds.includes(anak.id);
                   return (
@@ -351,15 +349,15 @@ export function PotaRegistrationWizard({
                       key={anak.id}
                       onClick={() => toggleSelectAnak(anak.id)}
                       className={cn(
-                        "p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border cursor-pointer transition-all flex flex-col justify-between relative group hover:shadow-sm",
+                        "p-3.5 rounded-xl border cursor-pointer transition-all flex flex-col justify-between relative group",
                         isSelected
-                          ? "bg-emerald-50/90 border-emerald-500 ring-2 ring-emerald-500/20 dark:bg-emerald-950/30 dark:border-emerald-500"
-                          : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-emerald-300"
+                          ? "bg-emerald-50/70 border-emerald-600 shadow-sm dark:bg-emerald-950/30 dark:border-emerald-500"
+                          : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
                       )}
                     >
                       <div>
-                        <div className="flex items-start gap-2.5 sm:gap-3 mb-2">
-                          <div className="relative h-11 w-11 sm:h-12 sm:w-12 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 font-bold text-sm sm:text-base flex items-center justify-center shrink-0 border border-amber-200 dark:border-amber-800/60 overflow-hidden">
+                        <div className="flex items-start gap-3 mb-2.5">
+                          <div className="relative h-12 w-12 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 font-bold text-sm flex items-center justify-center shrink-0 border border-zinc-200 dark:border-zinc-700 overflow-hidden">
                             {anak.foto_identitas ? (
                               <Image
                                 src={anak.foto_identitas}
@@ -374,18 +372,18 @@ export function PotaRegistrationWizard({
 
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-900 dark:bg-amber-950/50 dark:text-amber-300">
+                              <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
                                 {anak.status_keluarga || "Yatim"}
                               </span>
-                              <span className="text-[10px] text-zinc-500">
+                              <span className="text-[11px] text-zinc-500">
                                 {anak.jenis_kelamin}
                               </span>
                             </div>
-                            <h4 className="font-bold text-xs sm:text-sm text-zinc-900 dark:text-zinc-100 mt-0.5 truncate">
+                            <h4 className="font-bold text-xs sm:text-sm text-zinc-900 dark:text-zinc-100 mt-1 truncate">
                               {anak.nama}
                             </h4>
-                            <p className="text-[11px] sm:text-xs text-zinc-500 flex items-center gap-1 mt-0.5 truncate">
-                              <School className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-zinc-400 shrink-0" />
+                            <p className="text-[11px] text-zinc-500 flex items-center gap-1 mt-0.5 truncate">
+                              <School className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                               <span className="truncate">
                                 {anak.tingkat_pendidikan || "Sekolah"}
                               </span>
@@ -394,25 +392,25 @@ export function PotaRegistrationWizard({
                         </div>
                       </div>
 
-                      <div className="mt-1.5 pt-2 sm:pt-2.5 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between gap-2">
+                      <div className="mt-1 pt-2.5 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between gap-2">
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             setActiveChildModalDetail(anak);
                           }}
-                          className="text-[11px] sm:text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer min-h-[32px] sm:min-h-[36px]"
+                          className="text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-emerald-700 dark:hover:text-emerald-400 flex items-center gap-1 cursor-pointer min-h-[32px]"
                         >
                           <Eye className="w-3.5 h-3.5" />
-                          <span>Lihat Detail</span>
+                          <span>Rincian</span>
                         </button>
 
                         <div className="flex items-center gap-1.5">
                           <span
                             className={cn(
-                              "text-[10px] sm:text-[11px] font-semibold",
+                              "text-[11px] font-medium",
                               isSelected
-                                ? "text-emerald-700 dark:text-emerald-400"
+                                ? "text-emerald-700 dark:text-emerald-400 font-semibold"
                                 : "text-zinc-400"
                             )}
                           >
@@ -420,9 +418,9 @@ export function PotaRegistrationWizard({
                           </span>
                           <div
                             className={cn(
-                              "w-4 h-4 sm:w-5 sm:h-5 rounded-md border flex items-center justify-center text-xs transition-colors",
+                              "w-4 h-4 rounded border flex items-center justify-center text-[10px] font-bold transition-colors",
                               isSelected
-                                ? "bg-emerald-600 text-white border-emerald-600"
+                                ? "bg-emerald-700 text-white border-emerald-700"
                                 : "border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
                             )}
                           >
@@ -438,27 +436,27 @@ export function PotaRegistrationWizard({
           )}
 
           {/* Action Bar Bawah Langkah 1 (Sticky/Fixed bottom of card) */}
-          <div className="shrink-0 pt-2.5 sm:pt-3 pb-1 mt-auto flex flex-row items-center justify-between gap-1.5 sm:gap-3 border-t border-zinc-200 dark:border-zinc-800 bg-inherit">
+          <div className="shrink-0 pt-3 pb-1 mt-auto flex flex-row items-center justify-between gap-2 border-t border-zinc-100 dark:border-zinc-800 bg-inherit">
             <Button
               type="button"
               variant="outline"
               onClick={onCancel}
-              className="text-xs h-9 sm:h-10 px-3 sm:px-5 rounded-xl border-zinc-300 dark:border-zinc-700 cursor-pointer"
+              className="text-xs h-9 sm:h-10 px-4 rounded-lg border-zinc-300 dark:border-zinc-700 cursor-pointer"
             >
               Batal
             </Button>
-            <div className="flex items-center gap-1.5 sm:gap-3">
-              <span className="text-[11px] sm:text-xs text-zinc-600 dark:text-zinc-400 font-semibold whitespace-nowrap">
-                <strong className="text-emerald-700 dark:text-emerald-400 font-bold">{selectedAnakIds.length}</strong> Ananda Terpilih
+            <div className="flex items-center gap-2 sm:gap-3">
+              <span className="text-xs text-zinc-600 dark:text-zinc-400 whitespace-nowrap">
+                <strong className="text-zinc-900 dark:text-zinc-100 font-bold">{selectedAnakIds.length}</strong> anak dipilih
               </span>
               <Button
                 type="button"
                 disabled={selectedAnakIds.length === 0}
                 onClick={goToStep2}
-                className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold h-9 sm:h-10 px-3 sm:px-6 rounded-xl shadow-sm cursor-pointer disabled:opacity-50"
+                className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold h-9 sm:h-10 px-4 sm:px-6 rounded-lg shadow-sm cursor-pointer disabled:opacity-50"
               >
-                <span className="hidden sm:inline">Lanjut ke Komitmen Beasiswa (Langkah 2) →</span>
-                <span className="sm:hidden">Lanjut ({selectedAnakIds.length}) →</span>
+                <span>Lanjut ke Komitmen</span>
+                <span className="ml-1">→</span>
               </Button>
             </div>
           </div>
@@ -562,8 +560,8 @@ export function PotaRegistrationWizard({
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {/* Nominal Donasi */}
                         <div className="space-y-1.5">
-                          <Label className="text-[11px] sm:text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                            Komitmen Donasi Bulanan (Rp)
+                          <Label className="text-[11px] sm:text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                            Komitmen Beasiswa Bulanan (Rp)
                           </Label>
                           <div className="grid grid-cols-3 gap-1.5">
                             {[100000, 250000, 500000].map((val) => (
@@ -572,9 +570,9 @@ export function PotaRegistrationWizard({
                                 key={val}
                                 onClick={() => updateChildCommitment(id, "nominal", val)}
                                 className={cn(
-                                  "py-1.5 px-1 text-center rounded-lg sm:rounded-xl text-[11px] font-bold border transition-all cursor-pointer min-h-[34px]",
+                                  "py-1.5 px-1 text-center rounded-lg text-xs font-medium border transition-all cursor-pointer min-h-[34px]",
                                   comm.nominal === val
-                                    ? "bg-emerald-700 text-white border-emerald-700 shadow-sm"
+                                    ? "bg-emerald-50 text-emerald-800 border-emerald-400 dark:bg-emerald-950/60 dark:text-emerald-200 dark:border-emerald-600 font-semibold"
                                     : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800"
                                 )}
                               >
@@ -594,7 +592,7 @@ export function PotaRegistrationWizard({
                                 e.target.value === "" ? "" : Number(e.target.value)
                               )
                             }
-                            className="h-9 text-xs font-mono bg-white dark:bg-zinc-900 rounded-lg sm:rounded-xl"
+                            className="h-9 text-xs font-mono bg-white dark:bg-zinc-900 rounded-lg"
                             placeholder="Nominal lain, min Rp 50.000"
                             required
                           />
@@ -602,8 +600,8 @@ export function PotaRegistrationWizard({
 
                         {/* Jadwal Pengingat Salur */}
                         <div className="space-y-1.5">
-                          <Label className="text-[11px] sm:text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                            Jadwal Pengingat Salur (Tgl Bulanan)
+                          <Label className="text-[11px] sm:text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                            Tanggal Salur Bulanan
                           </Label>
                           <div className="grid grid-cols-3 gap-1.5">
                             {[1, 5, 10].map((tgl) => (
@@ -612,9 +610,9 @@ export function PotaRegistrationWizard({
                                 key={tgl}
                                 onClick={() => updateChildCommitment(id, "hari", tgl)}
                                 className={cn(
-                                  "py-1.5 px-1 text-center rounded-lg sm:rounded-xl text-[11px] font-bold border transition-all cursor-pointer min-h-[34px]",
+                                  "py-1.5 px-1 text-center rounded-lg text-xs font-medium border transition-all cursor-pointer min-h-[34px]",
                                   comm.hari === tgl
-                                    ? "bg-emerald-700 text-white border-emerald-700 shadow-sm"
+                                    ? "bg-emerald-50 text-emerald-800 border-emerald-400 dark:bg-emerald-950/60 dark:text-emerald-200 dark:border-emerald-600 font-semibold"
                                     : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800"
                                 )}
                               >
@@ -634,7 +632,7 @@ export function PotaRegistrationWizard({
                                 e.target.value === "" ? "" : Number(e.target.value)
                               )
                             }
-                            className="h-9 text-xs font-mono bg-white dark:bg-zinc-900 rounded-lg sm:rounded-xl"
+                            className="h-9 text-xs font-mono bg-white dark:bg-zinc-900 rounded-lg"
                             placeholder="Tanggal 1-31"
                             required
                           />
@@ -643,15 +641,15 @@ export function PotaRegistrationWizard({
 
                       {/* Pesan Doa untuk Ananda ini */}
                       <div className="space-y-1">
-                        <Label className="text-[11px] sm:text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                          Pesan Doa / Harapan untuk {anak?.nama || "Ananda"} (Opsional)
+                        <Label className="text-[11px] sm:text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                          Pesan Doa / Harapan (Opsional)
                         </Label>
                         <Input
                           type="text"
                           value={comm.doa || ""}
                           onChange={(e) => updateChildCommitment(id, "doa", e.target.value)}
-                          placeholder="Semoga ananda istiqomah belajar, sholeh/sholehah dan tercapai cita-citanya..."
-                          className="h-9 text-xs bg-white dark:bg-zinc-900 rounded-lg sm:rounded-xl"
+                          placeholder="Tuliskan doa atau kata motivasi untuk ananda..."
+                          className="h-9 text-xs bg-white dark:bg-zinc-900 rounded-lg"
                           maxLength={500}
                         />
                       </div>
@@ -660,17 +658,17 @@ export function PotaRegistrationWizard({
                 })}
 
                 {/* Ringkasan Total Komitmen */}
-                <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <p className="text-[11px] sm:text-xs text-emerald-800 dark:text-emerald-300 font-semibold">
-                      Total Komitmen Infak Beasiswa Rutin ({selectedAnakIds.length} Anak):
+                    <p className="text-xs text-zinc-600 dark:text-zinc-400 font-medium">
+                      Total Komitmen Beasiswa ({selectedAnakIds.length} Anak):
                     </p>
-                    <p className="text-lg sm:text-xl font-black font-mono text-emerald-700 dark:text-emerald-400 mt-0.5">
-                      Rp {totalKomitmen.toLocaleString("id-ID")} / bulan
+                    <p className="text-lg sm:text-xl font-bold font-mono text-zinc-900 dark:text-zinc-100 mt-0.5">
+                      Rp {totalKomitmen.toLocaleString("id-ID")} <span className="text-xs font-normal text-zinc-500">/ bulan</span>
                     </p>
                   </div>
-                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                    * Anda dapat menyalurkan donasi bulanan secara fleksibel kapan saja.
+                  <div className="text-[11px] text-zinc-500 max-w-xs">
+                    Pengingat salur akan dikirimkan sesuai tanggal pilihan tiap bulannya.
                   </div>
                 </div>
               </>
@@ -678,47 +676,47 @@ export function PotaRegistrationWizard({
           </div>
 
           {/* Action Bar Bawah Langkah 2 (Sticky/Fixed bottom of card) */}
-          <div className="shrink-0 pt-2.5 sm:pt-3 pb-1 mt-auto flex flex-row items-center justify-between gap-1.5 sm:gap-3 border-t border-zinc-200 dark:border-zinc-800 bg-inherit">
+          <div className="shrink-0 pt-3 pb-1 mt-auto flex flex-row items-center justify-between gap-2 border-t border-zinc-100 dark:border-zinc-800 bg-inherit">
             <Button
               type="button"
               variant="outline"
               onClick={goToStep1}
-              className="text-xs h-9 sm:h-10 px-2.5 sm:px-4 rounded-xl border-zinc-300 dark:border-zinc-700 cursor-pointer"
+              className="text-xs h-9 sm:h-10 px-3.5 rounded-lg border-zinc-300 dark:border-zinc-700 cursor-pointer"
             >
               ← Kembali
             </Button>
 
             <div className="hidden md:flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400">
               <span>Total:</span>
-              <strong className="font-mono font-bold text-emerald-700 dark:text-emerald-400 text-sm">
+              <strong className="font-mono font-bold text-zinc-900 dark:text-zinc-100 text-sm">
                 Rp {totalKomitmen.toLocaleString("id-ID")}
               </strong>
               <span className="text-[11px] text-zinc-500">/bln</span>
             </div>
 
-            <div className="flex items-center gap-1.5 sm:gap-3">
+            <div className="flex items-center gap-2">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={onCancel}
-                className="text-xs h-9 sm:h-10 px-2 sm:px-3 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 rounded-xl cursor-pointer"
+                className="text-xs h-9 sm:h-10 px-3 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 rounded-lg cursor-pointer"
               >
                 Batal
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting || selectedAnakIds.length === 0}
-                className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold h-9 sm:h-10 px-3 sm:px-6 rounded-xl shadow-sm cursor-pointer disabled:opacity-50"
+                className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold h-9 sm:h-10 px-4 sm:px-6 rounded-lg shadow-sm cursor-pointer disabled:opacity-50"
               >
                 {isSubmitting ? (
                   "Menyimpan..."
                 ) : (
                   <>
                     <span className="hidden sm:inline">
-                      Konfirmasi Jadi Orang Tua Asuh ({selectedAnakIds.length} Anak)
+                      Simpan Komitmen ({selectedAnakIds.length} Anak)
                     </span>
                     <span className="sm:hidden">
-                      Konfirmasi ({selectedAnakIds.length})
+                      Simpan ({selectedAnakIds.length})
                     </span>
                   </>
                 )}
@@ -735,8 +733,8 @@ export function PotaRegistrationWizard({
       >
         <DialogContent className="sm:max-w-[480px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-base sm:text-lg flex items-center gap-2">
-              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" /> Profil Lengkap Calon Ananda Asuh
+            <DialogTitle className="text-base sm:text-lg font-bold">
+              Profil Lengkap Calon Ananda Asuh
             </DialogTitle>
             <DialogDescription className="text-xs">
               Informasi detail ananda santri binaan asrama YAMUTI.

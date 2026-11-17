@@ -1136,30 +1136,30 @@ function ProfilContent() {
             {activeTab === "anak-asuh" && (
               <div className="space-y-6">
                 <Card className="border-zinc-200 shadow-sm dark:border-zinc-800">
-                  <CardHeader className="border-b border-zinc-100 pb-6 dark:border-zinc-800/50">
+                  <CardHeader className="border-b border-zinc-100 pb-5 dark:border-zinc-800/50">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div>
                         <CardTitle className="text-xl flex items-center gap-2">
-                          <HeartHandshake className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                          <HeartHandshake className="w-5 h-5 text-emerald-700 dark:text-emerald-400" />
                           {!showPotaForm
                             ? "Program Orang Tua Asuh (POTA)"
                             : currentPotaStep === 1
-                            ? "Langkah 1: Pilih Calon Ananda Asuh"
-                            : "Langkah 2: Tentukan Komitmen Beasiswa"}
+                            ? "Pilih Calon Ananda Asuh Binaan"
+                            : "Tentukan Komitmen Beasiswa"}
                         </CardTitle>
-                        <CardDescription>
+                        <CardDescription className="text-xs text-zinc-500 mt-1">
                           {!showPotaForm
                             ? "Pantau pendidikan, kesehatan, dan perkembangan ananda asuh binaan Anda."
                             : currentPotaStep === 1
-                            ? "Pilih satu atau beberapa ananda binaan untuk Anda dampingi beasiswanya."
-                            : "Tentukan nominal infak beasiswa bulanan dan jadwal tanggal penyaluran."}
+                            ? "Pilih satu atau beberapa ananda binaan untuk didampingi beasiswa pendidikannya."
+                            : "Atur nominal infak beasiswa bulanan dan jadwal tanggal penyaluran."}
                         </CardDescription>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2.5">
                         {anakAsuhSaya.length > 1 && !showPotaForm && (
                           <Button
                             onClick={() => setIsBulkPayOpen(true)}
-                            className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-full text-xs shadow-sm cursor-pointer transition-all min-h-[38px] px-4"
+                            className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs shadow-sm cursor-pointer transition-all min-h-[38px] px-4"
                           >
                             ⚡ Salur Sekaligus ({anakAsuhSaya.length} Anak)
                           </Button>
@@ -1174,17 +1174,13 @@ function ProfilContent() {
                             }
                           }}
                           className={cn(
-                            "rounded-full text-xs font-semibold cursor-pointer transition-all min-h-[38px] px-4",
+                            "rounded-xl text-xs font-semibold cursor-pointer transition-all min-h-[38px] px-4",
                             showPotaForm
-                              ? "bg-zinc-200 text-zinc-800 hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-200"
-                              : "bg-emerald-700 hover:bg-emerald-800 text-white"
+                              ? "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700"
+                              : "bg-emerald-700 hover:bg-emerald-800 text-white shadow-sm"
                           )}
                         >
-                          {showPotaForm ? "Tutup Form" : (
-                            <>
-                              <Sparkles className="w-3.5 h-3.5 mr-1.5" /> Tambah Anak Asuh
-                            </>
-                          )}
+                          {showPotaForm ? "Tutup Formulir" : "+ Tambah Anak Asuh"}
                         </Button>
                       </div>
                     </div>
@@ -1211,15 +1207,15 @@ function ProfilContent() {
                     {/* Jika form registrasi POTA sedang aktif (showPotaForm = true), sembunyikan list atau empty-state di bawahnya */}
                     {!showPotaForm && (
                       isLoadingPota ? (
-                        <div className="py-12 text-center text-zinc-500">Memuat data anak asuh binaan...</div>
+                        <div className="py-12 text-center text-xs text-zinc-500">Memuat data anak asuh binaan...</div>
                       ) : anakAsuhSaya.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center p-12 text-center">
-                          <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-950/40 rounded-full flex items-center justify-center mb-4 border border-emerald-200 dark:border-emerald-800">
-                            <HeartHandshake className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+                        <div className="flex flex-col items-center justify-center p-10 sm:p-12 text-center">
+                          <div className="w-14 h-14 bg-zinc-100 dark:bg-zinc-800 rounded-2xl flex items-center justify-center mb-4 border border-zinc-200 dark:border-zinc-700">
+                            <HeartHandshake className="w-7 h-7 text-emerald-700 dark:text-emerald-400" />
                           </div>
-                          <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">Belum Memiliki Anak Asuh Binaan</h3>
-                          <p className="text-zinc-500 dark:text-zinc-400 max-w-sm mb-6 text-sm">
-                            Mari dampingi masa depan anak yatim & dhuafa melalui beasiswa rutin bulanan program Orang Tua Asuh (POTA).
+                          <h3 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-1.5">Belum Memiliki Anak Asuh Binaan</h3>
+                          <p className="text-zinc-500 dark:text-zinc-400 max-w-sm mb-6 text-xs sm:text-sm leading-relaxed">
+                            Dampingi masa depan anak yatim dan santri dhuafa melalui beasiswa rutin bulanan program Orang Tua Asuh (POTA).
                           </p>
                           <Button
                             onClick={() => {
@@ -1227,32 +1223,32 @@ function ProfilContent() {
                               setCurrentPotaStep(1);
                               fetchAvailableAnakAsuh();
                             }}
-                            className="bg-emerald-700 hover:bg-emerald-800 text-white rounded-full px-8 h-11 shadow-sm cursor-pointer font-bold text-xs"
+                            className="bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl px-6 h-10 shadow-sm cursor-pointer font-bold text-xs"
                           >
-                            Pilih Anak Asuh Sekarang
+                            Pilih Calon Anak Asuh
                           </Button>
                         </div>
                       ) : (
                         <div className="space-y-6">
                           {/* Banner Salur Sekaligus jika > 1 anak */}
                           {anakAsuhSaya.length > 1 && (
-                            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-emerald-100/50 to-amber-50 dark:from-emerald-950/40 dark:via-emerald-900/20 dark:to-amber-950/30 border border-emerald-200/80 dark:border-emerald-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div className="p-4 sm:p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                               <div>
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-200/80 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 mb-1">
-                                  ⚡ Fitur Praktis
+                                <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-zinc-200 text-zinc-800 dark:bg-zinc-700 dark:text-zinc-200 mb-1.5">
+                                  Donasi Terpadu
                                 </span>
                                 <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                                  Salur Infak Beasiswa Kolektif
+                                  Salur Infak Beasiswa Sekaligus
                                 </h4>
-                                <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">
-                                  Anda mendampingi {anakAsuhSaya.length} ananda binaan. Anda dapat menyalurkan infak beasiswa bulanan sekaligus dalam satu transaksi pembayaran.
+                                <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 max-w-xl">
+                                  Anda mendampingi {anakAsuhSaya.length} anak binaan. Salurkan infak beasiswa bulanan untuk seluruh ananda dalam satu transaksi pembayaran.
                                 </p>
                               </div>
                               <Button
                                 onClick={() => setIsBulkPayOpen(true)}
                                 className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs h-10 px-5 rounded-xl shadow-sm shrink-0 cursor-pointer"
                               >
-                                Bayar Sekaligus Semua Anak →
+                                Salurkan untuk Semua Anak →
                               </Button>
                             </div>
                           )}
