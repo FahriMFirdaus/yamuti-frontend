@@ -105,6 +105,7 @@ function ProfilContent() {
 
   // POTA Registration States & Modals
   const [showPotaForm, setShowPotaForm] = useState(false);
+  const [currentPotaStep, setCurrentPotaStep] = useState<1 | 2>(1);
   const [availableAnakAsuh, setAvailableAnakAsuh] = useState<any[]>([]);
   const [isLoadingAvailableAnak, setIsLoadingAvailableAnak] = useState(false);
   const [selectedPotaForReport, setSelectedPotaForReport] = useState<any | null>(null);
@@ -1140,10 +1141,18 @@ function ProfilContent() {
                       <div>
                         <CardTitle className="text-xl flex items-center gap-2">
                           <HeartHandshake className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                          Program Orang Tua Asuh (POTA)
+                          {!showPotaForm
+                            ? "Program Orang Tua Asuh (POTA)"
+                            : currentPotaStep === 1
+                            ? "Langkah 1: Pilih Calon Ananda Asuh"
+                            : "Langkah 2: Tentukan Komitmen Beasiswa"}
                         </CardTitle>
                         <CardDescription>
-                          Pantau pendidikan, kesehatan, dan perkembangan ananda asuh binaan Anda.
+                          {!showPotaForm
+                            ? "Pantau pendidikan, kesehatan, dan perkembangan ananda asuh binaan Anda."
+                            : currentPotaStep === 1
+                            ? "Pilih satu atau beberapa ananda binaan untuk Anda dampingi beasiswanya."
+                            : "Tentukan nominal infak beasiswa bulanan dan jadwal tanggal penyaluran."}
                         </CardDescription>
                       </div>
                       <div className="flex items-center gap-2">
@@ -1159,6 +1168,7 @@ function ProfilContent() {
                           onClick={() => {
                             const nextState = !showPotaForm;
                             setShowPotaForm(nextState);
+                            setCurrentPotaStep(1);
                             if (nextState) {
                               fetchAvailableAnakAsuh();
                             }
@@ -1185,11 +1195,16 @@ function ProfilContent() {
                       <PotaRegistrationWizard
                         availableAnakAsuh={availableAnakAsuh}
                         isLoadingAvailableAnak={isLoadingAvailableAnak}
+                        onStepChange={(step) => setCurrentPotaStep(step)}
                         onSuccess={() => {
                           setShowPotaForm(false);
+                          setCurrentPotaStep(1);
                           fetchAnakAsuhPota();
                         }}
-                        onCancel={() => setShowPotaForm(false)}
+                        onCancel={() => {
+                          setShowPotaForm(false);
+                          setCurrentPotaStep(1);
+                        }}
                       />
                     )}
 
@@ -1209,6 +1224,7 @@ function ProfilContent() {
                           <Button
                             onClick={() => {
                               setShowPotaForm(true);
+                              setCurrentPotaStep(1);
                               fetchAvailableAnakAsuh();
                             }}
                             className="bg-emerald-700 hover:bg-emerald-800 text-white rounded-full px-8 h-11 shadow-sm cursor-pointer font-bold text-xs"

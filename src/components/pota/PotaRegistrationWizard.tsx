@@ -32,6 +32,7 @@ interface PotaRegistrationWizardProps {
   isLoadingAvailableAnak: boolean;
   onSuccess: () => void;
   onCancel: () => void;
+  onStepChange?: (step: 1 | 2) => void;
 }
 
 export function PotaRegistrationWizard({
@@ -39,6 +40,7 @@ export function PotaRegistrationWizard({
   isLoadingAvailableAnak,
   onSuccess,
   onCancel,
+  onStepChange,
 }: PotaRegistrationWizardProps) {
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedAnakIds, setSelectedAnakIds] = useState<string[]>([]);
@@ -66,9 +68,14 @@ export function PotaRegistrationWizard({
     }
   }, []);
 
+  useEffect(() => {
+    onStepChange?.(step);
+  }, [step, onStepChange]);
+
   const goToStep2 = () => {
     if (selectedAnakIds.length > 0) {
       setStep(2);
+      onStepChange?.(2);
       setTimeout(() => {
         if (step2ScrollRef.current) {
           step2ScrollRef.current.scrollTop = 0;
@@ -85,6 +92,7 @@ export function PotaRegistrationWizard({
 
   const goToStep1 = () => {
     setStep(1);
+    onStepChange?.(1);
     setTimeout(() => {
       if (step1ScrollRef.current) {
         step1ScrollRef.current.scrollTop = 0;
