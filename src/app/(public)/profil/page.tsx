@@ -72,9 +72,10 @@ function ProfilContent() {
   const [anakAsuhSaya, setAnakAsuhSaya] = useState<any[]>([]);
   const [isLoadingPota, setIsLoadingPota] = useState(false);
 
-  // Zakat Calculator
+  // Zakat Calculator States
   const [penghasilanBulan, setPenghasilanBulan] = useState<number>(0);
-  const [emasGram, setEmasGram] = useState<number>(0);
+  const [hargaEmasPerGram, setHargaEmasPerGram] = useState<number>(1400000);
+  const [tabunganHarta, setTabunganHarta] = useState<number>(0);
 
   const [riwayatKunjungan, setRiwayatKunjungan] = useState<any[]>([]);
   const [kunjunganMeta, setKunjunganMeta] = useState<any>(null);
@@ -422,12 +423,17 @@ function ProfilContent() {
           </div>
           <Button
             variant="outline"
-            onClick={() => {
+            onClick={async () => {
               localStorage.removeItem("token");
               localStorage.removeItem("user");
+              try {
+                await signOut({ redirect: false });
+              } catch (e) {
+                // ignore if NextAuth session not initialized
+              }
               window.location.href = "/";
             }}
-            className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 w-full md:w-auto"
+            className="text-zinc-600 border-zinc-200 hover:bg-zinc-100 hover:text-red-600 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-red-400 w-full md:w-auto h-10 px-4 rounded-xl cursor-pointer"
           >
             <LogOut className="mr-2 h-4 w-4" /> Keluar Akun
           </Button>
@@ -1298,80 +1304,127 @@ function ProfilContent() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="p-6 space-y-6">
-                    {/* Ringkasan Nisab */}
-                    <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
-                      <div>
-                        <p className="font-bold text-amber-900 dark:text-amber-300">Ketentuan Nisab Zakat (85 Gram Emas)</p>
-                        <p className="text-amber-700 dark:text-amber-400 mt-0.5">
-                          Asumsi harga emas saat ini: Rp 1.350.000 / gram • Nisab/tahun: Rp 114.750.000 (Rp 9.562.500 / bulan).
-                        </p>
+                    {/* Ringkasan Nisab Dinamis */}
+                    <div className="p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-900/40 space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
+                        <div>
+                          <p className="font-bold text-amber-900 dark:text-amber-300 text-sm">Ketentuan Nisab Zakat (85 Gram Emas)</p>
+                          <p className="text-amber-800 dark:text-amber-400 mt-0.5">
+                            Nisab per tahun: <strong className="font-mono">Rp {(85 * (hargaEmasPerGram || 1400000)).toLocaleString("id-ID")}</strong> (atau setara <strong className="font-mono">Rp {Math.round((85 * (hargaEmasPerGram || 1400000)) / 12).toLocaleString("id-ID")}</strong> / bulan).
+                          </p>
+                        </div>
+                        <Badge className="bg-amber-600 text-white font-bold w-fit text-xs px-2.5 py-1">Tarif Syar'i: 2.5%</Badge>
                       </div>
-                      <Badge className="bg-amber-600 text-white font-bold w-fit">Tarif: 2.5%</Badge>
+
+                      {/* Penyesuaian Harga Emas Acuan */}
+                      <div className="pt-2 border-t border-amber-200/60 dark:border-amber-900/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                        <span className="text-amber-900 dark:text-amber-300 font-medium">
+                          Acuan Harga Emas Antam Saat Ini:
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-zinc-500">Rp</span>
+                          <Input
+                            type="number"
+                            min={500000}
+                            step={10000}
+                            value={hargaEmasPerGram || ""}
+                            onChange={(e) => setHargaEmasPerGram(Number(e.target.value) || 0)}
+                            className="h-8 w-36 text-xs font-mono bg-white dark:bg-zinc-900 rounded-lg"
+                          />
+                          <span className="text-zinc-500">/ gram</span>
+                        </div>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Form Zakat Penghasilan */}
-                      <div className="p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 space-y-4">
-                        <h4 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">1. Zakat Penghasilan / Profesi</h4>
-                        <div className="space-y-2">
-                          <Label htmlFor="penghasilan" className="text-xs text-zinc-600">Total Penghasilan Bersih per Bulan (Rp)</Label>
-                          <Input
-                            id="penghasilan"
-                            type="number"
-                            placeholder="Contoh: 10000000"
-                            value={penghasilanBulan || ""}
-                            onChange={(e) => setPenghasilanBulan(Number(e.target.value) || 0)}
-                            className="font-mono text-sm"
-                          />
+                      <div className="p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 space-y-4 bg-zinc-50/50 dark:bg-zinc-900/30 flex flex-col justify-between">
+                        <div className="space-y-4">
+                          <h4 className="font-bold text-sm text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                            <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 text-xs flex items-center justify-center font-bold">1</span>
+                            Zakat Penghasilan / Profesi
+                          </h4>
+                          <div className="space-y-2">
+                            <Label htmlFor="penghasilan" className="text-xs text-zinc-600 dark:text-zinc-400">Total Penghasilan Bersih per Bulan (Rp)</Label>
+                            <Input
+                              id="penghasilan"
+                              type="number"
+                              placeholder="Contoh: 10000000"
+                              value={penghasilanBulan || ""}
+                              onChange={(e) => setPenghasilanBulan(Number(e.target.value) || 0)}
+                              className="font-mono text-sm bg-white dark:bg-zinc-900 rounded-xl h-11"
+                            />
+                            <p className="text-[11px] text-zinc-500">
+                              {penghasilanBulan >= Math.round((85 * (hargaEmasPerGram || 1400000)) / 12)
+                                ? "✓ Penghasilan memenuhi nisab bulanan wajib zakat."
+                                : "Belum mencapai nisab bulanan, namun dianjurkan berinfak/sedekah."}
+                            </p>
+                          </div>
                         </div>
-                        <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
-                          <span className="text-xs text-zinc-500">Kewajiban Zakat Bulanan (2.5%):</span>
-                          <p className="text-xl font-black font-mono text-emerald-600 dark:text-emerald-400 mt-1">
-                            Rp {Math.round(penghasilanBulan * 0.025).toLocaleString('id-ID')}
-                          </p>
+
+                        <div className="space-y-3 pt-3 border-t border-zinc-200 dark:border-zinc-800">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-zinc-500">Kewajiban Zakat (2.5%):</span>
+                            <p className="text-xl font-black font-mono text-emerald-700 dark:text-emerald-400">
+                              Rp {Math.round(penghasilanBulan * 0.025).toLocaleString('id-ID')}
+                            </p>
+                          </div>
+                          <Button
+                            onClick={() => {
+                              const zakat = Math.round(penghasilanBulan * 0.025);
+                              router.push(`/donasi?program=Zakat&nominal=${zakat}`);
+                            }}
+                            disabled={penghasilanBulan <= 0}
+                            className="w-full bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold h-11 rounded-xl shadow-sm cursor-pointer disabled:opacity-50"
+                          >
+                            Tunaikan Zakat Profesi →
+                          </Button>
                         </div>
-                        <Button
-                          onClick={() => {
-                            const zakat = Math.round(penghasilanBulan * 0.025);
-                            router.push(`/donasi?program=Zakat&nominal=${zakat}`);
-                          }}
-                          disabled={penghasilanBulan <= 0}
-                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
-                        >
-                          Tunaikan Zakat Profesi
-                        </Button>
                       </div>
 
                       {/* Form Zakat Maal (Tabungan / Harta) */}
-                      <div className="p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 space-y-4">
-                        <h4 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">2. Zakat Maal / Simpanan Harta</h4>
-                        <div className="space-y-2">
-                          <Label htmlFor="tabungan" className="text-xs text-zinc-600">Total Tabungan / Deposito Mengendap 1 Tahun (Rp)</Label>
-                          <Input
-                            id="tabungan"
-                            type="number"
-                            placeholder="Contoh: 120000000"
-                            value={emasGram || ""}
-                            onChange={(e) => setEmasGram(Number(e.target.value) || 0)}
-                            className="font-mono text-sm"
-                          />
+                      <div className="p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 space-y-4 bg-zinc-50/50 dark:bg-zinc-900/30 flex flex-col justify-between">
+                        <div className="space-y-4">
+                          <h4 className="font-bold text-sm text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                            <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 text-xs flex items-center justify-center font-bold">2</span>
+                            Zakat Maal / Simpanan Harta
+                          </h4>
+                          <div className="space-y-2">
+                            <Label htmlFor="tabungan" className="text-xs text-zinc-600 dark:text-zinc-400">Total Tabungan / Deposito Mengendap 1 Tahun (Rp)</Label>
+                            <Input
+                              id="tabungan"
+                              type="number"
+                              placeholder="Contoh: 120000000"
+                              value={tabunganHarta || ""}
+                              onChange={(e) => setTabunganHarta(Number(e.target.value) || 0)}
+                              className="font-mono text-sm bg-white dark:bg-zinc-900 rounded-xl h-11"
+                            />
+                            <p className="text-[11px] text-zinc-500">
+                              {tabunganHarta >= (85 * (hargaEmasPerGram || 1400000))
+                                ? "✓ Simpanan harta telah mencapai nisab 1 tahun (haul)."
+                                : "Belum mencapai nisab 1 tahun, disarankan berinfak umum."}
+                            </p>
+                          </div>
                         </div>
-                        <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
-                          <span className="text-xs text-zinc-500">Kewajiban Zakat Maal (2.5%):</span>
-                          <p className="text-xl font-black font-mono text-emerald-600 dark:text-emerald-400 mt-1">
-                            Rp {Math.round(emasGram * 0.025).toLocaleString('id-ID')}
-                          </p>
+
+                        <div className="space-y-3 pt-3 border-t border-zinc-200 dark:border-zinc-800">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-zinc-500">Kewajiban Zakat (2.5%):</span>
+                            <p className="text-xl font-black font-mono text-emerald-700 dark:text-emerald-400">
+                              Rp {Math.round(tabunganHarta * 0.025).toLocaleString('id-ID')}
+                            </p>
+                          </div>
+                          <Button
+                            onClick={() => {
+                              const zakat = Math.round(tabunganHarta * 0.025);
+                              router.push(`/donasi?program=Zakat%20Maal&nominal=${zakat}`);
+                            }}
+                            disabled={tabunganHarta <= 0}
+                            className="w-full bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold h-11 rounded-xl shadow-sm cursor-pointer disabled:opacity-50"
+                          >
+                            Tunaikan Zakat Maal →
+                          </Button>
                         </div>
-                        <Button
-                          onClick={() => {
-                            const zakat = Math.round(emasGram * 0.025);
-                            router.push(`/donasi?program=Zakat%20Maal&nominal=${zakat}`);
-                          }}
-                          disabled={emasGram <= 0}
-                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
-                        >
-                          Tunaikan Zakat Maal
-                        </Button>
                       </div>
                     </div>
                   </CardContent>
