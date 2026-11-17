@@ -19,9 +19,7 @@ export function PotaMultiView({
   onOpenPay,
   onOpenBulkPay,
 }: PotaMultiViewProps) {
-  const [viewMode, setViewMode] = useState<"strip" | "grid">(
-    anakAsuhList.length > 2 ? "strip" : "grid"
-  );
+  const [viewMode, setViewMode] = useState<"strip" | "grid">("grid");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 4;
 
@@ -86,12 +84,12 @@ export function PotaMultiView({
 
       {/* STRIP VIEW: Horizontal Carousel with Snap */}
       {viewMode === "strip" ? (
-        <div className="relative">
-          <div className="flex gap-3.5 overflow-x-auto pb-3 pt-1 snap-x scroll-smooth overscroll-x-contain [scrollbar-width:thin] -mx-1 px-1">
+        <div className="relative w-full max-w-full overflow-hidden">
+          <div className="flex gap-3.5 overflow-x-auto pb-3 pt-1 snap-x scroll-smooth overscroll-x-contain [scrollbar-width:thin] px-0.5">
             {anakAsuhList.map((pota, idx) => (
               <div
                 key={pota.id || idx}
-                className="w-[285px] sm:w-[320px] shrink-0 snap-start"
+                className="w-[270px] sm:w-[290px] shrink-0 snap-start"
               >
                 <PotaCard
                   pota={pota}

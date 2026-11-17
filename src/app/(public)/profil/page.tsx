@@ -643,7 +643,7 @@ function ProfilContent() {
           </div>
 
           {/* Main Content Area */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             {activeTab === "profil" && (
               <div className="space-y-6">
                 <Card className="border-zinc-200 shadow-sm dark:border-zinc-800">
