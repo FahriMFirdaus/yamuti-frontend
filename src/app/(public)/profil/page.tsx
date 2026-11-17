@@ -1179,7 +1179,7 @@ function ProfilContent() {
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-6">
+                  <CardContent className="p-3.5 sm:p-6">
                     {/* MODULAR WIZARD PENDAFTARAN POTA (2-LANGKAH MULTI-ANAK) */}
                     {showPotaForm && (
                       <PotaRegistrationWizard

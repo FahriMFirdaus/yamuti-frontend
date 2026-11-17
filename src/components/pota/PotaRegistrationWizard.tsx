@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { Sparkles, CheckCircle2, AlertCircle, School, HeartHandshake, Eye } from "lucide-react";
+import { Sparkles, CheckCircle2, AlertCircle, School, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,7 +43,7 @@ export function PotaRegistrationWizard({
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedAnakIds, setSelectedAnakIds] = useState<string[]>([]);
   const [childCommitments, setChildCommitments] = useState<
-    Record<string, { nominal: number; hari: number; doa: string }>
+    Record<string, { nominal: number | ""; hari: number | ""; doa: string }>
   >({});
   const [activeChildModalDetail, setActiveChildModalDetail] = useState<AnakAsuh | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -51,6 +51,52 @@ export function PotaRegistrationWizard({
     type: "success" | "error";
     text: string;
   } | null>(null);
+
+  const wizardRef = useRef<HTMLDivElement>(null);
+  const step1ScrollRef = useRef<HTMLDivElement>(null);
+  const step2ScrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (wizardRef.current) {
+      const rect = wizardRef.current.getBoundingClientRect();
+      const isOutOfView = rect.top < 85 || rect.bottom > window.innerHeight;
+      if (isOutOfView) {
+        wizardRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  }, []);
+
+  const goToStep2 = () => {
+    if (selectedAnakIds.length > 0) {
+      setStep(2);
+      setTimeout(() => {
+        if (step2ScrollRef.current) {
+          step2ScrollRef.current.scrollTop = 0;
+        }
+        if (wizardRef.current) {
+          const rect = wizardRef.current.getBoundingClientRect();
+          if (rect.top < 85 || rect.bottom > window.innerHeight) {
+            wizardRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }
+      }, 0);
+    }
+  };
+
+  const goToStep1 = () => {
+    setStep(1);
+    setTimeout(() => {
+      if (step1ScrollRef.current) {
+        step1ScrollRef.current.scrollTop = 0;
+      }
+      if (wizardRef.current) {
+        const rect = wizardRef.current.getBoundingClientRect();
+        if (rect.top < 85 || rect.bottom > window.innerHeight) {
+          wizardRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+    }, 0);
+  };
 
   const toggleSelectAnak = (id: string) => {
     setSelectedAnakIds((prev) => {
@@ -70,7 +116,7 @@ export function PotaRegistrationWizard({
   const updateChildCommitment = (
     id: string,
     field: "nominal" | "hari" | "doa",
-    value: any
+    value: number | string
   ) => {
     setChildCommitments((prev) => ({
       ...prev,
@@ -94,12 +140,22 @@ export function PotaRegistrationWizard({
     }
 
     for (const id of selectedAnakIds) {
-      const comm = childCommitments[id] || { nominal: 250000, hari: 1 };
-      if (comm.nominal < 50000) {
+      const comm = childCommitments[id] || { nominal: 250000, hari: 1, doa: "" };
+      const nominal = Number(comm.nominal) || 0;
+      const hari = Number(comm.hari) || 0;
+      if (nominal < 50000) {
         const anak = availableAnakAsuh.find((a) => a.id === id);
         setFormMessage({
           type: "error",
           text: `Komitmen beasiswa untuk ${anak?.nama || "ananda"} minimal Rp 50.000 / bulan.`,
+        });
+        return;
+      }
+      if (hari < 1 || hari > 31) {
+        const anak = availableAnakAsuh.find((a) => a.id === id);
+        setFormMessage({
+          type: "error",
+          text: `Jadwal pengingat salur untuk ${anak?.nama || "ananda"} harus antara tanggal 1 - 31.`,
         });
         return;
       }
@@ -111,7 +167,7 @@ export function PotaRegistrationWizard({
       const payload = {
         items: selectedAnakIds.map((id) => ({
           anak_asuh_id: id,
-          nominal_bulanan: childCommitments[id]?.nominal || 250000,
+          nominal_bulanan: Number(childCommitments[id]?.nominal) || 250000,
           hari_tagihan_per_bulan: Number(childCommitments[id]?.hari) || 1,
           catatan_doa: childCommitments[id]?.doa || null,
         })),
@@ -143,71 +199,83 @@ export function PotaRegistrationWizard({
       setTimeout(() => {
         onSuccess();
       }, 1500);
-    } catch (err: any) {
-      setFormMessage({ type: "error", text: err.message });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Terjadi kesalahan saat mendaftar";
+      setFormMessage({ type: "error", text: message });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const totalKomitmen = selectedAnakIds.reduce(
-    (sum, id) => sum + (childCommitments[id]?.nominal || 250000),
-    0
-  );
+  const totalKomitmen = selectedAnakIds.reduce((sum, id) => {
+    const raw = childCommitments[id]?.nominal;
+    const val = raw === "" || raw === undefined ? 0 : Number(raw);
+    return sum + (isNaN(val) ? 0 : val);
+  }, 0);
 
   return (
-    <div className="mb-8 p-5 sm:p-7 rounded-3xl bg-zinc-50/80 dark:bg-zinc-900/60 border border-emerald-200 dark:border-emerald-800/60 space-y-6 animate-in slide-in-from-top-3 duration-300 shadow-sm relative">
-      {/* Header & Stepper */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-5">
-        <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 mb-2">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-            <span>Pendaftaran Orang Tua Asuh (POTA)</span>
+    <div
+      ref={wizardRef}
+      className={cn(
+        "scroll-mt-20 lg:scroll-mt-24 mb-6 rounded-2xl sm:rounded-3xl",
+        "bg-zinc-50/90 dark:bg-zinc-900/80 border border-emerald-200/90 dark:border-emerald-800/60 shadow-sm relative",
+        "p-3.5 sm:p-5 lg:p-5",
+        "flex flex-col",
+        "max-h-[calc(100dvh-110px)] min-h-[360px] sm:min-h-[440px]",
+        "lg:h-[min(650px,calc(100dvh-130px))] lg:max-h-[650px] lg:min-h-[500px]",
+        "animate-in slide-in-from-top-3 duration-300"
+      )}
+    >
+      {/* Header & Stepper (Sticky/Fixed top of card) */}
+      <div className="shrink-0 pb-3 sm:pb-3.5 border-b border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 mb-1">
+            <Sparkles className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+            <span className="hidden sm:inline">Pendaftaran Orang Tua Asuh (POTA)</span>
+            <span className="sm:hidden">Pendaftaran POTA</span>
           </div>
-          <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+          <h3 className="text-sm sm:text-base lg:text-lg font-bold text-zinc-900 dark:text-zinc-100 leading-tight">
             {step === 1
               ? "Langkah 1: Pilih Calon Ananda Asuh"
               : "Langkah 2: Tentukan Komitmen Beasiswa & Jadwal Salur"}
           </h3>
-          <p className="text-xs text-zinc-500 mt-1 max-w-xl">
+          <p className="text-[11px] sm:text-xs text-zinc-500 mt-0.5 max-w-xl truncate sm:whitespace-normal">
             {step === 1
-              ? "Anda dapat memilih satu atau beberapa ananda binaan sekaligus untuk didampingi beasiswa pendidikannya."
-              : `Atur nominal infak beasiswa dan tanggal pengingat rutin untuk ${selectedAnakIds.length} ananda yang dipilih.`}
+              ? "Pilih satu atau beberapa ananda binaan untuk didampingi beasiswanya."
+              : `Atur komitmen infak beasiswa & tanggal pengingat untuk ${selectedAnakIds.length} ananda terpilih.`}
           </p>
         </div>
 
         {/* Step Indicator Badges */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 w-full sm:w-auto justify-between sm:justify-start pt-1 sm:pt-0">
           <button
             type="button"
-            onClick={() => setStep(1)}
+            onClick={goToStep1}
             className={cn(
-              "flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer min-h-[36px]",
+              "flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer min-h-[34px]",
               step === 1
                 ? "bg-emerald-700 text-white border-emerald-700 shadow-sm"
-                : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800"
+                : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800"
             )}
           >
-            <span className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center text-[10px]">
+            <span className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center text-[10px] font-bold">
               1
             </span>
             <span>Pilih ({selectedAnakIds.length})</span>
           </button>
-          <span className="text-zinc-300 dark:text-zinc-700">→</span>
+          <span className="text-zinc-300 dark:text-zinc-700 px-0.5 sm:px-1 text-xs select-none">→</span>
           <button
             type="button"
-            onClick={() => {
-              if (selectedAnakIds.length > 0) setStep(2);
-            }}
+            onClick={goToStep2}
             disabled={selectedAnakIds.length === 0}
             className={cn(
-              "flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all min-h-[36px]",
+              "flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all min-h-[34px]",
               step === 2
                 ? "bg-emerald-700 text-white border-emerald-700 shadow-sm"
-                : "bg-white dark:bg-zinc-900 text-zinc-400 border-zinc-200 dark:border-zinc-800 disabled:opacity-50 cursor-pointer"
+                : "bg-white dark:bg-zinc-900 text-zinc-400 border-zinc-200 dark:border-zinc-800 disabled:opacity-50 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800"
             )}
           >
-            <span className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center text-[10px]">
+            <span className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center text-[10px] font-bold">
               2
             </span>
             <span>Komitmen Beasiswa</span>
@@ -215,10 +283,11 @@ export function PotaRegistrationWizard({
         </div>
       </div>
 
+      {/* Form Message Alert */}
       {formMessage && (
         <div
           className={cn(
-            "flex items-center gap-2.5 p-4 rounded-xl text-xs font-semibold border",
+            "shrink-0 my-2 flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs font-semibold border",
             formMessage.type === "success"
               ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
               : "bg-amber-50 text-amber-900 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800"
@@ -229,20 +298,20 @@ export function PotaRegistrationWizard({
           ) : (
             <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
           )}
-          <span>{formMessage.text}</span>
+          <span className="truncate">{formMessage.text}</span>
         </div>
       )}
 
       {/* STEP 1: SIMPLE CARD GRID + MULTI-SELECT + QUICK DETAIL */}
       {step === 1 && (
-        <div className="space-y-6">
+        <div className="flex-1 min-h-0 flex flex-col pt-2.5 sm:pt-3">
           {isLoadingAvailableAnak ? (
-            <div className="p-12 text-sm text-zinc-500 text-center bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800">
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-xs sm:text-sm text-zinc-500 text-center bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800">
               <div className="animate-spin w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full mx-auto mb-2" />
               Memuat data calon ananda santri binaan...
             </div>
           ) : availableAnakAsuh.length === 0 ? (
-            <div className="p-12 text-sm text-zinc-600 dark:text-zinc-400 text-center bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 space-y-2">
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 text-center bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 space-y-2">
               <p className="font-semibold text-zinc-900 dark:text-zinc-100">
                 Alhamdulillah! Seluruh Ananda Telah Memiliki Orang Tua Asuh
               </p>
@@ -251,120 +320,126 @@ export function PotaRegistrationWizard({
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[540px] overflow-y-auto p-1 pr-2">
-              {availableAnakAsuh.map((anak) => {
-                const isSelected = selectedAnakIds.includes(anak.id);
-                return (
-                  <div
-                    key={anak.id}
-                    onClick={() => toggleSelectAnak(anak.id)}
-                    className={cn(
-                      "p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between relative group hover:shadow-md min-h-[140px]",
-                      isSelected
-                        ? "bg-emerald-50/90 border-emerald-500 ring-2 ring-emerald-500/20 dark:bg-emerald-950/30 dark:border-emerald-500"
-                        : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-emerald-300"
-                    )}
-                  >
-                    <div>
-                      <div className="flex items-start gap-3 mb-2">
-                        <div className="relative h-12 w-12 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 font-bold text-base flex items-center justify-center shrink-0 border border-amber-200 dark:border-amber-800/60 overflow-hidden">
-                          {anak.foto_identitas ? (
-                            <Image
-                              src={anak.foto_identitas}
-                              alt={anak.nama}
-                              fill
-                              className="object-cover"
-                            />
-                          ) : (
-                            <span>{anak.nama?.charAt(0) || "A"}</span>
-                          )}
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-900 dark:bg-amber-950/50 dark:text-amber-300">
-                              {anak.status_keluarga || "Yatim"}
-                            </span>
-                            <span className="text-[10px] text-zinc-500">
-                              {anak.jenis_kelamin}
-                            </span>
+            <div
+              ref={step1ScrollRef}
+              className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1 sm:pr-2 pb-1 [scrollbar-width:thin]"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3 p-0.5">
+                {availableAnakAsuh.map((anak) => {
+                  const isSelected = selectedAnakIds.includes(anak.id);
+                  return (
+                    <div
+                      key={anak.id}
+                      onClick={() => toggleSelectAnak(anak.id)}
+                      className={cn(
+                        "p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border cursor-pointer transition-all flex flex-col justify-between relative group hover:shadow-sm",
+                        isSelected
+                          ? "bg-emerald-50/90 border-emerald-500 ring-2 ring-emerald-500/20 dark:bg-emerald-950/30 dark:border-emerald-500"
+                          : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-emerald-300"
+                      )}
+                    >
+                      <div>
+                        <div className="flex items-start gap-2.5 sm:gap-3 mb-2">
+                          <div className="relative h-11 w-11 sm:h-12 sm:w-12 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 font-bold text-sm sm:text-base flex items-center justify-center shrink-0 border border-amber-200 dark:border-amber-800/60 overflow-hidden">
+                            {anak.foto_identitas ? (
+                              <Image
+                                src={anak.foto_identitas}
+                                alt={anak.nama}
+                                fill
+                                className="object-cover"
+                              />
+                            ) : (
+                              <span>{anak.nama?.charAt(0) || "A"}</span>
+                            )}
                           </div>
-                          <h4 className="font-bold text-sm text-zinc-900 dark:text-zinc-100 mt-1 truncate">
-                            {anak.nama}
-                          </h4>
-                          <p className="text-xs text-zinc-500 flex items-center gap-1 mt-0.5 truncate">
-                            <School className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-                            <span className="truncate">
-                              {anak.tingkat_pendidikan || "Sekolah"}
-                            </span>
-                          </p>
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-900 dark:bg-amber-950/50 dark:text-amber-300">
+                                {anak.status_keluarga || "Yatim"}
+                              </span>
+                              <span className="text-[10px] text-zinc-500">
+                                {anak.jenis_kelamin}
+                              </span>
+                            </div>
+                            <h4 className="font-bold text-xs sm:text-sm text-zinc-900 dark:text-zinc-100 mt-0.5 truncate">
+                              {anak.nama}
+                            </h4>
+                            <p className="text-[11px] sm:text-xs text-zinc-500 flex items-center gap-1 mt-0.5 truncate">
+                              <School className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-zinc-400 shrink-0" />
+                              <span className="truncate">
+                                {anak.tingkat_pendidikan || "Sekolah"}
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-1.5 pt-2 sm:pt-2.5 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between gap-2">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveChildModalDetail(anak);
+                          }}
+                          className="text-[11px] sm:text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer min-h-[32px] sm:min-h-[36px]"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Lihat Detail</span>
+                        </button>
+
+                        <div className="flex items-center gap-1.5">
+                          <span
+                            className={cn(
+                              "text-[10px] sm:text-[11px] font-semibold",
+                              isSelected
+                                ? "text-emerald-700 dark:text-emerald-400"
+                                : "text-zinc-400"
+                            )}
+                          >
+                            {isSelected ? "Terpilih" : "Pilih"}
+                          </span>
+                          <div
+                            className={cn(
+                              "w-4 h-4 sm:w-5 sm:h-5 rounded-md border flex items-center justify-center text-xs transition-colors",
+                              isSelected
+                                ? "bg-emerald-600 text-white border-emerald-600"
+                                : "border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                            )}
+                          >
+                            {isSelected && "✓"}
+                          </div>
                         </div>
                       </div>
                     </div>
-
-                    <div className="mt-2 pt-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between gap-2">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveChildModalDetail(anak);
-                        }}
-                        className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer min-h-[36px]"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Lihat Detail</span>
-                      </button>
-
-                      <div className="flex items-center gap-1.5">
-                        <span
-                          className={cn(
-                            "text-[11px] font-semibold",
-                            isSelected
-                              ? "text-emerald-700 dark:text-emerald-400"
-                              : "text-zinc-400"
-                          )}
-                        >
-                          {isSelected ? "Terpilih" : "Pilih"}
-                        </span>
-                        <div
-                          className={cn(
-                            "w-5 h-5 rounded-md border flex items-center justify-center text-xs transition-colors",
-                            isSelected
-                              ? "bg-emerald-600 text-white border-emerald-600"
-                              : "border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
-                          )}
-                        >
-                          {isSelected && "✓"}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           )}
 
-          {/* Action Bar Bawah Langkah 1 */}
-          <div className="pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-zinc-200 dark:border-zinc-800">
+          {/* Action Bar Bawah Langkah 1 (Sticky/Fixed bottom of card) */}
+          <div className="shrink-0 pt-2.5 sm:pt-3 pb-1 mt-auto flex flex-row items-center justify-between gap-1.5 sm:gap-3 border-t border-zinc-200 dark:border-zinc-800 bg-inherit">
             <Button
               type="button"
               variant="outline"
               onClick={onCancel}
-              className="text-xs h-11 px-5 rounded-xl border-zinc-300 dark:border-zinc-700"
+              className="text-xs h-9 sm:h-10 px-3 sm:px-5 rounded-xl border-zinc-300 dark:border-zinc-700 cursor-pointer"
             >
               Batal
             </Button>
-            <div className="flex items-center justify-between sm:justify-end gap-3">
-              <span className="text-xs text-zinc-600 dark:text-zinc-400 font-semibold">
-                {selectedAnakIds.length} Ananda Terpilih
+            <div className="flex items-center gap-1.5 sm:gap-3">
+              <span className="text-[11px] sm:text-xs text-zinc-600 dark:text-zinc-400 font-semibold whitespace-nowrap">
+                <strong className="text-emerald-700 dark:text-emerald-400 font-bold">{selectedAnakIds.length}</strong> Ananda Terpilih
               </span>
               <Button
                 type="button"
                 disabled={selectedAnakIds.length === 0}
-                onClick={() => setStep(2)}
-                className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold h-11 px-6 rounded-xl shadow-sm cursor-pointer disabled:opacity-50"
+                onClick={goToStep2}
+                className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold h-9 sm:h-10 px-3 sm:px-6 rounded-xl shadow-sm cursor-pointer disabled:opacity-50"
               >
-                Lanjut ke Komitmen Beasiswa (Langkah 2) →
+                <span className="hidden sm:inline">Lanjut ke Komitmen Beasiswa (Langkah 2) →</span>
+                <span className="sm:hidden">Lanjut ({selectedAnakIds.length}) →</span>
               </Button>
             </div>
           </div>
@@ -373,216 +448,261 @@ export function PotaRegistrationWizard({
 
       {/* STEP 2: KOMITMEN BEASISWA & JADWAL SALUR PER ANANDA */}
       {step === 2 && (
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Tombol Navigasi Atas ke Langkah 1 */}
-          <div className="flex items-center justify-between bg-white dark:bg-zinc-900 p-3.5 rounded-2xl border border-zinc-200 dark:border-zinc-800">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setStep(1)}
-              className="text-xs font-semibold cursor-pointer h-9 px-3.5 rounded-xl"
-            >
-              ← Kembali ke Langkah 1 (Pilih Ananda)
-            </Button>
-            <span className="text-xs text-zinc-600 dark:text-zinc-400 font-medium hidden sm:inline">
+        <form onSubmit={handleSubmit} noValidate className="flex-1 min-h-0 flex flex-col pt-2 sm:pt-2.5">
+          {/* Subheader Info Bar */}
+          <div className="shrink-0 mb-2 flex items-center justify-between bg-white dark:bg-zinc-900 px-3 py-1.5 sm:py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs">
+            <span className="text-[11px] sm:text-xs text-zinc-600 dark:text-zinc-400 font-medium">
               Menyesuaikan komitmen untuk{" "}
               <strong className="text-zinc-900 dark:text-zinc-100 font-bold">
                 {selectedAnakIds.length}
               </strong>{" "}
               ananda binaan
             </span>
+            <button
+              type="button"
+              onClick={goToStep1}
+              className="text-emerald-700 dark:text-emerald-400 font-semibold hover:underline text-[11px] sm:text-xs cursor-pointer flex items-center gap-1"
+            >
+              ← Ubah Pilihan
+            </button>
           </div>
 
-          {/* Form Komitmen Masing-masing Ananda */}
-          <div className="space-y-4">
-            {selectedAnakIds.map((id, index) => {
-              const anak = availableAnakAsuh.find((a) => a.id === id);
-              const comm = childCommitments[id] || { nominal: 250000, hari: 1, doa: "" };
-              return (
-                <div
-                  key={id}
-                  className="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-4 shadow-sm"
+          {/* Form Komitmen Masing-masing Ananda (Internal Scroll Container) */}
+          <div
+            ref={step2ScrollRef}
+            className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1 sm:pr-2 space-y-3 pb-1 [scrollbar-width:thin]"
+          >
+            {selectedAnakIds.length === 0 ? (
+              <div className="p-8 text-center bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-3">
+                <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400">
+                  Belum ada ananda yang dipilih untuk komitmen beasiswa.
+                </p>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={goToStep1}
+                  className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs rounded-xl"
                 >
-                  <div className="flex items-start justify-between gap-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
-                    <div className="flex items-center gap-3">
-                      <div className="relative h-12 w-12 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 font-bold text-base flex items-center justify-center shrink-0 border border-amber-200 overflow-hidden">
-                        {anak?.foto_identitas ? (
-                          <Image
-                            src={anak.foto_identitas}
-                            alt={anak?.nama || "Anak"}
-                            fill
-                            className="object-cover"
-                          />
-                        ) : (
-                          <span>{anak?.nama?.charAt(0) || `${index + 1}`}</span>
-                        )}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 px-2 py-0.5 rounded">
-                            Ananda #{index + 1}
-                          </span>
-                          <span className="text-xs text-zinc-500">
-                            {anak?.jenis_kelamin} • {anak?.status_keluarga || "Yatim"}
-                          </span>
-                        </div>
-                        <h4 className="font-bold text-sm text-zinc-900 dark:text-zinc-100 mt-0.5">
-                          {anak?.nama || "Ananda Asuh"}
-                        </h4>
-                        <p className="text-xs text-zinc-500">
-                          {anak?.tingkat_pendidikan || "Sekolah"} • {anak?.nama_sekolah || "Asrama YAMUTI"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleSelectAnak(id)}
-                      className="text-xs text-zinc-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 min-h-[36px]"
+                  ← Kembali ke Langkah 1 untuk Memilih Ananda
+                </Button>
+              </div>
+            ) : (
+              <>
+                {selectedAnakIds.map((id, index) => {
+                  const anak = availableAnakAsuh.find((a) => a.id === id);
+                  const comm = childCommitments[id] || { nominal: 250000, hari: 1, doa: "" };
+                  return (
+                    <div
+                      key={id}
+                      className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-3 shadow-sm"
                     >
-                      Batal Pilih
-                    </Button>
-                  </div>
-
-                  {/* Input Komitmen Mandiri untuk Ananda Ini */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Nominal Donasi */}
-                    <div className="space-y-2">
-                      <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                        Komitmen Donasi Bulanan (Rp)
-                      </Label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {[100000, 250000, 500000].map((val) => (
-                          <button
-                            type="button"
-                            key={val}
-                            onClick={() => updateChildCommitment(id, "nominal", val)}
-                            className={cn(
-                              "py-2 px-1 text-center rounded-xl text-xs font-bold border transition-all cursor-pointer min-h-[38px]",
-                              comm.nominal === val
-                                ? "bg-emerald-700 text-white border-emerald-700 shadow-sm"
-                                : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50"
+                      <div className="flex items-center justify-between gap-3 pb-2.5 border-b border-zinc-100 dark:border-zinc-800">
+                        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                          <div className="relative h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 font-bold text-sm flex items-center justify-center shrink-0 border border-amber-200 overflow-hidden">
+                            {anak?.foto_identitas ? (
+                              <Image
+                                src={anak.foto_identitas}
+                                alt={anak?.nama || "Anak"}
+                                fill
+                                className="object-cover"
+                              />
+                            ) : (
+                              <span>{anak?.nama?.charAt(0) || `${index + 1}`}</span>
                             )}
-                          >
-                            Rp {(val / 1000).toLocaleString("id-ID")}rb
-                          </button>
-                        ))}
-                      </div>
-                      <Input
-                        type="number"
-                        min={50000}
-                        step={10000}
-                        value={comm.nominal || ""}
-                        onChange={(e) =>
-                          updateChildCommitment(id, "nominal", Number(e.target.value) || 0)
-                        }
-                        className="h-10 text-xs font-mono bg-white dark:bg-zinc-900 rounded-xl"
-                        placeholder="Nominal lain, min Rp 50.000"
-                        required
-                      />
-                    </div>
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 px-1.5 py-0.5 rounded">
+                                #{index + 1}
+                              </span>
+                              <span className="text-[11px] text-zinc-500">
+                                {anak?.jenis_kelamin} • {anak?.status_keluarga || "Yatim"}
+                              </span>
+                            </div>
+                            <h4 className="font-bold text-xs sm:text-sm text-zinc-900 dark:text-zinc-100 truncate mt-0.5">
+                              {anak?.nama || "Ananda Asuh"}
+                            </h4>
+                            <p className="text-[11px] text-zinc-500 truncate">
+                              {anak?.tingkat_pendidikan || "Sekolah"} • {anak?.nama_sekolah || "Asrama YAMUTI"}
+                            </p>
+                          </div>
+                        </div>
 
-                    {/* Jadwal Pengingat Salur */}
-                    <div className="space-y-2">
-                      <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                        Jadwal Pengingat Salur (Tgl Tiap Bulan)
-                      </Label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {[1, 5, 10].map((tgl) => (
-                          <button
-                            type="button"
-                            key={tgl}
-                            onClick={() => updateChildCommitment(id, "hari", tgl)}
-                            className={cn(
-                              "py-2 px-1 text-center rounded-xl text-xs font-bold border transition-all cursor-pointer min-h-[38px]",
-                              comm.hari === tgl
-                                ? "bg-emerald-700 text-white border-emerald-700 shadow-sm"
-                                : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50"
-                            )}
-                          >
-                            Tgl {tgl}
-                          </button>
-                        ))}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleSelectAnak(id)}
+                          className="text-xs text-zinc-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 h-8 px-2.5 shrink-0"
+                        >
+                          Batal Pilih
+                        </Button>
                       </div>
-                      <Input
-                        type="number"
-                        min={1}
-                        max={31}
-                        value={comm.hari || ""}
-                        onChange={(e) =>
-                          updateChildCommitment(id, "hari", Number(e.target.value) || 1)
-                        }
-                        className="h-10 text-xs font-mono bg-white dark:bg-zinc-900 rounded-xl"
-                        placeholder="Tanggal 1-31"
-                        required
-                      />
+
+                      {/* Inputs: Nominal Donasi & Jadwal Pengingat Salur */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* Nominal Donasi */}
+                        <div className="space-y-1.5">
+                          <Label className="text-[11px] sm:text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                            Komitmen Donasi Bulanan (Rp)
+                          </Label>
+                          <div className="grid grid-cols-3 gap-1.5">
+                            {[100000, 250000, 500000].map((val) => (
+                              <button
+                                type="button"
+                                key={val}
+                                onClick={() => updateChildCommitment(id, "nominal", val)}
+                                className={cn(
+                                  "py-1.5 px-1 text-center rounded-lg sm:rounded-xl text-[11px] font-bold border transition-all cursor-pointer min-h-[34px]",
+                                  comm.nominal === val
+                                    ? "bg-emerald-700 text-white border-emerald-700 shadow-sm"
+                                    : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                                )}
+                              >
+                                Rp {(val / 1000).toLocaleString("id-ID")}rb
+                              </button>
+                            ))}
+                          </div>
+                          <Input
+                            type="number"
+                            min={50000}
+                            step={10000}
+                            value={comm.nominal ?? ""}
+                            onChange={(e) =>
+                              updateChildCommitment(
+                                id,
+                                "nominal",
+                                e.target.value === "" ? "" : Number(e.target.value)
+                              )
+                            }
+                            className="h-9 text-xs font-mono bg-white dark:bg-zinc-900 rounded-lg sm:rounded-xl"
+                            placeholder="Nominal lain, min Rp 50.000"
+                            required
+                          />
+                        </div>
+
+                        {/* Jadwal Pengingat Salur */}
+                        <div className="space-y-1.5">
+                          <Label className="text-[11px] sm:text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                            Jadwal Pengingat Salur (Tgl Bulanan)
+                          </Label>
+                          <div className="grid grid-cols-3 gap-1.5">
+                            {[1, 5, 10].map((tgl) => (
+                              <button
+                                type="button"
+                                key={tgl}
+                                onClick={() => updateChildCommitment(id, "hari", tgl)}
+                                className={cn(
+                                  "py-1.5 px-1 text-center rounded-lg sm:rounded-xl text-[11px] font-bold border transition-all cursor-pointer min-h-[34px]",
+                                  comm.hari === tgl
+                                    ? "bg-emerald-700 text-white border-emerald-700 shadow-sm"
+                                    : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                                )}
+                              >
+                                Tgl {tgl}
+                              </button>
+                            ))}
+                          </div>
+                          <Input
+                            type="number"
+                            min={1}
+                            max={31}
+                            value={comm.hari ?? ""}
+                            onChange={(e) =>
+                              updateChildCommitment(
+                                id,
+                                "hari",
+                                e.target.value === "" ? "" : Number(e.target.value)
+                              )
+                            }
+                            className="h-9 text-xs font-mono bg-white dark:bg-zinc-900 rounded-lg sm:rounded-xl"
+                            placeholder="Tanggal 1-31"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      {/* Pesan Doa untuk Ananda ini */}
+                      <div className="space-y-1">
+                        <Label className="text-[11px] sm:text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                          Pesan Doa / Harapan untuk {anak?.nama || "Ananda"} (Opsional)
+                        </Label>
+                        <Input
+                          type="text"
+                          value={comm.doa || ""}
+                          onChange={(e) => updateChildCommitment(id, "doa", e.target.value)}
+                          placeholder="Semoga ananda istiqomah belajar, sholeh/sholehah dan tercapai cita-citanya..."
+                          className="h-9 text-xs bg-white dark:bg-zinc-900 rounded-lg sm:rounded-xl"
+                          maxLength={500}
+                        />
+                      </div>
                     </div>
+                  );
+                })}
+
+                {/* Ringkasan Total Komitmen */}
+                <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                  <div>
+                    <p className="text-[11px] sm:text-xs text-emerald-800 dark:text-emerald-300 font-semibold">
+                      Total Komitmen Infak Beasiswa Rutin ({selectedAnakIds.length} Anak):
+                    </p>
+                    <p className="text-lg sm:text-xl font-black font-mono text-emerald-700 dark:text-emerald-400 mt-0.5">
+                      Rp {totalKomitmen.toLocaleString("id-ID")} / bulan
+                    </p>
                   </div>
-
-                  {/* Pesan Doa untuk Ananda ini */}
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                      Pesan Doa / Harapan untuk {anak?.nama || "Ananda"} (Opsional)
-                    </Label>
-                    <Input
-                      type="text"
-                      value={comm.doa || ""}
-                      onChange={(e) => updateChildCommitment(id, "doa", e.target.value)}
-                      placeholder="Semoga ananda istiqomah belajar, sholeh/sholehah dan tercapai cita-citanya..."
-                      className="h-10 text-xs bg-white dark:bg-zinc-900 rounded-xl"
-                      maxLength={500}
-                    />
+                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                    * Anda dapat menyalurkan donasi bulanan secara fleksibel kapan saja.
                   </div>
                 </div>
-              );
-            })}
+              </>
+            )}
           </div>
 
-          {/* Ringkasan Total Komitmen */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <p className="text-xs text-emerald-800 dark:text-emerald-300 font-semibold">
-                Total Komitmen Infak Beasiswa Rutin ({selectedAnakIds.length} Anak):
-              </p>
-              <p className="text-xl sm:text-2xl font-black font-mono text-emerald-700 dark:text-emerald-400 mt-0.5">
-                Rp {totalKomitmen.toLocaleString("id-ID")} / bulan
-              </p>
-            </div>
-            <div className="text-xs text-zinc-500 dark:text-zinc-400">
-              * Anda dapat menyalurkan donasi bulanan secara fleksibel kapan saja.
-            </div>
-          </div>
-
-          {/* Action Bar Bawah Langkah 2 */}
-          <div className="pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-zinc-200 dark:border-zinc-800">
+          {/* Action Bar Bawah Langkah 2 (Sticky/Fixed bottom of card) */}
+          <div className="shrink-0 pt-2.5 sm:pt-3 pb-1 mt-auto flex flex-row items-center justify-between gap-1.5 sm:gap-3 border-t border-zinc-200 dark:border-zinc-800 bg-inherit">
             <Button
               type="button"
               variant="outline"
-              onClick={() => setStep(1)}
-              className="text-xs h-11 px-5 rounded-xl border-zinc-300 dark:border-zinc-700"
+              onClick={goToStep1}
+              className="text-xs h-9 sm:h-10 px-2.5 sm:px-4 rounded-xl border-zinc-300 dark:border-zinc-700 cursor-pointer"
             >
-              ← Kembali ke Langkah 1
+              ← Kembali
             </Button>
-            <div className="flex items-center justify-between sm:justify-end gap-3">
+
+            <div className="hidden md:flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400">
+              <span>Total:</span>
+              <strong className="font-mono font-bold text-emerald-700 dark:text-emerald-400 text-sm">
+                Rp {totalKomitmen.toLocaleString("id-ID")}
+              </strong>
+              <span className="text-[11px] text-zinc-500">/bln</span>
+            </div>
+
+            <div className="flex items-center gap-1.5 sm:gap-3">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={onCancel}
-                className="text-xs h-11 px-4 text-zinc-500 rounded-xl"
+                className="text-xs h-9 sm:h-10 px-2 sm:px-3 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 rounded-xl cursor-pointer"
               >
                 Batal
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting || selectedAnakIds.length === 0}
-                className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold h-11 px-6 rounded-xl shadow-sm cursor-pointer disabled:opacity-50"
+                className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold h-9 sm:h-10 px-3 sm:px-6 rounded-xl shadow-sm cursor-pointer disabled:opacity-50"
               >
-                {isSubmitting
-                  ? "Menyimpan Komitmen..."
-                  : `Konfirmasi Jadi Orang Tua Asuh (${selectedAnakIds.length} Anak)`}
+                {isSubmitting ? (
+                  "Menyimpan..."
+                ) : (
+                  <>
+                    <span className="hidden sm:inline">
+                      Konfirmasi Jadi Orang Tua Asuh ({selectedAnakIds.length} Anak)
+                    </span>
+                    <span className="sm:hidden">
+                      Konfirmasi ({selectedAnakIds.length})
+                    </span>
+                  </>
+                )}
               </Button>
             </div>
           </div>
@@ -594,20 +714,20 @@ export function PotaRegistrationWizard({
         open={!!activeChildModalDetail}
         onOpenChange={(open) => !open && setActiveChildModalDetail(null)}
       >
-        <DialogContent className="sm:max-w-[480px]">
+        <DialogContent className="sm:max-w-[480px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-lg flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-amber-500" /> Profil Lengkap Calon Ananda Asuh
+            <DialogTitle className="text-base sm:text-lg flex items-center gap-2">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" /> Profil Lengkap Calon Ananda Asuh
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-xs">
               Informasi detail ananda santri binaan asrama YAMUTI.
             </DialogDescription>
           </DialogHeader>
 
           {activeChildModalDetail && (
-            <div className="space-y-4 py-2">
-              <div className="flex items-center gap-4 pb-4 border-b border-zinc-100 dark:border-zinc-800">
-                <div className="relative h-20 w-20 rounded-2xl bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 font-bold text-2xl flex items-center justify-center shrink-0 border border-amber-200 overflow-hidden">
+            <div className="space-y-3.5 py-1">
+              <div className="flex items-center gap-3.5 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+                <div className="relative h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 font-bold text-xl sm:text-2xl flex items-center justify-center shrink-0 border border-amber-200 overflow-hidden">
                   {activeChildModalDetail.foto_identitas ? (
                     <Image
                       src={activeChildModalDetail.foto_identitas}
@@ -619,11 +739,11 @@ export function PotaRegistrationWizard({
                     <span>{activeChildModalDetail.nama?.charAt(0) || "A"}</span>
                   )}
                 </div>
-                <div>
-                  <span className="inline-block px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-amber-100 text-amber-900 dark:bg-amber-950/50 dark:text-amber-300">
+                <div className="min-w-0 flex-1">
+                  <span className="inline-block px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider bg-amber-100 text-amber-900 dark:bg-amber-950/50 dark:text-amber-300">
                     {activeChildModalDetail.status_keluarga || "Yatim"}
                   </span>
-                  <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100 mt-1">
+                  <h3 className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 mt-0.5 truncate">
                     {activeChildModalDetail.nama}
                   </h3>
                   <p className="text-xs text-zinc-500">
@@ -633,16 +753,16 @@ export function PotaRegistrationWizard({
                 </div>
               </div>
 
-              <div className="space-y-3 text-xs">
-                <div className="grid grid-cols-2 gap-3 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/50">
+              <div className="space-y-2.5 text-xs">
+                <div className="grid grid-cols-2 gap-2.5 p-2.5 sm:p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/50">
                   <div>
-                    <span className="text-zinc-500 block">Jenjang Sekolah:</span>
+                    <span className="text-zinc-500 block text-[11px]">Jenjang Sekolah:</span>
                     <span className="font-semibold text-zinc-800 dark:text-zinc-200">
                       {activeChildModalDetail.tingkat_pendidikan || "Sekolah"}
                     </span>
                   </div>
                   <div>
-                    <span className="text-zinc-500 block">Nama Sekolah:</span>
+                    <span className="text-zinc-500 block text-[11px]">Nama Sekolah:</span>
                     <span className="font-semibold text-zinc-800 dark:text-zinc-200">
                       {activeChildModalDetail.nama_sekolah || "Asrama YAMUTI"}
                     </span>
@@ -650,22 +770,22 @@ export function PotaRegistrationWizard({
                 </div>
 
                 <div>
-                  <span className="text-zinc-500 font-semibold block mb-1">
+                  <span className="text-zinc-500 font-semibold block mb-1 text-[11px]">
                     Bio Singkat & Keterangan:
                   </span>
-                  <p className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 italic leading-relaxed">
+                  <p className="p-2.5 sm:p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 italic leading-relaxed text-xs">
                     {activeChildModalDetail.keterangan ||
                       "Ananda adalah santri binaan asrama YAMUTI yang tekun menuntut ilmu dan menghafal Al-Qur'an."}
                   </p>
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-2">
+              <div className="pt-2.5 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setActiveChildModalDetail(null)}
-                  className="text-xs rounded-xl"
+                  className="text-xs rounded-xl h-8 px-3"
                 >
                   Tutup
                 </Button>
@@ -678,7 +798,7 @@ export function PotaRegistrationWizard({
                     setActiveChildModalDetail(null);
                   }}
                   className={cn(
-                    "text-xs font-bold rounded-xl",
+                    "text-xs font-bold rounded-xl h-8 px-3.5",
                     selectedAnakIds.includes(activeChildModalDetail.id)
                       ? "bg-zinc-700 text-white"
                       : "bg-emerald-700 hover:bg-emerald-800 text-white"
