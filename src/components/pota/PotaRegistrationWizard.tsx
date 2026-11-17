@@ -235,58 +235,69 @@ export function PotaRegistrationWizard({
       )}
     >
       {/* Header & Stepper (Sticky/Fixed top of card) */}
-      <div className="shrink-0 pb-3 sm:pb-3.5 border-b border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="min-w-0">
-          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 mb-1">
-            <Sparkles className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+      <div className="shrink-0 pb-2.5 sm:pb-3 border-b border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+            <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 dark:text-emerald-400" />
             <span className="hidden sm:inline">Pendaftaran Orang Tua Asuh (POTA)</span>
             <span className="sm:hidden">Pendaftaran POTA</span>
           </div>
-          <h3 className="text-sm sm:text-base lg:text-lg font-bold text-zinc-900 dark:text-zinc-100 leading-tight">
-            {step === 1
-              ? "Langkah 1: Pilih Calon Ananda Asuh"
-              : "Langkah 2: Tentukan Komitmen Beasiswa & Jadwal Salur"}
-          </h3>
-          <p className="text-[11px] sm:text-xs text-zinc-500 mt-0.5 max-w-xl truncate sm:whitespace-normal">
-            {step === 1
-              ? "Pilih satu atau beberapa ananda binaan untuk didampingi beasiswanya."
-              : `Atur komitmen infak beasiswa & tanggal pengingat untuk ${selectedAnakIds.length} ananda terpilih.`}
-          </p>
         </div>
 
         {/* Step Indicator Badges */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 w-full sm:w-auto justify-between sm:justify-start pt-1 sm:pt-0">
+        <div
+          role="group"
+          aria-label="Tahapan Wizard Pendaftaran"
+          className="flex items-center gap-1.5 sm:gap-2 shrink-0 w-full sm:w-auto justify-between sm:justify-start"
+        >
           <button
             type="button"
             onClick={goToStep1}
+            aria-current={step === 1 ? "step" : undefined}
             className={cn(
-              "flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer min-h-[34px]",
+              "flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer min-h-[32px] whitespace-nowrap",
               step === 1
                 ? "bg-emerald-700 text-white border-emerald-700 shadow-sm"
                 : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800"
             )}
           >
-            <span className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center text-[10px] font-bold">
+            <span
+              className={cn(
+                "w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold",
+                step === 1
+                  ? "bg-white/20 text-white"
+                  : "bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+              )}
+            >
               1
             </span>
             <span>Pilih ({selectedAnakIds.length})</span>
           </button>
-          <span className="text-zinc-300 dark:text-zinc-700 px-0.5 sm:px-1 text-xs select-none">→</span>
+          <span className="text-zinc-300 dark:text-zinc-700 px-0.5 sm:px-1 text-xs select-none" aria-hidden="true">→</span>
           <button
             type="button"
             onClick={goToStep2}
             disabled={selectedAnakIds.length === 0}
+            aria-current={step === 2 ? "step" : undefined}
             className={cn(
-              "flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all min-h-[34px]",
+              "flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all min-h-[32px] whitespace-nowrap",
               step === 2
-                ? "bg-emerald-700 text-white border-emerald-700 shadow-sm"
-                : "bg-white dark:bg-zinc-900 text-zinc-400 border-zinc-200 dark:border-zinc-800 disabled:opacity-50 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                ? "bg-emerald-700 text-white border-emerald-700 shadow-sm cursor-default"
+                : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800"
             )}
           >
-            <span className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center text-[10px] font-bold">
+            <span
+              className={cn(
+                "w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold",
+                step === 2
+                  ? "bg-white/20 text-white"
+                  : "bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+              )}
+            >
               2
             </span>
-            <span>Komitmen Beasiswa</span>
+            <span className="hidden sm:inline">Komitmen Beasiswa</span>
+            <span className="sm:hidden">Komitmen</span>
           </button>
         </div>
       </div>
