@@ -1293,7 +1293,7 @@ function ProfilContent() {
                               Standar Nisab Zakat Resmi BAZNAS
                             </p>
                             <a
-                              href="https://baznas.go.id/kalkulator-zakat"
+                              href="https://baznas.go.id/kalkulatorzakat"
                               target="_blank"
                               rel="noreferrer"
                               title="Buka Rujukan Resmi SK BAZNAS di baznas.go.id"
