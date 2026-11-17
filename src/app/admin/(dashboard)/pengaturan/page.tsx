@@ -13,7 +13,9 @@ import {
   Compass, 
   ExternalLink,
   CheckCircle2,
-  CalendarCheck
+  CalendarCheck,
+  Calculator,
+  Info
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,6 +85,19 @@ export default function PengaturanPage() {
   const [isDetectingGps, setIsDetectingGps] = useState(false);
   const [newSlotInput, setNewSlotInput] = useState("");
 
+  // State Nisab Zakat BAZNAS
+  const [nisabForm, setNisabForm] = useState({
+    tahun: 2026,
+    dasar_hukum: "SK Ketua BAZNAS No. 15 Tahun 2026",
+    nisab_tahunan: 91681728,
+    nisab_bulanan: 7640144,
+    tarif_persen: 2.5,
+    harga_emas_acuan_per_gram: 1078608,
+    keterangan: "Standar resmi nisab zakat pendapatan & jasa BAZNAS RI",
+    terakhir_diperbarui: "2026-02-21",
+  });
+  const [isSubmittingNisab, setIsSubmittingNisab] = useState(false);
+
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
   // Kalkulasi total persentase
@@ -123,6 +138,15 @@ export default function PengaturanPage() {
               ...prev,
               ...resultLokasi.data
             }));
+          }
+        }
+
+        // 3. Fetch Nisab Zakat BAZNAS
+        const resNisab = await fetch(`${apiUrl}/landing/nisab-zakat`);
+        if (resNisab.ok) {
+          const resultNisab = await resNisab.json();
+          if (resultNisab.data) {
+            setNisabForm(resultNisab.data);
           }
         }
       } catch (err) {
@@ -300,6 +324,34 @@ export default function PengaturanPage() {
     }
   };
 
+  const handleSaveNisabZakat = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmittingNisab(true);
+    try {
+      const session = await getSession();
+      const token = session?.accessToken || (typeof window !== "undefined" ? localStorage.getItem("token") || undefined : undefined);
+
+      const res = await fetch(`${apiUrl}/settings/nisab-zakat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": `Bearer ${token || ""}`
+        },
+        body: JSON.stringify(nisabForm),
+      });
+
+      if (!res.ok) throw new Error("Gagal menyimpan ketetapan nisab zakat BAZNAS");
+
+      alert("Ketetapan Nisab Zakat BAZNAS berhasil diperbarui dan disinkronkan ke seluruh kalkulator zakat!");
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan saat menyimpan ketetapan nisab zakat.");
+    } finally {
+      setIsSubmittingNisab(false);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
       <div>
@@ -312,7 +364,7 @@ export default function PengaturanPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 max-w-3xl mb-6 h-auto p-1 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 max-w-4xl mb-6 h-auto p-1 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl">
           <TabsTrigger value="kontak" className="py-2.5 data-[state=active]:bg-red-600 data-[state=active]:text-white font-semibold rounded-lg text-xs sm:text-sm">
             <Compass className="w-4 h-4 mr-2" /> Profil & Kontak
           </TabsTrigger>
@@ -324,6 +376,9 @@ export default function PengaturanPage() {
           </TabsTrigger>
           <TabsTrigger value="kas" className="py-2.5 data-[state=active]:bg-red-600 data-[state=active]:text-white font-semibold rounded-lg text-xs sm:text-sm">
             <Percent className="w-4 h-4 mr-2" /> Bagi Kas Donasi
+          </TabsTrigger>
+          <TabsTrigger value="zakat" className="py-2.5 data-[state=active]:bg-emerald-700 data-[state=active]:text-white font-semibold rounded-lg text-xs sm:text-sm">
+            <Calculator className="w-4 h-4 mr-2" /> Nisab Zakat
           </TabsTrigger>
         </TabsList>
 
@@ -759,6 +814,153 @@ export default function PengaturanPage() {
               )}
             </Button>
           </div>
+        </TabsContent>
+
+        {/* ======================================================== */}
+        {/* TAB 5: KETETAPAN NISAB ZAKAT BAZNAS                      */}
+        {/* ======================================================== */}
+        <TabsContent value="zakat" className="space-y-6">
+          {/* Peringatan / Warning Banner Khusus Admin */}
+          <div className="p-4 sm:p-5 rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 space-y-2 shadow-xs">
+            <div className="flex items-center gap-2.5 font-bold text-sm">
+              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+              <span>Peringatan Penting untuk Administrator</span>
+            </div>
+            <p className="text-xs sm:text-sm leading-relaxed text-amber-800 dark:text-amber-300">
+              Ketetapan nisab zakat pendapatan dan jasa diatur secara resmi oleh <strong>Badan Amil Zakat Nasional (BAZNAS) Republik Indonesia</strong> melalui Surat Keputusan (SK) tahunan. 
+              Mohon pastikan data di bawah ini <strong>selalu diperbarui setiap awal tahun</strong> begitu BAZNAS menerbitkan SK Nisab terbaru, agar kalkulator zakat donatur di portal publik tetap sah dan akurat secara syar&apos;i.
+            </p>
+            <div className="pt-1 flex items-center gap-2 text-xs text-amber-700 dark:text-amber-400">
+              <Info className="w-3.5 h-3.5" />
+              <span>Rujukan resmi: <a href="https://baznas.go.id" target="_blank" rel="noreferrer" className="underline font-semibold">baznas.go.id</a></span>
+            </div>
+          </div>
+
+          <form onSubmit={handleSaveNisabZakat} className="space-y-6">
+            <Card className="border-zinc-200 dark:border-zinc-800 shadow-sm">
+              <CardHeader className="border-b border-zinc-100 dark:border-zinc-800/50 pb-4">
+                <CardTitle className="text-lg font-bold flex items-center gap-2">
+                  <Calculator className="w-5 h-5 text-emerald-700" /> Formulir Ketetapan Nisab Zakat BAZNAS
+                </CardTitle>
+                <CardDescription>
+                  Pengaturan ini menjadi acuan utama pada fitur Kalkulator & Salur Zakat Maal / Profesi di halaman profil donatur.
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="pt-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="tahun_zakat">Tahun Ketetapan BAZNAS</Label>
+                    <Input
+                      id="tahun_zakat"
+                      type="number"
+                      value={nisabForm.tahun}
+                      onChange={(e) => setNisabForm({ ...nisabForm, tahun: Number(e.target.value) || 2026 })}
+                      placeholder="Contoh: 2026"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="dasar_hukum">Dasar Hukum / Nomor SK BAZNAS</Label>
+                    <Input
+                      id="dasar_hukum"
+                      type="text"
+                      value={nisabForm.dasar_hukum}
+                      onChange={(e) => setNisabForm({ ...nisabForm, dasar_hukum: e.target.value })}
+                      placeholder="Contoh: SK Ketua BAZNAS No. 15 Tahun 2026"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="nisab_bulanan">Nisab Penghasilan Bulanan (Rp)</Label>
+                    <Input
+                      id="nisab_bulanan"
+                      type="number"
+                      value={nisabForm.nisab_bulanan}
+                      onChange={(e) => setNisabForm({ ...nisabForm, nisab_bulanan: Number(e.target.value) || 0 })}
+                      className="font-mono font-bold text-emerald-700"
+                      required
+                    />
+                    <p className="text-[11px] text-zinc-400">Standar 2026: Rp 7.640.144 / bulan</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="nisab_tahunan">Nisab Harta / Tahunan (Rp)</Label>
+                    <Input
+                      id="nisab_tahunan"
+                      type="number"
+                      value={nisabForm.nisab_tahunan}
+                      onChange={(e) => setNisabForm({ ...nisabForm, nisab_tahunan: Number(e.target.value) || 0 })}
+                      className="font-mono font-bold text-emerald-700"
+                      required
+                    />
+                    <p className="text-[11px] text-zinc-400">Standar 2026: Rp 91.681.728 / tahun</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="tarif_persen">Tarif Zakat Syar&apos;i (%)</Label>
+                    <Input
+                      id="tarif_persen"
+                      type="number"
+                      step="0.1"
+                      value={nisabForm.tarif_persen}
+                      onChange={(e) => setNisabForm({ ...nisabForm, tarif_persen: Number(e.target.value) || 2.5 })}
+                      className="font-mono"
+                      required
+                    />
+                    <p className="text-[11px] text-zinc-400">Ketentuan syariat: 2.5%</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="harga_emas_acuan">Harga Emas Acuan BAZNAS per Gram (Rp)</Label>
+                    <Input
+                      id="harga_emas_acuan"
+                      type="number"
+                      value={nisabForm.harga_emas_acuan_per_gram || ""}
+                      onChange={(e) => setNisabForm({ ...nisabForm, harga_emas_acuan_per_gram: Number(e.target.value) || 0 })}
+                      className="font-mono"
+                      placeholder="Contoh: 1078608"
+                    />
+                    <p className="text-[11px] text-zinc-400">Rata-rata acuan emas 14 karat yang dihitung BAZNAS</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="keterangan_nisab">Keterangan Tambahan untuk Donatur</Label>
+                    <Input
+                      id="keterangan_nisab"
+                      type="text"
+                      value={nisabForm.keterangan || ""}
+                      onChange={(e) => setNisabForm({ ...nisabForm, keterangan: e.target.value })}
+                      placeholder="Standar resmi nisab zakat BAZNAS RI"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-zinc-500">
+                Terakhir disimpan: {nisabForm.terakhir_diperbarui || "Belum ada catatan"}
+              </span>
+              <Button
+                type="submit"
+                disabled={isSubmittingNisab}
+                className="bg-emerald-700 hover:bg-emerald-800 text-white min-w-[200px] shadow-sm font-bold"
+              >
+                {isSubmittingNisab ? "Menyimpan..." : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" /> Simpan Ketetapan BAZNAS
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
         </TabsContent>
       </Tabs>
     </div>

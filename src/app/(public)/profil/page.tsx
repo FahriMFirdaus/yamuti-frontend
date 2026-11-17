@@ -77,8 +77,28 @@ function ProfilContent() {
 
   // Zakat Calculator States
   const [penghasilanBulan, setPenghasilanBulan] = useState<number>(0);
-  const [hargaEmasPerGram, setHargaEmasPerGram] = useState<number>(1400000);
+  const [hargaEmasPerGram, setHargaEmasPerGram] = useState<number>(1078608);
   const [tabunganHarta, setTabunganHarta] = useState<number>(0);
+  const [nisabInfo, setNisabInfo] = useState<{
+    tahun: number;
+    dasar_hukum: string;
+    nisab_tahunan: number;
+    nisab_bulanan: number;
+    tarif_persen: number;
+    harga_emas_acuan_per_gram: number;
+    keterangan: string;
+    terakhir_diperbarui: string;
+  }>({
+    tahun: 2026,
+    dasar_hukum: "SK Ketua BAZNAS No. 15 Tahun 2026",
+    nisab_tahunan: 91681728,
+    nisab_bulanan: 7640144,
+    tarif_persen: 2.5,
+    harga_emas_acuan_per_gram: 1078608,
+    keterangan: "Standar resmi nisab zakat pendapatan & jasa BAZNAS RI",
+    terakhir_diperbarui: "2026-02-21",
+  });
+  const [useCustomGoldPrice, setUseCustomGoldPrice] = useState(false);
 
   const [riwayatKunjungan, setRiwayatKunjungan] = useState<any[]>([]);
   const [kunjunganMeta, setKunjunganMeta] = useState<any>(null);
@@ -337,6 +357,29 @@ function ProfilContent() {
       setIsLoadingAvailableAnak(false);
     }
   };
+
+  const fetchNisabZakat = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002/api"}/landing/nisab-zakat`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data) {
+          setNisabInfo(json.data);
+          if (json.data.harga_emas_acuan_per_gram) {
+            setHargaEmasPerGram(json.data.harga_emas_acuan_per_gram);
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Gagal mengambil acuan nisab BAZNAS", e);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "zakat") {
+      fetchNisabZakat();
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     if (activeTab === "anak-asuh") {
@@ -1240,35 +1283,58 @@ function ProfilContent() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="p-6 space-y-6">
-                    {/* Ringkasan Nisab Dinamis */}
-                    <div className="p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-900/40 space-y-3">
+                    {/* Ringkasan Nisab Dinamis Berdasarkan SK BAZNAS */}
+                    <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-900/40 space-y-3.5">
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
                         <div>
-                          <p className="font-bold text-amber-900 dark:text-amber-300 text-sm">Ketentuan Nisab Zakat (85 Gram Emas)</p>
-                          <p className="text-amber-800 dark:text-amber-400 mt-0.5">
-                            Nisab per tahun: <strong className="font-mono">Rp {(85 * (hargaEmasPerGram || 1400000)).toLocaleString("id-ID")}</strong> (atau setara <strong className="font-mono">Rp {Math.round((85 * (hargaEmasPerGram || 1400000)) / 12).toLocaleString("id-ID")}</strong> / bulan).
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-bold text-amber-900 dark:text-amber-200 text-sm sm:text-base">
+                              Standar Nisab Zakat Resmi BAZNAS
+                            </p>
+                            <Badge className="bg-amber-200 text-amber-900 border-none font-bold text-[10px] px-2 py-0.5">
+                              {nisabInfo.dasar_hukum}
+                            </Badge>
+                          </div>
+                          <p className="text-amber-800 dark:text-amber-400 mt-1 leading-relaxed">
+                            Nisab per tahun: <strong className="font-mono font-bold text-amber-950 dark:text-amber-200">Rp {(useCustomGoldPrice ? 85 * hargaEmasPerGram : nisabInfo.nisab_tahunan).toLocaleString("id-ID")}</strong> (atau setara <strong className="font-mono font-bold text-amber-950 dark:text-amber-200">Rp {(useCustomGoldPrice ? Math.round((85 * hargaEmasPerGram) / 12) : nisabInfo.nisab_bulanan).toLocaleString("id-ID")}</strong> / bulan).
                           </p>
                         </div>
-                        <Badge className="bg-amber-600 text-white font-bold w-fit text-xs px-2.5 py-1">Tarif Syar'i: 2.5%</Badge>
+                        <Badge className="bg-emerald-700 text-white font-bold w-fit text-xs px-3 py-1">
+                          Tarif Syar'i: {nisabInfo.tarif_persen}%
+                        </Badge>
                       </div>
 
-                      {/* Penyesuaian Harga Emas Acuan */}
-                      <div className="pt-2 border-t border-amber-200/60 dark:border-amber-900/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                        <span className="text-amber-900 dark:text-amber-300 font-medium">
-                          Acuan Harga Emas Antam Saat Ini:
-                        </span>
+                      {/* Penyesuaian Harga Emas Acuan / Custom Toggle */}
+                      <div className="pt-3 border-t border-amber-200/60 dark:border-amber-900/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-zinc-500">Rp</span>
-                          <Input
-                            type="number"
-                            min={500000}
-                            step={10000}
-                            value={hargaEmasPerGram || ""}
-                            onChange={(e) => setHargaEmasPerGram(Number(e.target.value) || 0)}
-                            className="h-8 w-36 text-xs font-mono bg-white dark:bg-zinc-900 rounded-lg"
-                          />
-                          <span className="text-zinc-500">/ gram</span>
+                          <button
+                            type="button"
+                            onClick={() => setUseCustomGoldPrice(!useCustomGoldPrice)}
+                            className="text-amber-900 dark:text-amber-300 font-medium hover:underline flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <span>Acuan Emas: {useCustomGoldPrice ? "Kustom Sendiri" : "Standar SK BAZNAS"}</span>
+                            <span className="text-[11px] text-amber-700">({useCustomGoldPrice ? "Gunakan SK BAZNAS" : "Ubah Manual"})</span>
+                          </button>
                         </div>
+
+                        {useCustomGoldPrice ? (
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-zinc-500">Rp</span>
+                            <Input
+                              type="number"
+                              min={500000}
+                              step={10000}
+                              value={hargaEmasPerGram || ""}
+                              onChange={(e) => setHargaEmasPerGram(Number(e.target.value) || 0)}
+                              className="h-8 w-36 text-xs font-mono bg-white dark:bg-zinc-900 rounded-lg"
+                            />
+                            <span className="text-zinc-500">/ gram</span>
+                          </div>
+                        ) : (
+                          <div className="text-[11px] text-amber-800 dark:text-amber-400 font-mono">
+                            Setara Rp {nisabInfo.harga_emas_acuan_per_gram.toLocaleString("id-ID")} / gram
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -1291,9 +1357,9 @@ function ProfilContent() {
                               className="font-mono text-sm bg-white dark:bg-zinc-900 rounded-xl h-11"
                             />
                             <p className="text-[11px] text-zinc-500">
-                              {penghasilanBulan >= Math.round((85 * (hargaEmasPerGram || 1400000)) / 12)
-                                ? "✓ Penghasilan memenuhi nisab bulanan wajib zakat."
-                                : "Belum mencapai nisab bulanan, namun dianjurkan berinfak/sedekah."}
+                              {penghasilanBulan >= (useCustomGoldPrice ? Math.round((85 * hargaEmasPerGram) / 12) : nisabInfo.nisab_bulanan)
+                                ? "✓ Penghasilan telah mencapai batas nisab wajib zakat."
+                                : "Belum mencapai nisab wajib zakat, namun tetap bernilai pahala jika berinfak/sedekah."}
                             </p>
                           </div>
                         </div>
@@ -1336,8 +1402,8 @@ function ProfilContent() {
                               className="font-mono text-sm bg-white dark:bg-zinc-900 rounded-xl h-11"
                             />
                             <p className="text-[11px] text-zinc-500">
-                              {tabunganHarta >= (85 * (hargaEmasPerGram || 1400000))
-                                ? "✓ Simpanan harta telah mencapai nisab 1 tahun (haul)."
+                              {tabunganHarta >= (useCustomGoldPrice ? 85 * hargaEmasPerGram : nisabInfo.nisab_tahunan)
+                                ? "✓ Simpanan harta telah mencapai batas nisab 1 tahun (haul)."
                                 : "Belum mencapai nisab 1 tahun, disarankan berinfak umum."}
                             </p>
                           </div>
