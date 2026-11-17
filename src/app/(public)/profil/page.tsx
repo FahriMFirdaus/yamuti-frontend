@@ -43,6 +43,9 @@ import {
 } from "@/components/ui/dialog";
 import Script from "next/script";
 import { PotaCard } from "@/components/pota/PotaCard";
+import { PotaMultiView } from "@/components/pota/PotaMultiView";
+import { ProfilSummaryStrip } from "@/components/profil/ProfilSummaryStrip";
+import { RiwayatDonasiTable } from "@/components/profil/RiwayatDonasiTable";
 import { PotaReportModal } from "@/components/pota/PotaReportModal";
 import { PotaQuickPayModal } from "@/components/pota/PotaQuickPayModal";
 import { PotaBulkPayModal } from "@/components/pota/PotaBulkPayModal";
@@ -134,6 +137,10 @@ function ProfilContent() {
         // ignore
       }
     }
+
+    // Load initial stats donasi & POTA untuk KPI Strip
+    fetchDonasi(1);
+    fetchAnakAsuhPota();
   }, [searchParams]);
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
@@ -192,12 +199,26 @@ function ProfilContent() {
     }
   };
 
-  const fetchDonasi = async (page: number) => {
+  const [donasiFilterStatus, setDonasiFilterStatus] = useState<string>("");
+  const [donasiSearchQuery, setDonasiSearchQuery] = useState<string>("");
+
+  const fetchDonasi = async (page: number, status?: string, q?: string) => {
     setIsLoadingDonasi(true);
     try {
       const token = localStorage.getItem("token") || undefined;
       if (!token) return;
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002/api"}/user/riwayat-donasi?page=${page}`, {
+
+      const activeStatus = status !== undefined ? status : donasiFilterStatus;
+      const activeQ = q !== undefined ? q : donasiSearchQuery;
+
+      const queryParams = new URLSearchParams({
+        page: String(page),
+        per_page: "8",
+      });
+      if (activeStatus) queryParams.set("status", activeStatus);
+      if (activeQ) queryParams.set("q", activeQ);
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002/api"}/user/riwayat-donasi?${queryParams.toString()}`, {
         headers: {
           "Accept": "application/json",
           "Authorization": `Bearer ${token}`
@@ -225,9 +246,9 @@ function ProfilContent() {
 
   useEffect(() => {
     if (activeTab === "donasi") {
-      fetchDonasi(donasiPage);
+      fetchDonasi(donasiPage, donasiFilterStatus, donasiSearchQuery);
     }
-  }, [activeTab, donasiPage]);
+  }, [activeTab, donasiPage, donasiFilterStatus, donasiSearchQuery]);
 
   const fetchKunjungan = async (page: number) => {
     setIsLoadingKunjungan(true);
@@ -440,6 +461,18 @@ function ProfilContent() {
           </Button>
         </div>
 
+        {/* Executive Impact & KPI Strip (Above the fold) */}
+        <ProfilSummaryStrip
+          totalNominalDonasi={riwayatDonasi.reduce((acc, d) => {
+            const isPaid = d.status === 'success' || d.status === 'settlement' || d.status === 'Berhasil' || d.status === 'PAID' || d.status === 'paid';
+            return isPaid ? acc + Number(d.gross_amount || d.nominal || 0) : acc;
+          }, 0)}
+          totalFrekuensiDonasi={donasiMeta?.total || riwayatDonasi.length || 0}
+          totalAnakAsuh={anakAsuhSaya.length}
+          statusBulanIniLunas={anakAsuhSaya.length > 0 && anakAsuhSaya.every(p => p.status_bulan_ini === 'lunas' || p.is_paid_this_month)}
+          onNavigateTab={(tab) => setActiveTab(tab)}
+        />
+
         {/* Mobile Horizontal Pill Navigation (< lg) */}
         <div className="lg:hidden mb-6">
           <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
@@ -502,8 +535,8 @@ function ProfilContent() {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar Menu (Desktop: full menu, Mobile: user card only) */}
-          <div className="w-full lg:w-72 shrink-0 space-y-6">
+          {/* Sidebar Menu (Desktop: full menu sticky, Mobile: user card only) */}
+          <div className="w-full lg:w-72 shrink-0 space-y-6 lg:sticky lg:top-24 self-start">
             {/* User Info Card */}
             <Card className="border-zinc-200 shadow-sm dark:border-zinc-800">
               <CardContent className="p-6 text-center">
@@ -816,145 +849,65 @@ function ProfilContent() {
 
             {activeTab === "donasi" && (
               <Card className="border-zinc-200 shadow-sm dark:border-zinc-800">
-                <CardHeader className="border-b border-zinc-100 pb-6 dark:border-zinc-800/50">
-                  <CardTitle className="text-xl">Riwayat Donasi</CardTitle>
-                  <CardDescription>Terima kasih atas segala bentuk donasi yang telah Anda salurkan.</CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
-                    {isLoadingDonasi ? (
-                      <div className="p-8 text-center text-zinc-500">Memuat riwayat donasi...</div>
-                    ) : riwayatDonasi.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center p-12 text-center">
-                        <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-full flex items-center justify-center mb-4">
-                          <Heart className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
-                        </div>
-                        <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">Belum Ada Riwayat Donasi</h3>
-                        <p className="text-zinc-500 dark:text-zinc-400 max-w-sm mb-6 text-sm">Anda belum melakukan donasi apa pun. Mari mulai langkah kebaikan Anda hari ini dengan membantu anak-anak asuh kami.</p>
-                        <Button onClick={() => router.push('/donasi')} className="h-11 text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white rounded-full px-8 shadow-sm transition-all cursor-pointer">
-                          Donasi Sekarang
-                        </Button>
-                      </div>
-                    ) : (
-                      riwayatDonasi.map((donasi) => (
-                        <div key={donasi.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-6 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900/30">
-                          <div className="mb-4 sm:mb-0">
-                            <p className="font-bold text-zinc-900 text-base mb-1 dark:text-zinc-100">
-                              {donasi.kampanye?.judul || donasi.program || "Donasi Umum"}
-                            </p>
-                            <div className="flex items-center gap-3 text-sm text-zinc-500">
-                              <span className="font-mono text-xs bg-zinc-100 px-2 py-0.5 rounded text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
-                                {donasi.invoice || `INV-${donasi.id}`}
-                              </span>
-                              <span>•</span>
-                              <span>{new Date(donasi.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-4 sm:flex-col sm:items-end sm:gap-2">
-                            <div className="flex items-center gap-3">
-                              <span className="font-extrabold text-emerald-700 text-lg dark:text-emerald-400 font-mono">
-                                Rp {Number(donasi.gross_amount || donasi.nominal || 0).toLocaleString('id-ID')}
-                              </span>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="hidden sm:flex text-xs h-7 px-2 border-zinc-200 dark:border-zinc-800 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/30"
-                                onClick={() => {
-                                  setSelectedDonasi(donasi);
-                                  setIsDonasiModalOpen(true);
-                                }}
-                              >
-                                Detail
-                              </Button>
-                              {(donasi.status === 'success' || donasi.status === 'settlement' || donasi.status === 'Berhasil' || donasi.status === 'PAID') && (
-                                <>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-xs h-7 px-2.5 font-semibold text-emerald-700 border-emerald-300 hover:bg-emerald-50 dark:text-emerald-400 dark:border-emerald-800"
-                                    onClick={() => setSelectedKwitansi({
-                                      id: donasi.id,
-                                      order_id: donasi.invoice || donasi.order_id || `INV-${donasi.id}`,
-                                      nama_donatur: user?.name || donasi.nama_donatur || "Donatur YAMUTI",
-                                      nominal: Number(donasi.gross_amount || donasi.nominal || 0),
-                                      program_nama: donasi.kampanye?.judul || donasi.program || "Donasi Umum YAMUTI",
-                                      payment_type: donasi.payment_type || "Transfer Bank / Online",
-                                      created_at: donasi.created_at || donasi.tanggal,
-                                      status: donasi.status
-                                    })}
-                                  >
-                                    <Printer className="w-3.5 h-3.5 mr-1" /> Kwitansi
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-xs h-7 px-2.5 font-semibold text-amber-700 border-amber-300 hover:bg-amber-50 dark:text-amber-400 dark:border-amber-800"
-                                    onClick={() => setSelectedSertifikat({
-                                      nama_donatur: user?.name || donasi.nama_donatur || "Muhsinin Dermawan",
-                                      nominal: Number(donasi.gross_amount || donasi.nominal || 0),
-                                      program_nama: donasi.kampanye?.judul || donasi.program || "Santunan Anak Asuh YAMUTI",
-                                      tanggal: donasi.created_at || donasi.tanggal || new Date().toISOString(),
-                                    })}
-                                  >
-                                    <Sparkles className="w-3.5 h-3.5 mr-1 text-amber-500" /> E-Sertifikat
-                                  </Button>
-                                </>
-                              )}
-                            </div>
-                            <div className="flex items-center justify-between w-full sm:w-auto sm:justify-end gap-3">
-                              {donasi.status === 'success' || donasi.status === 'settlement' || donasi.status === 'Berhasil' ? (
-                                <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none shadow-none flex items-center gap-1.5 dark:bg-green-900/30 dark:text-green-400">
-                                  <CheckCircle2 className="w-3 h-3" /> Berhasil
-                                </Badge>
-                              ) : (
-                                <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-none shadow-none flex items-center gap-1.5 dark:bg-amber-900/30 dark:text-amber-400">
-                                  <Clock className="w-3 h-3" /> Pending
-                                </Badge>
-                              )}
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="sm:hidden text-xs h-7 px-2 border-zinc-200"
-                                onClick={() => {
-                                  setSelectedDonasi(donasi);
-                                  setIsDonasiModalOpen(true);
-                                }}
-                              >
-                                Detail
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-
-                  {/* Pagination Controls */}
-                  {donasiMeta && donasiMeta.last_page > 1 && (
-                    <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-100 dark:border-zinc-800/50">
-                      <span className="text-sm text-zinc-500">
-                        Menampilkan {donasiMeta.from || 0}-{donasiMeta.to || 0} dari {donasiMeta.total || 0}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setDonasiPage(p => Math.max(1, p - 1))}
-                          disabled={donasiPage === 1 || isLoadingDonasi}
-                        >
-                          Sebelumnya
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setDonasiPage(p => Math.min(donasiMeta.last_page, p + 1))}
-                          disabled={donasiPage >= donasiMeta.last_page || isLoadingDonasi}
-                        >
-                          Selanjutnya
-                        </Button>
-                      </div>
+                <CardHeader className="border-b border-zinc-100 pb-5 dark:border-zinc-800/50">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                      <CardTitle className="text-xl flex items-center gap-2">
+                        <Heart className="w-5 h-5 text-emerald-700 dark:text-emerald-400" />
+                        Riwayat Transaksi Donasi
+                      </CardTitle>
+                      <CardDescription className="text-xs text-zinc-500 mt-1">
+                        Daftar lengkap amanah infaq, sedekah, dan beasiswa santri yang telah Anda salurkan.
+                      </CardDescription>
                     </div>
-                  )}
+                    <Button
+                      onClick={() => router.push('/donasi')}
+                      className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs h-9 px-4 rounded-xl shadow-sm self-start sm:self-auto cursor-pointer"
+                    >
+                      + Salur Donasi Baru
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4 sm:p-6">
+                  <RiwayatDonasiTable
+                    data={riwayatDonasi}
+                    meta={donasiMeta}
+                    currentPage={donasiPage}
+                    isLoading={isLoadingDonasi}
+                    onPageChange={(page) => setDonasiPage(page)}
+                    onFilterStatus={(status) => {
+                      setDonasiFilterStatus(status);
+                      setDonasiPage(1);
+                    }}
+                    onSearch={(q) => {
+                      setDonasiSearchQuery(q);
+                      setDonasiPage(1);
+                    }}
+                    onSelectKwitansi={(donasi) => {
+                      setSelectedKwitansi({
+                        id: donasi.id,
+                        order_id: donasi.invoice || (donasi as any).order_id || `INV-${donasi.id}`,
+                        nama_donatur: user?.name || donasi.nama_donatur || "Donatur YAMUTI",
+                        nominal: Number(donasi.gross_amount || donasi.nominal || 0),
+                        program_nama: donasi.kampanye?.judul || donasi.program || "Donasi Umum YAMUTI",
+                        payment_type: (donasi as any).payment_type || "Transfer Bank / Online",
+                        created_at: donasi.created_at || donasi.tanggal,
+                        status: donasi.status,
+                      });
+                    }}
+                    onSelectSertifikat={(donasi) => {
+                      setSelectedSertifikat({
+                        nama_donatur: user?.name || donasi.nama_donatur || "Muhsinin Dermawan",
+                        nominal: Number(donasi.gross_amount || donasi.nominal || 0),
+                        program_nama: donasi.kampanye?.judul || donasi.program || "Santunan Anak Asuh YAMUTI",
+                        tanggal: donasi.created_at || donasi.tanggal || new Date().toISOString(),
+                      });
+                    }}
+                    onSelectDetail={(donasi) => {
+                      setSelectedDonasi(donasi);
+                      setIsDonasiModalOpen(true);
+                    }}
+                  />
                 </CardContent>
               </Card>
             )}
@@ -979,7 +932,7 @@ function ProfilContent() {
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Status</p>
-                        {selectedDonasi.status === 'success' || selectedDonasi.status === 'settlement' || selectedDonasi.status === 'Berhasil' ? (
+                        {selectedDonasi.status === 'success' || selectedDonasi.status === 'settlement' || selectedDonasi.status === 'Berhasil' || selectedDonasi.status === 'PAID' || selectedDonasi.status === 'paid' ? (
                           <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none shadow-none mt-1">Berhasil</Badge>
                         ) : (
                           <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-none shadow-none mt-1">Pending</Badge>
@@ -1229,41 +1182,12 @@ function ProfilContent() {
                           </Button>
                         </div>
                       ) : (
-                        <div className="space-y-6">
-                          {/* Banner Salur Sekaligus jika > 1 anak */}
-                          {anakAsuhSaya.length > 1 && (
-                            <div className="p-4 sm:p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                              <div>
-                                <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-zinc-200 text-zinc-800 dark:bg-zinc-700 dark:text-zinc-200 mb-1.5">
-                                  Donasi Terpadu
-                                </span>
-                                <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                                  Salur Infak Beasiswa Sekaligus
-                                </h4>
-                                <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 max-w-xl">
-                                  Anda mendampingi {anakAsuhSaya.length} anak binaan. Salurkan infak beasiswa bulanan untuk seluruh ananda dalam satu transaksi pembayaran.
-                                </p>
-                              </div>
-                              <Button
-                                onClick={() => setIsBulkPayOpen(true)}
-                                className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs h-10 px-5 rounded-xl shadow-sm shrink-0 cursor-pointer"
-                              >
-                                Salurkan untuk Semua Anak →
-                              </Button>
-                            </div>
-                          )}
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {anakAsuhSaya.map((pota, idx) => (
-                              <PotaCard
-                                key={pota.id || idx}
-                                pota={pota}
-                                onOpenReport={(item) => setSelectedPotaForReport(item)}
-                                onOpenPay={(item) => setSelectedPotaForPay(item)}
-                              />
-                            ))}
-                          </div>
-                        </div>
+                        <PotaMultiView
+                          anakAsuhList={anakAsuhSaya}
+                          onOpenReport={(item) => setSelectedPotaForReport(item)}
+                          onOpenPay={(item) => setSelectedPotaForPay(item)}
+                          onOpenBulkPay={() => setIsBulkPayOpen(true)}
+                        />
                       )
                     )}
 
