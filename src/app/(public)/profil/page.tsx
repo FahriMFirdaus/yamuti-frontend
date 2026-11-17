@@ -26,7 +26,8 @@ import {
   Sparkles,
   Eye,
   EyeOff,
-  AlertCircle
+  AlertCircle,
+  ExternalLink
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
@@ -1291,9 +1292,16 @@ function ProfilContent() {
                             <p className="font-bold text-amber-900 dark:text-amber-200 text-sm sm:text-base">
                               Standar Nisab Zakat Resmi BAZNAS
                             </p>
-                            <Badge className="bg-amber-200 text-amber-900 border-none font-bold text-[10px] px-2 py-0.5">
-                              {nisabInfo.dasar_hukum}
-                            </Badge>
+                            <a
+                              href="https://baznas.go.id/kalkulator-zakat"
+                              target="_blank"
+                              rel="noreferrer"
+                              title="Buka Rujukan Resmi SK BAZNAS di baznas.go.id"
+                              className="inline-flex items-center gap-1 bg-amber-200/90 hover:bg-amber-300 text-amber-950 font-bold text-[10px] px-2 py-0.5 rounded transition-colors"
+                            >
+                              <span>{nisabInfo.dasar_hukum}</span>
+                              <ExternalLink className="w-3 h-3 text-amber-800" />
+                            </a>
                           </div>
                           <p className="text-amber-800 dark:text-amber-400 mt-1 leading-relaxed">
                             Nisab per tahun: <strong className="font-mono font-bold text-amber-950 dark:text-amber-200">Rp {(useCustomGoldPrice ? 85 * hargaEmasPerGram : nisabInfo.nisab_tahunan).toLocaleString("id-ID")}</strong> (atau setara <strong className="font-mono font-bold text-amber-950 dark:text-amber-200">Rp {(useCustomGoldPrice ? Math.round((85 * hargaEmasPerGram) / 12) : nisabInfo.nisab_bulanan).toLocaleString("id-ID")}</strong> / bulan).
@@ -1342,10 +1350,22 @@ function ProfilContent() {
                       {/* Form Zakat Penghasilan */}
                       <div className="p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 space-y-4 bg-zinc-50/50 dark:bg-zinc-900/30 flex flex-col justify-between">
                         <div className="space-y-4">
-                          <h4 className="font-bold text-sm text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
-                            <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 text-xs flex items-center justify-center font-bold">1</span>
-                            Zakat Penghasilan / Profesi
-                          </h4>
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-bold text-sm text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                              <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 text-xs flex items-center justify-center font-bold">1</span>
+                              Zakat Penghasilan / Profesi
+                            </h4>
+                            <a
+                              href="https://baznas.go.id/zakatpenghasilan"
+                              target="_blank"
+                              rel="noreferrer"
+                              title="Panduan Resmi Zakat Penghasilan BAZNAS"
+                              className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium hover:underline flex items-center gap-0.5"
+                            >
+                              <span>Panduan BAZNAS</span>
+                              <ExternalLink className="w-2.5 h-2.5" />
+                            </a>
+                          </div>
                           <div className="space-y-2">
                             <Label htmlFor="penghasilan" className="text-xs text-zinc-600 dark:text-zinc-400">Total Penghasilan Bersih per Bulan (Rp)</Label>
                             <Input
@@ -1387,10 +1407,22 @@ function ProfilContent() {
                       {/* Form Zakat Maal (Tabungan / Harta) */}
                       <div className="p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 space-y-4 bg-zinc-50/50 dark:bg-zinc-900/30 flex flex-col justify-between">
                         <div className="space-y-4">
-                          <h4 className="font-bold text-sm text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
-                            <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 text-xs flex items-center justify-center font-bold">2</span>
-                            Zakat Maal / Simpanan Harta
-                          </h4>
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-bold text-sm text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                              <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 text-xs flex items-center justify-center font-bold">2</span>
+                              Zakat Maal / Simpanan Harta
+                            </h4>
+                            <a
+                              href="https://baznas.go.id/zakat"
+                              target="_blank"
+                              rel="noreferrer"
+                              title="Panduan Resmi Zakat Maal BAZNAS"
+                              className="text-[11px] text-amber-800 dark:text-amber-400 font-medium hover:underline flex items-center gap-0.5"
+                            >
+                              <span>Panduan BAZNAS</span>
+                              <ExternalLink className="w-2.5 h-2.5" />
+                            </a>
+                          </div>
                           <div className="space-y-2">
                             <Label htmlFor="tabungan" className="text-xs text-zinc-600 dark:text-zinc-400">Total Tabungan / Deposito Mengendap 1 Tahun (Rp)</Label>
                             <Input
