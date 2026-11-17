@@ -30,11 +30,51 @@ function DonasiContent() {
 
   const searchParams = useSearchParams();
   const programSlug = searchParams.get('program');
+  const nominalParam = searchParams.get('nominal');
   const [kampanye, setKampanye] = useState<any>(null);
 
-  useEffect(() => {
+  const normalizedSlug = (() => {
+    if (!programSlug) return null;
+    const lower = programSlug.toLowerCase().trim();
+    if (lower === 'zakat-maal' || lower === 'zakat maal') return 'zakat-maal';
+    if (lower === 'zakat-profesi' || lower === 'zakat profesi' || lower === 'zakat') return 'zakat-profesi';
+    return programSlug;
+  })();
+
+  const isZakatProgram = Boolean(
+    programSlug && (
+      programSlug.toLowerCase().includes('zakat') ||
+      normalizedSlug?.includes('zakat')
+    )
+  );
+
+  const zakatTitle = (() => {
+    if (kampanye?.judul) return kampanye.judul;
     if (programSlug) {
-      fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/kampanye/${programSlug}`)
+      const lower = programSlug.toLowerCase();
+      if (lower.includes('maal')) return 'Zakat Maal';
+      if (lower.includes('profesi') || lower === 'zakat') return 'Zakat Profesi';
+      if (lower.includes('fitrah')) return 'Zakat Fitrah';
+      if (lower.includes('perdagangan')) return 'Zakat Perdagangan';
+      return 'Zakat';
+    }
+    return null;
+  })();
+
+  useEffect(() => {
+    if (nominalParam) {
+      const parsed = parseInt(nominalParam, 10);
+      if (!isNaN(parsed) && parsed > 0) {
+        setAmount(parsed);
+        setCustomAmount(parsed.toString());
+      }
+    }
+  }, [nominalParam]);
+
+  useEffect(() => {
+    const slugToFetch = normalizedSlug || programSlug;
+    if (slugToFetch) {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002/api"}/kampanye/${slugToFetch}`)
         .then(res => res.json())
         .then(data => {
           if (data.data) {
@@ -43,7 +83,14 @@ function DonasiContent() {
         })
         .catch(err => console.error("Gagal mengambil detail kampanye:", err));
     }
-  }, [programSlug]);
+  }, [normalizedSlug, programSlug]);
+
+  useEffect(() => {
+    if (isZakatProgram && !pesan) {
+      const label = zakatTitle || 'Zakat';
+      setPesan(`[${label}] Niat menunaikan kewajiban zakat karena Allah Ta'ala.`);
+    }
+  }, [isZakatProgram, zakatTitle, pesan]);
 
   // Autofill form jika user sedang login
   useEffect(() => {
@@ -252,12 +299,33 @@ function DonasiContent() {
           
           {/* Header Donasi Responsive */}
           <div className="mb-8 sm:mb-12">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-white mb-2 sm:mb-3">
-              Mulai <span className="text-red-600">Berdonasi</span>
-            </h1>
-            <p className="text-sm sm:text-base md:text-lg text-zinc-500 dark:text-zinc-400 max-w-2xl leading-relaxed">
-              Lengkapi detail di bawah ini. Proses pembayaran cepat, aman, dan transparan.
-            </p>
+            {isZakatProgram ? (
+              <div className="p-5 sm:p-6 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-600 text-white">
+                    Program Zakat
+                  </span>
+                  <span className="text-xs text-emerald-800 dark:text-emerald-300 font-medium">
+                    Standar BAZNAS RI
+                  </span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-emerald-950 dark:text-emerald-100 mb-2">
+                  Penyaluran <span className="text-emerald-700 dark:text-emerald-400">{zakatTitle}</span>
+                </h1>
+                <p className="text-sm sm:text-base text-emerald-800/80 dark:text-emerald-300/80 max-w-2xl leading-relaxed">
+                  Lengkapi data muzakki di bawah ini. Zakat Anda akan disalurkan secara amanah kepada mustahik yang berhak menerima.
+                </p>
+              </div>
+            ) : (
+              <>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-white mb-2 sm:mb-3">
+                  Mulai <span className="text-red-600">Berdonasi</span>
+                </h1>
+                <p className="text-sm sm:text-base md:text-lg text-zinc-500 dark:text-zinc-400 max-w-2xl leading-relaxed">
+                  Lengkapi detail di bawah ini. Proses pembayaran cepat, aman, dan transparan.
+                </p>
+              </>
+            )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-start">
@@ -433,11 +501,20 @@ function DonasiContent() {
                         <span className="text-zinc-500 dark:text-zinc-400 text-sm">Jenis Donasi</span>
                         <div className="text-right">
                           <span className="font-semibold text-zinc-900 dark:text-zinc-100 block text-sm sm:text-base">
-                            {kampanye ? "Donasi Khusus Program" : "Donasi Umum"}
+                            {isZakatProgram ? (
+                              <span className="inline-flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                                Penyaluran Zakat
+                              </span>
+                            ) : kampanye ? (
+                              "Donasi Khusus Program"
+                            ) : (
+                              "Donasi Umum"
+                            )}
                           </span>
-                          {kampanye && (
+                          {(kampanye?.judul || (isZakatProgram && zakatTitle)) && (
                             <span className="text-xs text-zinc-500 block mt-0.5 max-w-[200px] line-clamp-2">
-                              {kampanye.judul}
+                              {kampanye?.judul || zakatTitle}
                             </span>
                           )}
                         </div>

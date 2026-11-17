@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -29,6 +30,7 @@ const kunjunganSchema = z.object({
 type KunjunganFormValues = z.infer<typeof kunjunganSchema>;
 
 export default function KunjunganPage() {
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [time, setTime] = useState<string>("");
@@ -135,12 +137,18 @@ export default function KunjunganPage() {
     const slotWaktu = `${formattedDate} ${timeString}`;
 
     try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/kunjungan`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
+        headers,
         body: JSON.stringify({
           nama_tamu: data.nama_tamu,
           no_whatsapp: data.no_whatsapp,
@@ -179,9 +187,21 @@ export default function KunjunganPage() {
           <CardDescription className="text-zinc-600 dark:text-zinc-300 px-6 mt-4 leading-relaxed">
             Terima kasih telah menjadwalkan kunjungan Anda ke Panti Asuhan YAMUTI Tasikmalaya. Admin kami akan memverifikasi dan menghubungi Anda kembali melalui WhatsApp sesegera mungkin.
           </CardDescription>
-          <Button onClick={() => { setIsSuccess(false); setStep(1); setDate(undefined); setTime(""); }} variant="outline" className="mt-8 rounded-full">
-            Ajukan Kunjungan Lain
-          </Button>
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 px-6">
+            <Button
+              onClick={() => router.push('/profil?tab=kunjungan')}
+              className="w-full sm:w-auto rounded-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold px-6 shadow-sm cursor-pointer"
+            >
+              Pantau Status Kunjungan Anda →
+            </Button>
+            <Button
+              onClick={() => { setIsSuccess(false); setStep(1); setDate(undefined); setTime(""); }}
+              variant="outline"
+              className="w-full sm:w-auto rounded-full cursor-pointer"
+            >
+              Ajukan Kunjungan Lain
+            </Button>
+          </div>
         </Card>
       </div>
     );

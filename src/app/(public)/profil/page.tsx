@@ -27,12 +27,14 @@ import {
   Eye,
   EyeOff,
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  Plus
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { ZakatCalculator } from "@/components/zakat/ZakatCalculator";
 import { ModalKwitansi } from "@/components/admin/ModalKwitansi";
 import { ModalSertifikatDonatur } from "@/components/admin/ModalSertifikatDonatur";
 import {
@@ -76,40 +78,6 @@ function ProfilContent() {
   const [anakAsuhSaya, setAnakAsuhSaya] = useState<any[]>([]);
   const [isLoadingPota, setIsLoadingPota] = useState(false);
 
-  // Zakat Calculator States
-  const [zakatCalculatorSubTab, setZakatCalculatorSubTab] = useState<"profesi" | "maal" | "fitrah" | "perdagangan">("profesi");
-  const [penghasilanBulan, setPenghasilanBulan] = useState<number>(0);
-  const [hargaEmasPerGram, setHargaEmasPerGram] = useState<number>(1078608);
-  const [tabunganHarta, setTabunganHarta] = useState<number>(0);
-
-  // Zakat Fitrah States
-  const [jumlahJiwaFitrah, setJumlahJiwaFitrah] = useState<number>(1);
-  const [tarifFitrahPerJiwa, setTarifFitrahPerJiwa] = useState<number>(50000); // Standar SK BAZNAS RI Rp 50.000 (2.5 kg beras)
-
-  // Zakat Perdagangan States
-  const [asetLancarDagang, setAsetLancarDagang] = useState<number>(0); // Kas, stok barang siap jual, piutang lancar
-  const [hutangJatuhTempoDagang, setHutangJatuhTempoDagang] = useState<number>(0); // Hutang dagang tempo dekat
-
-  const [nisabInfo, setNisabInfo] = useState<{
-    tahun: number;
-    dasar_hukum: string;
-    nisab_tahunan: number;
-    nisab_bulanan: number;
-    tarif_persen: number;
-    harga_emas_acuan_per_gram: number;
-    keterangan: string;
-    terakhir_diperbarui: string;
-  }>({
-    tahun: 2026,
-    dasar_hukum: "SK Ketua BAZNAS No. 15 Tahun 2026",
-    nisab_tahunan: 91681728,
-    nisab_bulanan: 7640144,
-    tarif_persen: 2.5,
-    harga_emas_acuan_per_gram: 1078608,
-    keterangan: "Standar resmi nisab zakat pendapatan & jasa BAZNAS RI",
-    terakhir_diperbarui: "2026-02-21",
-  });
-  const [useCustomGoldPrice, setUseCustomGoldPrice] = useState(false);
 
   const [riwayatKunjungan, setRiwayatKunjungan] = useState<any[]>([]);
   const [kunjunganMeta, setKunjunganMeta] = useState<any>(null);
@@ -369,28 +337,6 @@ function ProfilContent() {
     }
   };
 
-  const fetchNisabZakat = async () => {
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002/api"}/landing/nisab-zakat`);
-      if (res.ok) {
-        const json = await res.json();
-        if (json.data) {
-          setNisabInfo(json.data);
-          if (json.data.harga_emas_acuan_per_gram) {
-            setHargaEmasPerGram(json.data.harga_emas_acuan_per_gram);
-          }
-        }
-      }
-    } catch (e) {
-      console.error("Gagal mengambil acuan nisab BAZNAS", e);
-    }
-  };
-
-  useEffect(() => {
-    if (activeTab === "zakat") {
-      fetchNisabZakat();
-    }
-  }, [activeTab]);
 
   useEffect(() => {
     if (activeTab === "anak-asuh") {
@@ -1045,8 +991,24 @@ function ProfilContent() {
 
             {activeTab === "kunjungan" && (
               <Card className="border-zinc-200 shadow-sm dark:border-zinc-800">
-                <CardHeader className="border-b border-zinc-100 pb-6 dark:border-zinc-800/50">
-                  <CardTitle className="text-xl">Jadwal Kunjungan</CardTitle>
+                <CardHeader className="border-b border-zinc-100 pb-5 dark:border-zinc-800/50">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                      <CardTitle className="text-xl flex items-center gap-2">
+                        <CalendarDays className="w-5 h-5 text-emerald-700 dark:text-emerald-400" />
+                        Jadwal & Status Kunjungan
+                      </CardTitle>
+                      <CardDescription className="text-xs text-zinc-500 mt-1">
+                        Pantau status verifikasi dan riwayat silaturahmi Anda ke Panti Asuhan YAMUTI.
+                      </CardDescription>
+                    </div>
+                    <Button
+                      onClick={() => router.push('/kunjungan')}
+                      className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs h-9 px-4 rounded-xl shadow-sm flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" /> Ajukan Kunjungan Baru
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
@@ -1151,15 +1113,15 @@ function ProfilContent() {
                           {!showPotaForm
                             ? "Program Orang Tua Asuh (POTA)"
                             : currentPotaStep === 1
-                            ? "Pilih Calon Ananda Asuh Binaan"
-                            : "Tentukan Komitmen Beasiswa"}
+                              ? "Pilih Calon Ananda Asuh Binaan"
+                              : "Tentukan Komitmen Beasiswa"}
                         </CardTitle>
                         <CardDescription className="text-xs text-zinc-500 mt-1">
                           {!showPotaForm
                             ? "Pantau pendidikan, kesehatan, dan perkembangan ananda asuh binaan Anda."
                             : currentPotaStep === 1
-                            ? "Pilih satu atau beberapa ananda binaan untuk didampingi beasiswa pendidikannya."
-                            : "Atur nominal infak beasiswa bulanan dan jadwal tanggal penyaluran."}
+                              ? "Pilih satu atau beberapa ananda binaan untuk didampingi beasiswa pendidikannya."
+                              : "Atur nominal infak beasiswa bulanan dan jadwal tanggal penyaluran."}
                         </CardDescription>
                       </div>
                       <div className="flex items-center gap-2.5">
@@ -1286,359 +1248,15 @@ function ProfilContent() {
                 <Card className="border-zinc-200 shadow-sm dark:border-zinc-800">
                   <CardHeader className="border-b border-zinc-100 pb-6 dark:border-zinc-800/50">
                     <CardTitle className="text-xl flex items-center gap-2">
-                      <Calculator className="w-5 h-5 text-amber-600" />
+                      <Calculator className="w-5 h-5 text-emerald-600" />
                       Kalkulator & Salur Zakat Maal / Profesi
                     </CardTitle>
                     <CardDescription>
-                      Hitung kewajiban zakat Anda berdasarkan nisab 85 gram emas sesuai ketentuan syariat Islam.
+                      Hitung kewajiban zakat Anda secara akurat sesuai regulasi resmi SK BAZNAS RI dan syariat Islam.
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="p-6 space-y-6">
-                    {/* Ringkasan Nisab Standar Resmi BAZNAS (Ditetapkan oleh Admin & Regulasi) */}
-                    <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-900/40 space-y-2">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
-                        <div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-bold text-amber-900 dark:text-amber-200 text-sm sm:text-base">
-                              Standar Ketetapan Nisab Resmi BAZNAS
-                            </p>
-                            <a
-                              href="https://baznas.go.id/kalkulatorzakat"
-                              target="_blank"
-                              rel="noreferrer"
-                              title="Buka Rujukan Resmi SK BAZNAS di baznas.go.id"
-                              className="inline-flex items-center gap-1 bg-amber-200/90 hover:bg-amber-300 text-amber-950 font-bold text-[10px] px-2 py-0.5 rounded transition-colors"
-                            >
-                              <span>{nisabInfo.dasar_hukum}</span>
-                              <ExternalLink className="w-3 h-3 text-amber-800" />
-                            </a>
-                          </div>
-                          <p className="text-amber-800 dark:text-amber-400 mt-1 leading-relaxed">
-                            Batas Nisab: <strong className="font-mono font-bold text-amber-950 dark:text-amber-200">Rp {nisabInfo.nisab_bulanan.toLocaleString("id-ID")} / bulan</strong> (setara <strong className="font-mono font-bold text-amber-950 dark:text-amber-200">Rp {nisabInfo.nisab_tahunan.toLocaleString("id-ID")} / tahun</strong> untuk zakat harta 85 gram emas).
-                          </p>
-                        </div>
-                        <Badge className="bg-emerald-700 text-white font-bold w-fit text-xs px-3 py-1">
-                          Tarif Syar'i: {nisabInfo.tarif_persen}%
-                        </Badge>
-                      </div>
-                      <div className="pt-2 border-t border-amber-200/60 dark:border-amber-900/40 text-[11px] text-amber-800/80 dark:text-amber-400">
-                        * Acuan nisab dan tarif di atas ditetapkan secara terpusat oleh pengurus yayasan sesuai regulasi BAZNAS RI.
-                      </div>
-                    </div>
-
-                    {/* Sub-selector 4 Kategori Zakat */}
-                    <div className="flex items-center gap-1.5 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-xl overflow-x-auto [scrollbar-width:thin]">
-                      {[
-                        { id: "profesi", label: "1. Zakat Profesi", desc: "Penghasilan Bulanan" },
-                        { id: "maal", label: "2. Zakat Maal", desc: "Tabungan / Harta" },
-                        { id: "fitrah", label: "3. Zakat Fitrah", desc: "Jiwa / Makanan Pokok" },
-                        { id: "perdagangan", label: "4. Zakat Perdagangan", desc: "Aset Usaha / Niaga" },
-                      ].map((item) => (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => setZakatCalculatorSubTab(item.id as any)}
-                          className={cn(
-                            "flex-1 min-w-[130px] sm:min-w-0 py-2 px-3 rounded-lg text-xs transition-all cursor-pointer text-center",
-                            zakatCalculatorSubTab === item.id
-                              ? "bg-white dark:bg-zinc-900 text-zinc-950 dark:text-zinc-50 shadow-xs font-bold"
-                              : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300 font-medium"
-                          )}
-                        >
-                          <span className="block truncate">{item.label}</span>
-                          <span className="block text-[10px] text-zinc-400 font-normal truncate">{item.desc}</span>
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-6">
-                      {/* Form 1: Zakat Penghasilan */}
-                      {zakatCalculatorSubTab === "profesi" && (
-                        <div className="p-5 sm:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 space-y-5 bg-zinc-50/50 dark:bg-zinc-900/30">
-                          <div className="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-zinc-800">
-                            <div>
-                              <h4 className="font-bold text-sm sm:text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 text-xs flex items-center justify-center font-bold">1</span>
-                                Zakat Penghasilan / Profesi
-                              </h4>
-                              <p className="text-xs text-zinc-500 mt-0.5">Dihitung dari pendapatan atau gaji rutin per bulan dengan nisab setara 85 gram emas per tahun.</p>
-                            </div>
-                            <a
-                              href="https://baznas.go.id/zakatpenghasilan"
-                              target="_blank"
-                              rel="noreferrer"
-                              title="Panduan Resmi Zakat Penghasilan BAZNAS"
-                              className="text-xs text-emerald-700 dark:text-emerald-400 font-medium hover:underline flex items-center gap-1 shrink-0"
-                            >
-                              <span>Panduan BAZNAS</span>
-                              <ExternalLink className="w-3 h-3" />
-                            </a>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="penghasilan" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                              Total Penghasilan Bersih per Bulan (Rp)
-                            </Label>
-                            <Input
-                              id="penghasilan"
-                              type="number"
-                              placeholder="Contoh: 10000000"
-                              value={penghasilanBulan || ""}
-                              onChange={(e) => setPenghasilanBulan(Number(e.target.value) || 0)}
-                              className="font-mono text-sm bg-white dark:bg-zinc-900 rounded-xl h-11"
-                            />
-                            <p className="text-[11px] text-zinc-500">
-                              {penghasilanBulan >= nisabInfo.nisab_bulanan
-                                ? "✓ Penghasilan telah mencapai batas nisab wajib zakat."
-                                : "Belum mencapai batas nisab wajib zakat, namun tetap bernilai pahala jika berinfak/sedekah."}
-                            </p>
-                          </div>
-
-                          <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div>
-                              <span className="text-xs text-zinc-500">Kewajiban Zakat Profesi (2.5%):</span>
-                              <p className="text-2xl font-black font-mono text-emerald-700 dark:text-emerald-400 mt-0.5">
-                                Rp {Math.round(penghasilanBulan * 0.025).toLocaleString('id-ID')}
-                              </p>
-                            </div>
-                            <Button
-                              onClick={() => {
-                                const zakat = Math.round(penghasilanBulan * 0.025);
-                                router.push(`/donasi?program=Zakat&nominal=${zakat}`);
-                              }}
-                              disabled={penghasilanBulan <= 0}
-                              className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold h-11 px-8 rounded-xl shadow-sm cursor-pointer disabled:opacity-50"
-                            >
-                              Tunaikan Zakat Profesi Sekarang →
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Form 2: Zakat Maal */}
-                      {zakatCalculatorSubTab === "maal" && (
-                        <div className="p-5 sm:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 space-y-5 bg-zinc-50/50 dark:bg-zinc-900/30">
-                          <div className="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-zinc-800">
-                            <div>
-                              <h4 className="font-bold text-sm sm:text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 text-xs flex items-center justify-center font-bold">2</span>
-                                Zakat Maal (Tabungan, Deposito, Emas)
-                              </h4>
-                              <p className="text-xs text-zinc-500 mt-0.5">Dihitung dari total simpanan harta yang mengendap selama 1 tahun (haul) dengan nisab 85 gram emas.</p>
-                            </div>
-                            <a
-                              href="https://baznas.go.id/zakat"
-                              target="_blank"
-                              rel="noreferrer"
-                              title="Panduan Resmi Zakat Maal BAZNAS"
-                              className="text-xs text-amber-800 dark:text-amber-400 font-medium hover:underline flex items-center gap-1 shrink-0"
-                            >
-                              <span>Panduan BAZNAS</span>
-                              <ExternalLink className="w-3 h-3" />
-                            </a>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="tabungan" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                              Total Simpanan Tabungan, Deposito, & Nilai Emas Mengendap 1 Tahun (Rp)
-                            </Label>
-                            <Input
-                              id="tabungan"
-                              type="number"
-                              placeholder="Contoh: 120000000"
-                              value={tabunganHarta || ""}
-                              onChange={(e) => setTabunganHarta(Number(e.target.value) || 0)}
-                              className="font-mono text-sm bg-white dark:bg-zinc-900 rounded-xl h-11"
-                            />
-                            <p className="text-[11px] text-zinc-500">
-                              {tabunganHarta >= nisabInfo.nisab_tahunan
-                                ? "✓ Simpanan harta telah mencapai batas nisab 1 tahun (haul)."
-                                : "Belum mencapai batas nisab 1 tahun, dianjurkan berinfak umum."}
-                            </p>
-                          </div>
-
-                          <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div>
-                              <span className="text-xs text-zinc-500">Kewajiban Zakat Maal (2.5%):</span>
-                              <p className="text-2xl font-black font-mono text-emerald-700 dark:text-emerald-400 mt-0.5">
-                                Rp {Math.round(tabunganHarta * 0.025).toLocaleString('id-ID')}
-                              </p>
-                            </div>
-                            <Button
-                              onClick={() => {
-                                const zakat = Math.round(tabunganHarta * 0.025);
-                                router.push(`/donasi?program=Zakat%20Maal&nominal=${zakat}`);
-                              }}
-                              disabled={tabunganHarta <= 0}
-                              className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold h-11 px-8 rounded-xl shadow-sm cursor-pointer disabled:opacity-50"
-                            >
-                              Tunaikan Zakat Maal Sekarang →
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Form 3: Zakat Fitrah */}
-                      {zakatCalculatorSubTab === "fitrah" && (
-                        <div className="p-5 sm:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 space-y-5 bg-zinc-50/50 dark:bg-zinc-900/30">
-                          <div className="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-zinc-800">
-                            <div>
-                              <h4 className="font-bold text-sm sm:text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 text-xs flex items-center justify-center font-bold">3</span>
-                                Zakat Fitrah (Penyucian Jiwa)
-                              </h4>
-                              <p className="text-xs text-zinc-500 mt-0.5">Kewajiban setiap jiwa Muslim (setara 2.5 kg / 3.5 liter beras atau uang tunai acuan BAZNAS Rp 50.000 per jiwa).</p>
-                            </div>
-                            <a
-                              href="https://baznas.go.id/zakat"
-                              target="_blank"
-                              rel="noreferrer"
-                              title="Panduan Zakat Fitrah BAZNAS"
-                              className="text-xs text-blue-700 dark:text-blue-400 font-medium hover:underline flex items-center gap-1 shrink-0"
-                            >
-                              <span>Panduan BAZNAS</span>
-                              <ExternalLink className="w-3 h-3" />
-                            </a>
-                          </div>
-
-                          <div className="space-y-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="jumlah_jiwa" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                                Jumlah Jiwa / Anggota Keluarga yang Dizakati
-                              </Label>
-                              <Input
-                                id="jumlah_jiwa"
-                                type="number"
-                                min={1}
-                                max={50}
-                                value={jumlahJiwaFitrah || ""}
-                                onChange={(e) => setJumlahJiwaFitrah(Math.max(1, Number(e.target.value) || 1))}
-                                className="font-mono text-sm bg-white dark:bg-zinc-900 rounded-xl h-11"
-                              />
-                              <p className="text-[11px] text-zinc-500">Termasuk diri sendiri, pasangan, anak, dan tanggungan nafkah keluarga.</p>
-                            </div>
-
-                            <div className="p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/80 dark:border-blue-900/40 flex items-center justify-between text-xs">
-                              <div>
-                                <span className="text-blue-950 dark:text-blue-200 font-semibold block">Tarif Makanan Pokok per Jiwa</span>
-                                <span className="text-[11px] text-blue-800 dark:text-blue-300">Setara 2.5 kg / 3.5 liter beras sesuai standar resmi SK BAZNAS RI</span>
-                              </div>
-                              <span className="font-mono font-bold text-sm text-blue-900 dark:text-blue-200 shrink-0">
-                                Rp {tarifFitrahPerJiwa.toLocaleString("id-ID")} / jiwa
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div>
-                              <span className="text-xs text-zinc-500">Total Zakat Fitrah ({jumlahJiwaFitrah} Jiwa):</span>
-                              <p className="text-2xl font-black font-mono text-blue-700 dark:text-blue-400 mt-0.5">
-                                Rp {(jumlahJiwaFitrah * tarifFitrahPerJiwa).toLocaleString('id-ID')}
-                              </p>
-                            </div>
-                            <Button
-                              onClick={() => {
-                                const zakat = jumlahJiwaFitrah * tarifFitrahPerJiwa;
-                                router.push(`/donasi?program=Zakat%20Fitrah&nominal=${zakat}`);
-                              }}
-                              disabled={jumlahJiwaFitrah <= 0 || tarifFitrahPerJiwa <= 0}
-                              className="bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold h-11 px-8 rounded-xl shadow-sm cursor-pointer disabled:opacity-50"
-                            >
-                              Tunaikan Zakat Fitrah Sekarang →
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Form 4: Zakat Perdagangan / Niaga */}
-                      {zakatCalculatorSubTab === "perdagangan" && (
-                        <div className="p-5 sm:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 space-y-5 bg-zinc-50/50 dark:bg-zinc-900/30">
-                          <div className="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-zinc-800">
-                            <div>
-                              <h4 className="font-bold text-sm sm:text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 text-xs flex items-center justify-center font-bold">4</span>
-                                Zakat Perdagangan / Perniagaan (Tijarah)
-                              </h4>
-                              <p className="text-xs text-zinc-500 mt-0.5">Rumus Syariat: (Aset Lancar Usaha + Stok Barang Dagang) - Hutang Tempo Pendek Jatuh Tempo.</p>
-                            </div>
-                            <a
-                              href="https://baznas.go.id/zakat"
-                              target="_blank"
-                              rel="noreferrer"
-                              title="Panduan Zakat Perdagangan BAZNAS"
-                              className="text-xs text-purple-700 dark:text-purple-400 font-medium hover:underline flex items-center gap-1 shrink-0"
-                            >
-                              <span>Panduan BAZNAS</span>
-                              <ExternalLink className="w-3 h-3" />
-                            </a>
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="aset_dagang" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                                Total Aset Lancar Usaha + Stok Barang (Rp)
-                              </Label>
-                              <Input
-                                id="aset_dagang"
-                                type="number"
-                                placeholder="Kas usaha, stok barang, piutang lancar"
-                                value={asetLancarDagang || ""}
-                                onChange={(e) => setAsetLancarDagang(Number(e.target.value) || 0)}
-                                className="font-mono text-sm bg-white dark:bg-zinc-900 rounded-xl h-11"
-                              />
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label htmlFor="hutang_dagang" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                                Hutang Usaha Jatuh Tempo Dekat (Rp)
-                              </Label>
-                              <Input
-                                id="hutang_dagang"
-                                type="number"
-                                placeholder="Hutang tempo pendek yang harus dibayar"
-                                value={hutangJatuhTempoDagang || ""}
-                                onChange={(e) => setHutangJatuhTempoDagang(Number(e.target.value) || 0)}
-                                className="font-mono text-sm bg-white dark:bg-zinc-900 rounded-xl h-11"
-                              />
-                            </div>
-                          </div>
-
-                          {(() => {
-                            const asetBersihDagang = Math.max(0, asetLancarDagang - hutangJatuhTempoDagang);
-                            const nisabTahunan = useCustomGoldPrice ? 85 * hargaEmasPerGram : nisabInfo.nisab_tahunan;
-                            const isNisabReached = asetBersihDagang >= nisabTahunan;
-                            const zakatPerdagangan = Math.round(asetBersihDagang * 0.025);
-
-                            return (
-                              <>
-                                <p className="text-[11px] text-zinc-500">
-                                  Aset Bersih Kena Zakat: <strong className="font-mono text-zinc-800 dark:text-zinc-200">Rp {asetBersihDagang.toLocaleString('id-ID')}</strong>{" "}
-                                  ({isNisabReached ? "✓ Mencapai nisab tahunan 85 gr emas" : "Belum mencapai batas nisab 85 gr emas"}).
-                                </p>
-
-                                <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                  <div>
-                                    <span className="text-xs text-zinc-500">Kewajiban Zakat Perdagangan (2.5%):</span>
-                                    <p className="text-2xl font-black font-mono text-purple-700 dark:text-purple-400 mt-0.5">
-                                      Rp {zakatPerdagangan.toLocaleString('id-ID')}
-                                    </p>
-                                  </div>
-                                  <Button
-                                    onClick={() => {
-                                      router.push(`/donasi?program=Zakat%20Perdagangan&nominal=${zakatPerdagangan}`);
-                                    }}
-                                    disabled={zakatPerdagangan <= 0}
-                                    className="bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold h-11 px-8 rounded-xl shadow-sm cursor-pointer disabled:opacity-50"
-                                  >
-                                    Tunaikan Zakat Perdagangan Sekarang →
-                                  </Button>
-                                </div>
-                              </>
-                            );
-                          })()}
-                        </div>
-                      )}
-                    </div>
+                  <CardContent className="p-5 sm:p-6">
+                    <ZakatCalculator />
                   </CardContent>
                 </Card>
               </div>

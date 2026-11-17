@@ -14,7 +14,9 @@ interface CartItem {
   kampanye_id: string | null;
   kampanye: {
     judul: string;
-    gambar: string;
+    gambar?: string;
+    thumbnail?: string;
+    slug?: string;
   } | null;
   nominal: number;
   pesan: string | null;
@@ -206,45 +208,85 @@ function CartContent() {
           <div className="flex flex-col lg:flex-row gap-8 max-w-6xl mx-auto">
             {/* Daftar Item */}
             <div className="lg:w-2/3 space-y-4">
-              {items.map((item) => (
-                <Card key={item.id} className="border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden rounded-2xl group transition-all hover:shadow-md hover:border-red-200 dark:hover:border-red-900/30">
-                  <div className="p-4 sm:p-6 flex flex-col sm:flex-row gap-6">
-                    <div className="w-full sm:w-40 h-28 sm:h-32 bg-zinc-100 dark:bg-zinc-800 rounded-xl overflow-hidden relative shrink-0">
-                      {item.kampanye?.gambar ? (
-                        <Image src={item.kampanye.gambar} alt="Kampanye" fill className="object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-zinc-400 text-xs">Donasi Umum</div>
-                      )}
-                    </div>
-                    <div className="flex-1 flex flex-col justify-between">
-                      <div>
-                        <div className="flex justify-between items-start gap-4">
-                          <h3 className="font-bold text-lg text-zinc-900 dark:text-white line-clamp-2">
-                            {item.kampanye ? item.kampanye.judul : "Donasi Umum untuk Yayasan"}
-                          </h3>
-                          <button 
-                            type="button"
-                            disabled={deletingId === item.id}
-                            onClick={() => handleDelete(item.id)} 
-                            className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors shrink-0 disabled:opacity-50"
-                            title="Hapus dari keranjang"
-                            aria-label="Hapus donasi"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
+              {items.map((item) => {
+                const isZakat = Boolean(
+                  item.kampanye?.slug?.includes("zakat") ||
+                  item.kampanye?.judul?.toLowerCase().includes("zakat") ||
+                  (item.pesan && item.pesan.includes("[Zakat"))
+                );
+
+                const itemTitle = (() => {
+                  if (item.kampanye?.judul) return item.kampanye.judul;
+                  if (item.pesan && item.pesan.includes("[Zakat")) {
+                    const match = item.pesan.match(/\[(Zakat[^\]]*)\]/);
+                    if (match && match[1]) return match[1];
+                    return "Zakat";
+                  }
+                  return "Donasi Umum untuk Yayasan";
+                })();
+
+                const itemImage = item.kampanye?.thumbnail || item.kampanye?.gambar;
+
+                return (
+                  <Card key={item.id} className="border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden rounded-2xl group transition-all hover:shadow-md hover:border-emerald-200 dark:hover:border-emerald-900/30">
+                    <div className="p-4 sm:p-6 flex flex-col sm:flex-row gap-6">
+                      <div className="w-full sm:w-40 h-28 sm:h-32 bg-zinc-100 dark:bg-zinc-800 rounded-xl overflow-hidden relative shrink-0">
+                        {itemImage ? (
+                          <Image src={itemImage} alt={itemTitle} fill className="object-cover" />
+                        ) : isZakat ? (
+                          <div className="w-full h-full flex flex-col items-center justify-center bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 p-3 text-center">
+                            <span className="w-7 h-7 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center mb-1">
+                              Z
+                            </span>
+                            <span className="text-xs font-bold leading-tight line-clamp-1">{itemTitle}</span>
+                            <span className="text-[10px] text-emerald-700/80 dark:text-emerald-400 mt-0.5">BAZNAS RI</span>
+                          </div>
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-zinc-400 text-xs">Donasi Umum</div>
+                        )}
+                      </div>
+                      <div className="flex-1 flex flex-col justify-between">
+                        <div>
+                          <div className="flex justify-between items-start gap-4">
+                            <div>
+                              {isZakat && (
+                                <span className="inline-block px-2 py-0.5 mb-1.5 text-[10px] font-bold rounded-md bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">
+                                  Zakat BAZNAS
+                                </span>
+                              )}
+                              <h3 className="font-bold text-lg text-zinc-900 dark:text-white line-clamp-2">
+                                {itemTitle}
+                              </h3>
+                            </div>
+                            <button 
+                              type="button"
+                              disabled={deletingId === item.id}
+                              onClick={() => handleDelete(item.id)} 
+                              className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors shrink-0 disabled:opacity-50"
+                              title="Hapus dari keranjang"
+                              aria-label="Hapus donasi"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </div>
+                          {item.pesan && (
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1.5 line-clamp-2 italic">
+                              &ldquo;{item.pesan}&rdquo;
+                            </p>
+                          )}
+                          <p className="text-xs text-zinc-500 mt-2">
+                            Tampil sebagai: <span className="font-medium text-zinc-700 dark:text-zinc-300">{item.is_anonymous ? 'Hamba Allah' : 'Publik'}</span>
+                          </p>
                         </div>
-                        <p className="text-sm text-zinc-500 mt-1">
-                          Tampil sebagai: <span className="font-medium text-zinc-700 dark:text-zinc-300">{item.is_anonymous ? 'Hamba Allah' : 'Publik'}</span>
-                        </p>
-                      </div>
-                      <div className="mt-4 flex items-end justify-between">
-                        <span className="text-xs text-zinc-400">Ditambahkan {new Date(item.created_at).toLocaleDateString('id-ID')}</span>
-                        <span className="text-xl font-bold text-red-600">{formatRupiah(item.nominal)}</span>
+                        <div className="mt-4 flex items-end justify-between">
+                          <span className="text-xs text-zinc-400">Ditambahkan {new Date(item.created_at).toLocaleDateString('id-ID')}</span>
+                          <span className="text-xl font-bold text-emerald-700 dark:text-emerald-400">{formatRupiah(item.nominal)}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                );
+              })}
             </div>
 
             {/* Ringkasan Checkout */}
