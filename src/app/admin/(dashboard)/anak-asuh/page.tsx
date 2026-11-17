@@ -99,7 +99,7 @@ export default function AnakAsuhPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Data Anak Asuh</h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">Kelola informasi seluruh anak asuh di Yayasan Mutiara Harapan.</p>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">Kelola informasi seluruh anak asuh di Yayasan Mutiara Titipan Illahi (YAMUTI).</p>
         </div>
         <Link href="/admin/anak-asuh/tambah">
           <Button className="bg-red-600 hover:bg-red-700 text-white shadow-md shadow-red-500/20 w-full sm:w-auto">

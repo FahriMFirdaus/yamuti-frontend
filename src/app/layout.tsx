@@ -23,14 +23,14 @@ const amiriQuran = Amiri_Quran({
 
 export const metadata: Metadata = {
   title: {
-    default: "YAMUTI - Yayasan Mutiara Harapan Tasikmalaya",
+    default: "YAMUTI - Yayasan Mutiara Titipan Illahi Tasikmalaya",
     template: "%s | YAMUTI",
   },
   description: "Bantu wujudkan senyum dan harapan untuk masa depan anak-anak panti asuhan YAMUTI Tasikmalaya. Salurkan donasi, zakat, dan sedekah Anda secara transparan dan aman.",
-  keywords: ["Panti Asuhan Tasikmalaya", "Donasi Yatim", "Yayasan Mutiara Harapan", "Sedekah Online", "Wakaf", "Zakat"],
+  keywords: ["Panti Asuhan Tasikmalaya", "Donasi Yatim", "Yayasan Mutiara Titipan Illahi", "YAMUTI", "Sedekah Online", "Wakaf", "Zakat"],
   authors: [{ name: "YAMUTI Tasikmalaya" }],
   openGraph: {
-    title: "YAMUTI - Yayasan Mutiara Harapan Tasikmalaya",
+    title: "YAMUTI - Yayasan Mutiara Titipan Illahi Tasikmalaya",
     description: "Salurkan donasi, zakat, dan sedekah Anda secara transparan dan aman untuk masa depan anak-anak panti asuhan YAMUTI.",
     url: "https://yamuti.id",
     siteName: "YAMUTI",
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "YAMUTI - Yayasan Mutiara Harapan Tasikmalaya",
+    title: "YAMUTI - Yayasan Mutiara Titipan Illahi Tasikmalaya",
     description: "Bantu wujudkan senyum dan harapan untuk masa depan anak-anak panti asuhan YAMUTI.",
   },
 };
