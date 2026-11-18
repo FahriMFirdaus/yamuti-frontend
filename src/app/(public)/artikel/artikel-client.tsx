@@ -2,9 +2,8 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { ShareButton } from "@/components/ui/share-button";
-import { Search, Calendar, User, ArrowRight, BookOpen, Sparkles, Filter } from "lucide-react";
+import { Search, Calendar, User, ArrowRight, BookOpen } from "lucide-react";
 import { Pagination } from "@/components/ui/pagination";
 import { cn } from "@/lib/utils";
 
@@ -102,34 +101,32 @@ export function ArtikelClient({ initialArticles, categories }: ArtikelClientProp
   }, [regularArticles, currentPage]);
 
   return (
-    <div className="container mx-auto px-4 md:px-8 max-w-7xl -mt-8 relative z-20">
-      {/* Search & Filter Bar */}
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl p-4 md:p-6 shadow-xl shadow-zinc-200/50 dark:shadow-black/50 border border-zinc-200/80 dark:border-zinc-800 backdrop-blur-md mb-12">
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-          {/* Input Search */}
-          <div className="relative w-full md:w-96">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400" />
+    <div className="space-y-8">
+      {/* Search & Category Filter */}
+      <div className="bg-white dark:bg-zinc-900 rounded-3xl p-4 sm:p-5 border border-stone-200 dark:border-zinc-800 shadow-sm space-y-4">
+        <div className="flex flex-col md:flex-row gap-3.5 items-center justify-between">
+          <div className="relative w-full md:max-w-md">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder="Cari berita, kegiatan, inspirasi..."
-              className="w-full pl-12 pr-4 py-3 bg-zinc-50 dark:bg-zinc-800/80 rounded-2xl border border-zinc-200 dark:border-zinc-700/80 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
+              placeholder="Cari kabar, laporan donasi, kegiatan..."
+              className="w-full pl-10 pr-4 py-2.5 bg-stone-50/60 dark:bg-zinc-800/60 rounded-xl border border-stone-200 dark:border-zinc-700 text-xs sm:text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600/30 transition-all"
             />
           </div>
 
-          {/* Category Tabs */}
-          <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-none">
+          <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-none">
             <button
               onClick={() => handleCategoryChange("all")}
               className={cn(
-                "px-4 py-2.5 rounded-2xl text-xs md:text-sm font-bold whitespace-nowrap transition-all",
+                "px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer",
                 selectedCategory === "all"
-                  ? "bg-red-600 text-white shadow-md shadow-red-600/20"
-                  : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                  ? "bg-emerald-700 text-white shadow-sm"
+                  : "bg-stone-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-stone-200 dark:hover:bg-zinc-700"
               )}
             >
-              Semua Berita
+              Semua Kabar
             </button>
             {categories.map((cat) => {
               const isActive = selectedCategory.toLowerCase() === (cat.slug || cat.nama_kategori).toLowerCase();
@@ -138,10 +135,10 @@ export function ArtikelClient({ initialArticles, categories }: ArtikelClientProp
                   key={cat.id}
                   onClick={() => handleCategoryChange(cat.slug || cat.nama_kategori)}
                   className={cn(
-                    "px-4 py-2.5 rounded-2xl text-xs md:text-sm font-bold whitespace-nowrap transition-all",
+                    "px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer",
                     isActive
-                      ? "bg-red-600 text-white shadow-md shadow-red-600/20"
-                      : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                      ? "bg-emerald-700 text-white shadow-sm"
+                      : "bg-stone-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-stone-200 dark:hover:bg-zinc-700"
                   )}
                 >
                   {cat.nama_kategori}
@@ -152,13 +149,13 @@ export function ArtikelClient({ initialArticles, categories }: ArtikelClientProp
         </div>
       </div>
 
-      {/* Zero State */}
+      {/* Empty State */}
       {filteredArticles.length === 0 ? (
-        <div className="text-center py-20 px-4 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200/80 dark:border-zinc-800 shadow-sm">
-          <BookOpen className="w-12 h-12 text-zinc-400 mx-auto mb-4" />
-          <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Tidak ada artikel yang ditemukan</h3>
-          <p className="mt-1 text-sm text-zinc-500 max-w-sm mx-auto">
-            Coba gunakan kata kunci pencarian yang lain atau pilih kategori artikel berbeda.
+        <div className="text-center py-16 px-4 bg-white dark:bg-zinc-900 rounded-3xl border border-stone-200 dark:border-zinc-800 shadow-sm space-y-3">
+          <BookOpen className="w-8 h-8 text-zinc-400 mx-auto" />
+          <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">Kabar Tidak Ditemukan</h3>
+          <p className="text-xs text-zinc-500 max-w-sm mx-auto">
+            Tidak ada kabar atau artikel yang sesuai dengan kata pencarian atau kategori yang dipilih.
           </p>
           {(searchQuery || selectedCategory !== "all") && (
             <button
@@ -166,84 +163,73 @@ export function ArtikelClient({ initialArticles, categories }: ArtikelClientProp
                 setSearchQuery("");
                 setSelectedCategory("all");
               }}
-              className="mt-6 px-5 py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl text-sm font-bold hover:bg-red-600 dark:hover:bg-red-600 dark:hover:text-white transition-colors"
+              className="mt-2 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-semibold cursor-pointer"
             >
-              Reset Filter
+              Atur Ulang Filter
             </button>
           )}
         </div>
       ) : (
-        <div className="space-y-12">
-          {/* FEATURED ARTICLE HERO CARD */}
+        <div className="space-y-8">
+          {/* Featured Article */}
           {featuredArticle && (
-            <div className="group relative rounded-3xl overflow-hidden bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 shadow-xl hover:shadow-2xl transition-all duration-500">
+            <div className="group rounded-3xl overflow-hidden bg-white dark:bg-zinc-900 border border-stone-200 dark:border-zinc-800 shadow-sm hover:shadow-md transition-all">
               <div className="grid grid-cols-1 lg:grid-cols-12">
-                {/* Image Section */}
-                <div className="lg:col-span-7 relative h-72 sm:h-96 lg:h-[460px] overflow-hidden">
+                <Link
+                  href={`/artikel/${featuredArticle.slug}`}
+                  className="lg:col-span-7 relative h-64 sm:h-80 lg:h-full overflow-hidden block bg-stone-100 dark:bg-zinc-800"
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={
-                      featuredArticle.thumbnail_url ||
-                      featuredArticle.thumbnail ||
-                      featuredArticle.file_url ||
-                      "https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=1200&auto=format&fit=crop"
-                    }
+                    src={featuredArticle.thumbnail_url || featuredArticle.thumbnail || featuredArticle.file_url || "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=1200&auto=format&fit=crop"}
                     alt={featuredArticle.judul}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent lg:hidden" />
                   <div className="absolute top-4 left-4">
-                    <Badge className="bg-red-600 text-white font-bold text-xs px-3.5 py-1.5 shadow-lg border-none flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5" /> Sorotan Utama
-                    </Badge>
+                    <span className="bg-emerald-700 text-white font-bold text-[11px] px-3 py-1 rounded-full shadow-sm">
+                      Kabar Utama
+                    </span>
                   </div>
-                </div>
+                </Link>
 
-                {/* Content Section */}
-                <div className="lg:col-span-5 p-6 md:p-10 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center gap-3 text-xs md:text-sm text-zinc-500 dark:text-zinc-400 mb-3 font-medium">
-                      <span className="flex items-center gap-1.5">
-                        <Calendar className="w-4 h-4 text-red-600" />
+                <div className="lg:col-span-5 p-6 sm:p-8 flex flex-col justify-between">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
                         {formatDate(featuredArticle.created_at)}
                       </span>
                       <span>•</span>
-                      <span className="flex items-center gap-1.5">
-                        <User className="w-4 h-4 text-zinc-400" />
-                        {featuredArticle.penulis?.name || "Admin YAMUTI"}
+                      <span className="flex items-center gap-1">
+                        <User className="w-3.5 h-3.5" />
+                        {featuredArticle.penulis?.name || "Pengurus YAMUTI"}
                       </span>
                     </div>
 
-                    <Badge variant="outline" className="text-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800/80 mb-3">
-                      {featuredArticle.kategori_artikel?.nama_kategori ||
-                        featuredArticle.kategori_artikel?.nama ||
-                        featuredArticle.kategori ||
-                        "Kegiatan"}
-                    </Badge>
-
                     <Link href={`/artikel/${featuredArticle.slug}`}>
-                      <h2 className="text-2xl md:text-3xl font-extrabold text-zinc-900 dark:text-zinc-100 group-hover:text-red-600 transition-colors leading-tight line-clamp-3">
+                      <h2 className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors leading-snug line-clamp-3">
                         {featuredArticle.judul}
                       </h2>
                     </Link>
 
-                    <p className="mt-4 text-sm md:text-base text-zinc-600 dark:text-zinc-400 line-clamp-4 leading-relaxed">
-                      {stripHtml(featuredArticle.konten || "")}
+                    <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed line-clamp-3">
+                      {stripHtml(featuredArticle.konten)}
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-3 mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-800">
+                  <div className="pt-6 flex gap-2">
                     <Link
                       href={`/artikel/${featuredArticle.slug}`}
-                      className="inline-flex items-center justify-center flex-1 h-[50px] px-6 rounded-2xl bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-sm hover:bg-red-600 dark:hover:bg-red-600 dark:hover:text-white transition-colors gap-2"
+                      className="flex-1 h-10 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all"
                     >
-                      Baca Selengkapnya <ArrowRight className="w-4 h-4" />
+                      <span>Baca Selengkapnya</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
                     <ShareButton
-                      url={`/artikel/${featuredArticle.slug}`}
                       title={featuredArticle.judul}
-                      text={`Baca artikel YAMUTI: ${featuredArticle.judul}`}
-                      className="rounded-2xl h-[50px] w-[50px]"
+                      text={`Kabar YAMUTI: ${featuredArticle.judul}`}
+                      url={typeof window !== "undefined" ? `${window.location.origin}/artikel/${featuredArticle.slug}` : ""}
+                      className="h-10 w-10 shrink-0 rounded-xl border border-stone-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-stone-50 dark:hover:bg-zinc-800"
                     />
                   </div>
                 </div>
@@ -251,89 +237,82 @@ export function ArtikelClient({ initialArticles, categories }: ArtikelClientProp
             </div>
           )}
 
-          {/* GRID ARTICLES */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {paginatedRegularArticles.map((artikel) => {
-              const plainText = stripHtml(artikel.konten || "");
-              const kategoriName =
-                artikel.kategori_artikel?.nama_kategori ||
-                artikel.kategori_artikel?.nama ||
-                artikel.kategori ||
-                "Berita";
+          {/* Regular Article Grid */}
+          {regularArticles.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {paginatedRegularArticles.map((artikel) => {
+                const categoryBadge =
+                  artikel.kategori_artikel?.nama_kategori ||
+                  artikel.kategori_artikel?.nama ||
+                  artikel.kategori ||
+                  "Berita";
 
-              return (
-                <div
-                  key={artikel.id}
-                  className="group flex flex-col rounded-3xl overflow-hidden bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 shadow-md hover:shadow-2xl transition-all duration-500"
-                >
-                  {/* Thumbnail Image */}
-                  <Link href={`/artikel/${artikel.slug}`} className="relative h-56 w-full overflow-hidden block">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={
-                        artikel.thumbnail_url ||
-                        artikel.thumbnail ||
-                        artikel.file_url ||
-                        "https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=800&auto=format&fit=crop"
-                      }
-                      alt={artikel.judul}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
-                    <div className="absolute top-4 left-4">
-                      <Badge className="bg-black/60 text-white font-semibold text-xs border border-white/20 backdrop-blur-md px-3 py-1 shadow-md">
-                        {kategoriName}
-                      </Badge>
-                    </div>
-                  </Link>
-
-                  {/* Body Content */}
-                  <div className="p-6 md:p-7 flex-grow flex flex-col justify-between">
+                return (
+                  <div
+                    key={artikel.id}
+                    className="group rounded-3xl border border-stone-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                  >
                     <div>
-                      <div className="flex items-center gap-2 text-xs font-medium text-zinc-400 mb-2.5">
-                        <Calendar className="w-3.5 h-3.5 text-red-600" />
-                        <span>{formatDate(artikel.created_at)}</span>
-                        <span>•</span>
-                        <span>{artikel.penulis?.name || "Admin"}</span>
-                      </div>
-
-                      <Link href={`/artikel/${artikel.slug}`}>
-                        <h3
-                          className="font-bold text-lg md:text-xl text-zinc-900 dark:text-zinc-100 group-hover:text-red-600 transition-colors line-clamp-2 leading-snug"
-                          title={artikel.judul}
-                        >
-                          {artikel.judul}
-                        </h3>
+                      <Link href={`/artikel/${artikel.slug}`} className="relative h-48 w-full overflow-hidden block bg-stone-100 dark:bg-zinc-800">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={artikel.thumbnail_url || artikel.thumbnail || artikel.file_url || "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=600&auto=format&fit=crop"}
+                          alt={artikel.judul}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute top-3 left-3">
+                          <span className="bg-zinc-900/80 text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full border border-white/20">
+                            {categoryBadge}
+                          </span>
+                        </div>
                       </Link>
 
-                      <p className="mt-2 text-xs md:text-sm text-zinc-500 dark:text-zinc-400 line-clamp-3 leading-relaxed">
-                        {plainText}
-                      </p>
+                      <div className="p-5 sm:p-6 space-y-2.5">
+                        <div className="flex items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3 text-emerald-700 dark:text-emerald-400" />
+                            {formatDate(artikel.created_at)}
+                          </span>
+                        </div>
+
+                        <Link href={`/artikel/${artikel.slug}`}>
+                          <h3
+                            className="font-bold text-sm sm:text-base text-zinc-900 dark:text-zinc-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors line-clamp-2 leading-snug"
+                            title={artikel.judul}
+                          >
+                            {artikel.judul}
+                          </h3>
+                        </Link>
+
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 leading-relaxed">
+                          {stripHtml(artikel.konten)}
+                        </p>
+                      </div>
                     </div>
 
-                    {/* Bottom Actions */}
-                    <div className="flex items-center gap-2 mt-6 pt-5 border-t border-zinc-100 dark:border-zinc-800/80">
+                    <div className="p-5 sm:p-6 pt-0 flex gap-2">
                       <Link
                         href={`/artikel/${artikel.slug}`}
-                        className="flex-1 inline-flex items-center justify-center h-[46px] rounded-xl font-bold text-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-red-600 hover:text-white dark:hover:bg-red-600 dark:hover:text-white transition-colors"
+                        className="flex-1 h-9 px-3 rounded-xl bg-stone-100 dark:bg-zinc-800/80 hover:bg-emerald-700 hover:text-white dark:hover:bg-emerald-700 dark:hover:text-white text-zinc-700 dark:text-zinc-300 font-semibold text-xs flex items-center justify-center gap-1 transition-colors"
                       >
-                        Baca Artikel
+                        <span>Baca Artikel</span>
+                        <ArrowRight className="w-3 h-3" />
                       </Link>
                       <ShareButton
-                        url={`/artikel/${artikel.slug}`}
                         title={artikel.judul}
-                        text={`Baca artikel YAMUTI: ${artikel.judul}`}
-                        className="rounded-xl h-[46px] w-[46px]"
+                        text={`Kabar YAMUTI: ${artikel.judul}`}
+                        url={typeof window !== "undefined" ? `${window.location.origin}/artikel/${artikel.slug}` : ""}
+                        className="h-9 w-9 shrink-0 rounded-xl border border-stone-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-stone-50 dark:hover:bg-zinc-800"
                       />
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
 
-          {/* Pagination Bar */}
           {totalPages > 1 && (
-            <div className="mt-12 flex justify-center">
+            <div className="flex justify-center pt-4">
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}

@@ -1,160 +1,177 @@
 import { Metadata } from "next";
-import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, Info } from "lucide-react";
+import { CheckCircle2, Building2, ShieldCheck, HeartHandshake, Compass } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Tentang Kami",
-  description: "Profil Yayasan Mutiara Titipan Illahi (YAMUTI) Tasikmalaya. Visi, Misi, dan Legalitas Organisasi.",
+  description: "Profil Yayasan Mutiara Titipan Illahi (YAMUTI) Tasikmalaya. Sejarah pengabdian, visi misi, nilai HEBAT, dan legalitas resmi organisasi.",
 };
 
 export default function TentangKamiPage() {
   return (
-    <div className="min-h-screen bg-zinc-50 pb-24 dark:bg-zinc-950">
-      {/* Header Section */}
-      <div className="relative bg-zinc-900 py-16 text-center dark:bg-zinc-950 overflow-hidden">
-        <div className="absolute inset-0 z-0 pointer-events-none">
-          <div className="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-red-600/20 blur-[120px]" />
-          <div className="absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-rose-500/20 blur-[120px]" />
-        </div>
-        <div className="relative z-10 container mx-auto px-4">
-          <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl md:text-5xl">
-            Tentang YAMUTI
+    <main className="min-h-screen bg-stone-50/60 dark:bg-zinc-950 pb-20">
+      <header className="border-b border-stone-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-wider uppercase text-emerald-800 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1 rounded-full border border-emerald-200/60 dark:border-emerald-800/40 mb-3">
+            <Building2 className="w-3.5 h-3.5" />
+            Profil & Landasan Lembaga
+          </span>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
+            Yayasan Mutiara Titipan Illahi
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-zinc-300">
-            Mengenal lebih dekat Yayasan Mutiara Titipan Illahi Tasikmalaya dan komitmen kami untuk anak bangsa.
+          <p className="mt-2 text-xs sm:text-sm md:text-base text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed">
+            Menelusuri jejak ikhtiar, cita-cita, dan komitmen perlindungan masa depan bagi santri yatim dan dhuafa di wilayah Tasikmalaya.
           </p>
         </div>
-      </div>
+      </header>
 
-      <div className="container mx-auto mt-16 px-4 md:px-8 max-w-5xl">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* Main Content - Visi Misi */}
-          <div className="md:col-span-2 space-y-12">
-            <section>
-              <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 border-b-2 border-red-500 pb-2 inline-block mb-6">
-                Sejarah Singkat
+          <div className="lg:col-span-8 space-y-10">
+            <section className="bg-white dark:bg-zinc-900 border border-stone-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-sm">
+              <h2 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2 mb-3">
+                <Compass className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
+                Sejarah Singkat Pendirian
               </h2>
-              <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed text-justify">
-                Yayasan Mutiara Titipan Illahi (YAMUTI) Cabang Tasikmalaya merupakan lembaga kesejahteraan sosial dan kemanusiaan resmi yang beroperasi di bawah naungan YAMUTI Pusat Bandung. Yayasan ini didirikan pada tahun 2019, bertepatan dengan masa krisis pandemi COVID-19, sebagai respons nyata terhadap tingginya urgensi penanganan masalah sosial di wilayah Tasikmalaya.
-              </p>
-              <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed text-justify mt-4">
-                Fokus utama kami adalah memberikan perlindungan, jaminan kelayakan hidup, serta pendidikan moral dan keagamaan bagi anak yatim piatu, kaum dhuafa, dan anak-anak terlantar.
-              </p>
+              <div className="space-y-3.5 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                <p>
+                  Yayasan Mutiara Titipan Illahi (YAMUTI) Cabang Tasikmalaya merupakan lembaga kesejahteraan sosial dan kemanusiaan resmi yang bergerak di bawah naungan YAMUTI Pusat Bandung. Didirikan pada tahun 2019 saat masa pandemi COVID-19, kehadiran yayasan bermula dari kepedulian mendalam atas kondisi anak-anak yang kehilangan orang tua dan keluarga prasejahtera yang terdampak langsung secara ekonomi.
+                </p>
+                <p>
+                  Melalui asrama yang berlokasi di Tamansari Tasikmalaya, YAMUTI kini mengasuh dan mendampingi puluhan anak yatim dan dhuafa dengan jaminan tempat tinggal layak, kebutuhan nutrisi harian, perlindungan kesehatan, serta pembinaan pendidikan formal dan kepesantrenan.
+                </p>
+              </div>
             </section>
 
-            <section>
-              <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 border-b-2 border-red-500 pb-2 inline-block mb-6">
-                Visi & Misi
-              </h2>
-              <div className="bg-white dark:bg-zinc-900 p-8 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800">
-                <h3 className="text-xl font-bold text-red-600 mb-2">Visi Kami</h3>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">Arah pengabdian yang menjadi landasan setiap langkah yayasan:</p>
-                <blockquote className="text-lg italic text-zinc-800 dark:text-zinc-200 mb-8 border-l-4 border-amber-500 pl-4 py-1 bg-amber-50/50 dark:bg-amber-950/20 rounded-r-xl">
-                  "Menjadi Lembaga yang Amanah dan professional menuju Masyarakat yang Rahmatan lil alamiin."
-                </blockquote>
+            <section className="bg-white dark:bg-zinc-900 border border-stone-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+              <div>
+                <span className="text-[11px] font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider block mb-1">
+                  Arah Pengabdian
+                </span>
+                <h2 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100">
+                  Visi & Misi Yayasan
+                </h2>
+              </div>
 
-                <h3 className="text-xl font-bold text-red-600 mb-2">Misi & Ikhtiar Nyata</h3>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">Langkah konkret kami dalam mendampingi anak-anak asuh dan melayani umat:</p>
-                <ul className="space-y-4 text-zinc-700 dark:text-zinc-300">
-                  <li className="flex items-start gap-3">
-                    <CheckCircle className="h-6 w-6 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                    <span><strong>Membina Insan Berakhlak:</strong> Membangun sumber daya pengasuh dan santri yang amanah, mandiri, dan berkarakter islami.</span>
+              <div className="p-4 sm:p-5 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/40">
+                <span className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider block mb-1">
+                  Visi Utama
+                </span>
+                <p className="text-sm sm:text-base font-semibold text-emerald-950 dark:text-emerald-100 italic leading-snug">
+                  &ldquo;Menjadi Lembaga yang Amanah dan Profesional Menuju Masyarakat yang Rahmatan lil &lsquo;Alamiin.&rdquo;
+                </p>
+              </div>
+
+              <div>
+                <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200 block mb-3">
+                  Ikhtiar Nyata (Misi Lembaga):
+                </span>
+                <ul className="space-y-3 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400">
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-700 dark:text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong>Membina Insan Berakhlak:</strong> Menyiapkan generasi santri yang mandiri, berilmu amaliah, dan berakhlak mulia.</span>
                   </li>
-                  <li className="flex items-start gap-3">
-                    <CheckCircle className="h-6 w-6 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                    <span><strong>Tata Kelola Terpercaya:</strong> Menjaga transparansi dan akuntabilitas pelaporan donasi secara profesional bagi para dermawan.</span>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-700 dark:text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong>Tata Kelola Akuntabel:</strong> Mengelola amanah donatur dengan pelaporan transparan dan audit berkala.</span>
                   </li>
-                  <li className="flex items-start gap-3">
-                    <CheckCircle className="h-6 w-6 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                    <span><strong>Menebar Kepedulian Sosial:</strong> Mengajak masyarakat luas untuk saling peduli dan berbagi kebahagiaan bersama anak-anak yatim dhuafa.</span>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-700 dark:text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong>Jembatan Gotong Royong:</strong> Menghubungkan kepedulian para dermawan dengan kebutuhan mendesak anak asuh di lapangan.</span>
                   </li>
-                  <li className="flex items-start gap-3">
-                    <CheckCircle className="h-6 w-6 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                    <span><strong>Mewujudkan Kemanfaatan Luas:</strong> Menjadi wadah kebaikan yang menghadirkan kasih sayang dan rahmat bagi seluruh alam (*rahmatan lil alamiin*).</span>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-700 dark:text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong>Kemanfaatan Berkelanjutan:</strong> Menghadirkan program sosial yang berdampak jangka panjang bagi kemandirian santri.</span>
                   </li>
                 </ul>
               </div>
             </section>
 
-            <section>
-              <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 border-b-2 border-red-500 pb-2 inline-block mb-6">
-                Nilai Inti (HEBAT)
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900">
-                  <CardContent className="p-6">
-                    <h4 className="font-bold text-lg text-amber-600 mb-2">Harmoni</h4>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">Keselarasan nilai-nilai kehidupan berdasarkan nilai ilahi rahmatan (universal).</p>
-                  </CardContent>
-                </Card>
-                <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900">
-                  <CardContent className="p-6">
-                    <h4 className="font-bold text-lg text-amber-600 mb-2">Empati</h4>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">Menciptakan keinginan tulus untuk menolong sesama dan merasakan emosi orang lain.</p>
-                  </CardContent>
-                </Card>
-                <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900">
-                  <CardContent className="p-6">
-                    <h4 className="font-bold text-lg text-amber-600 mb-2">Barokah</h4>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">Kehidupan yang dipenuhi rasa syukur dan tetap istiqomah dalam proses ikhtiar.</p>
-                  </CardContent>
-                </Card>
-                <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900">
-                  <CardContent className="p-6">
-                    <h4 className="font-bold text-lg text-amber-600 mb-2">Amanah</h4>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">Kehidupan yang secara tegas menjaga kemurnian nilai keimanan dari kezaliman.</p>
-                  </CardContent>
-                </Card>
-                <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 sm:col-span-2">
-                  <CardContent className="p-6">
-                    <h4 className="font-bold text-lg text-amber-600 mb-2">Terbuka</h4>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">Membangun budaya toleransi dan perdamaian yang menerima perbedaan tanpa harus memaksakan keseragaman.</p>
-                  </CardContent>
-                </Card>
+            <section className="bg-white dark:bg-zinc-900 border border-stone-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-sm">
+              <div className="mb-5">
+                <span className="text-[11px] font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider block mb-1">
+                  Budaya Kerja
+                </span>
+                <h2 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100">
+                  Nilai Inti (HEBAT)
+                </h2>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                  Lima pilar etika yang mendasari setiap pengambilan keputusan dan pengasuhan anak asuh:
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="p-4 rounded-2xl bg-stone-50/80 dark:bg-zinc-800/50 border border-stone-200/80 dark:border-zinc-700/80">
+                  <h3 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider text-emerald-700 dark:text-emerald-400">H — Harmoni</h3>
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 leading-relaxed">Keselarasan hubungan persaudaraan antara pengurus, anak asuh, dan lingkungan sosial.</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-stone-50/80 dark:bg-zinc-800/50 border border-stone-200/80 dark:border-zinc-700/80">
+                  <h3 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider text-emerald-700 dark:text-emerald-400">E — Empati</h3>
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 leading-relaxed">Ketulusan hati untuk mendengarkan, merasakan, dan mendampingi kebutuhan anak yatim.</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-stone-50/80 dark:bg-zinc-800/50 border border-stone-200/80 dark:border-zinc-700/80">
+                  <h3 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider text-emerald-700 dark:text-emerald-400">B — Barokah</h3>
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 leading-relaxed">Menjaga niat ikhlas agar setiap rupiah donasi membawa kebaikan yang berlipat ganda.</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-stone-50/80 dark:bg-zinc-800/50 border border-stone-200/80 dark:border-zinc-700/80">
+                  <h3 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider text-emerald-700 dark:text-emerald-400">A — Amanah</h3>
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 leading-relaxed">Integritas tanpa kompromi dalam menyalurkan bantuan persis kepada yang berhak.</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-stone-50/80 dark:bg-zinc-800/50 border border-stone-200/80 dark:border-zinc-700/80 sm:col-span-2">
+                  <h3 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider text-emerald-700 dark:text-emerald-400">T — Terbuka</h3>
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 leading-relaxed">Keterbukaan informasi dan penerimaan silaturahmi bagi seluruh lapisan masyarakat.</p>
+                </div>
               </div>
             </section>
           </div>
 
-          {/* Sidebar - Identitas Legalitas */}
-          <div className="space-y-8">
-            <div className="bg-red-50 dark:bg-red-950/20 p-6 rounded-2xl border border-red-100 dark:border-red-900/30 sticky top-28">
-              <div className="flex items-center gap-2 text-red-600 dark:text-red-400 font-bold text-lg mb-6">
-                <Info className="h-5 w-5" />
-                Legalitas Institusi
+          <aside className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
+            <div className="bg-white dark:bg-zinc-900 border border-stone-200 dark:border-zinc-800 rounded-3xl p-5 sm:p-6 shadow-sm space-y-5">
+              <div className="flex items-center gap-2 pb-3 border-b border-stone-100 dark:border-zinc-800">
+                <ShieldCheck className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
+                <h3 className="font-bold text-sm sm:text-base text-zinc-900 dark:text-zinc-100">
+                  Legalitas Resmi Lembaga
+                </h3>
               </div>
               
-              <ul className="space-y-5">
-                <li>
-                  <span className="block text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Nama Resmi</span>
-                  <span className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mt-1">YAYASAN MUTIARA TITIPAN ILLAHI TASIKMALAYA</span>
-                </li>
-                <li>
-                  <span className="block text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Domisili</span>
-                  <span className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mt-1">JL. Letjen Masudi Pasar Gunung Kalong, Kec. Tamansari, Kota Tasikmalaya</span>
-                </li>
-                <li>
-                  <span className="block text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">SK Kemenkumham</span>
-                  <span className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mt-1">AHU-0016666.AH.01.04.Tahun 2017</span>
-                </li>
-                <li>
-                  <span className="block text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">NPWP</span>
-                  <span className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mt-1">83.302.637.0-445.00</span>
-                </li>
-                <li>
-                  <span className="block text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Dinsos Provinsi</span>
-                  <span className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mt-1">062/21/PPSKS/19/2022</span>
-                </li>
-                <li className="bg-white dark:bg-zinc-900 p-4 rounded-xl shadow-sm border border-zinc-100 dark:border-zinc-800">
-                  <span className="block text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wider">Akreditasi Kemensos</span>
-                  <span className="block text-lg font-bold text-zinc-900 dark:text-zinc-100 mt-1">A EXCELLENT</span>
-                </li>
-              </ul>
+              <dl className="space-y-4 text-xs">
+                <div>
+                  <dt className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Nama Lembaga</dt>
+                  <dd className="font-semibold text-zinc-900 dark:text-zinc-100 mt-0.5">YAMUTI Tasikmalaya</dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">SK Kemenkumham</dt>
+                  <dd className="font-mono font-medium text-zinc-800 dark:text-zinc-200 mt-0.5">AHU-0016666.AH.01.04.Tahun 2017</dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">NPWP Lembaga</dt>
+                  <dd className="font-mono font-medium text-zinc-800 dark:text-zinc-200 mt-0.5">83.302.637.0-445.00</dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Izin Dinsos Provinsi</dt>
+                  <dd className="font-mono font-medium text-zinc-800 dark:text-zinc-200 mt-0.5">062/21/PPSKS/19/2022</dd>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/40">
+                  <dt className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider">Akreditasi Kemensos RI</dt>
+                  <dd className="text-base font-extrabold text-emerald-900 dark:text-emerald-200 mt-0.5">A (EXCELLENT)</dd>
+                  <p className="text-[11px] text-emerald-800/80 dark:text-emerald-400 mt-0.5">Standar kelayakan asuhan panti terverifikasi resmi oleh Kementerian Sosial.</p>
+                </div>
+              </dl>
             </div>
-          </div>
-          
+
+            <div className="bg-stone-100/70 dark:bg-zinc-800/50 border border-stone-200/80 dark:border-zinc-700/80 rounded-3xl p-5 text-xs text-zinc-600 dark:text-zinc-400 space-y-2">
+              <span className="font-semibold text-zinc-900 dark:text-zinc-200 flex items-center gap-1.5">
+                <HeartHandshake className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
+                Ingin Silaturahmi Langsung?
+              </span>
+              <p className="leading-relaxed">
+                Asrama YAMUTI menerima kunjungan donatur setiap hari untuk doa bersama, makan bareng, atau perayaan syukuran.
+              </p>
+            </div>
+          </aside>
+
         </div>
       </div>
-    </div>
+    </main>
   );
 }

@@ -1,16 +1,16 @@
 import { Metadata } from "next";
-import { Badge } from "@/components/ui/badge";
+import { Camera } from "lucide-react";
 import { GaleriClient } from "./galeri-client";
 
 export const metadata: Metadata = {
-  title: "Galeri Kebahagiaan",
-  description: "Setiap senyum mereka adalah bukti nyata dari kepedulian Anda. Lihat dokumentasi kegiatan dan momen indah di Panti Asuhan YAMUTI.",
+  title: "Galeri Foto Asrama",
+  description: "Dokumentasi visual keseharian, kegiatan belajar, mengaji, dan momen kebersamaan anak-anak asuh di Panti Asuhan YAMUTI Tasikmalaya.",
 };
 
-// Fetch Data Galeri dari API
 async function getGaleri() {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/galeri?per_page=100`, {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002/api";
+    const res = await fetch(`${apiUrl}/galeri?per_page=100`, {
       next: { revalidate: 60 },
     });
     if (!res.ok) return [];
@@ -26,31 +26,25 @@ export default async function GaleriPage() {
   const galeriList = await getGaleri();
 
   return (
-    <div className="min-h-screen bg-zinc-50 pb-24 dark:bg-zinc-950">
-      {/* Header Section dengan Ambient Lighting */}
-      <div className="relative bg-zinc-900 py-16 md:py-24 text-center dark:bg-zinc-950 overflow-hidden">
-        <div className="absolute inset-0 z-0 pointer-events-none">
-          <div className="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-red-600/20 blur-[130px]" />
-          <div className="absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-rose-500/20 blur-[130px]" />
-        </div>
-        <div className="relative z-10 container mx-auto px-4 max-w-4xl">
-          <Badge 
-            variant="outline" 
-            className="mb-4 border-red-500/30 text-red-400 bg-red-950/30 px-4 py-1 text-xs uppercase tracking-wider font-bold"
-          >
-            Dokumentasi & Senyuman
-          </Badge>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl md:text-5xl leading-tight">
-            Galeri Kebahagiaan
+    <main className="min-h-screen bg-stone-50/60 dark:bg-zinc-950 pb-20">
+      <header className="border-b border-stone-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-wider uppercase text-emerald-800 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1 rounded-full border border-emerald-200/60 dark:border-emerald-800/40 mb-3">
+            <Camera className="w-3.5 h-3.5" />
+            Dokumentasi & Potret Santri
+          </span>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
+            Galeri Kegiatan Asrama
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-base md:text-lg text-zinc-300 leading-relaxed">
-            Setiap senyum mereka adalah bukti nyata dari kepedulian Anda. Rekaman momen indah, kegiatan ibadah, dan belajar di asrama YAMUTI Tasikmalaya.
+          <p className="mt-2 text-xs sm:text-sm md:text-base text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed">
+            Potret senyum dan kebersamaan santri yatim dhuafa dalam aktivitas keseharian, ibadah berjamaah, dan kegiatan pendidikan di Tasikmalaya.
           </p>
         </div>
-      </div>
+      </header>
 
-      {/* Main Content with Interactive Search & Lightbox Gallery */}
-      <GaleriClient initialGaleri={galeriList} />
-    </div>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
+        <GaleriClient initialGaleri={galeriList} />
+      </div>
+    </main>
   );
 }
