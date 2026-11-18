@@ -7,35 +7,50 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format, isBefore, startOfDay } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
+import {
+  CalendarDays,
+  Clock,
+  Users,
+  MapPin,
+  CheckCircle2,
+  ChevronRight,
+  ArrowLeft,
+  CalendarCheck,
+  ShieldAlert,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 
-// Kita akan mengambil jam dinamis dari Backend
 const kunjunganSchema = z.object({
-  nama_tamu: z.string().min(3, { message: "Nama minimal 3 karakter" }),
-  no_whatsapp: z.string()
-    .min(9, { message: "Nomor WA minimal 9 angka" })
-    .max(15, { message: "Nomor WA maksimal 15 angka" })
-    .regex(/^[0-9]+$/, { message: "Hanya angka yang diperbolehkan" }),
-  jumlah_pengunjung: z.number().min(1, { message: "Minimal 1 pengunjung" }).max(100, { message: "Maksimal 100 pengunjung" }),
-  maksud: z.string().min(10, { message: "Maksud kunjungan harap diisi (min 10 karakter)" }),
-  tanggal_kunjungan: z.date({ message: "Silakan pilih tanggal kunjungan" }),
-  waktu_kunjungan: z.string().min(1, { message: "Silakan pilih jam kunjungan" }),
+  nama_tamu: z.string().min(3, { message: "Nama perwakilan minimal 3 karakter." }),
+  no_whatsapp: z
+    .string()
+    .min(9, { message: "Nomor WhatsApp minimal 9 digit." })
+    .max(15, { message: "Nomor WhatsApp maksimal 15 digit." })
+    .regex(/^[0-9]+$/, { message: "Hanya angka tanpa spasi atau tanda hubung." }),
+  jumlah_pengunjung: z
+    .number()
+    .min(1, { message: "Minimal 1 orang pengunjung." })
+    .max(100, { message: "Maksimal 100 orang pengunjung per rombongan." }),
+  maksud: z
+    .string()
+    .min(10, { message: "Maksud kunjungan minimal 10 karakter agar pengurus dapat mempersiapkan sambutan." }),
+  tanggal_kunjungan: z.date({ message: "Silakan pilih tanggal kunjungan di kalender." }),
+  waktu_kunjungan: z.string().min(1, { message: "Silakan pilih jam kunjungan yang tersedia." }),
 });
 
 type KunjunganFormValues = z.infer<typeof kunjunganSchema>;
 
 export default function KunjunganPage() {
   const router = useRouter();
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState<1 | 2>(1);
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [time, setTime] = useState<string>("");
   const [isCustomTime, setIsCustomTime] = useState(false);
-  const [timeSlots, setTimeSlots] = useState<{jam: string, is_available: boolean}[]>([]);
+  const [timeSlots, setTimeSlots] = useState<{ jam: string; is_available: boolean }[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [stepError, setStepError] = useState<string>("");
   const [submitError, setSubmitError] = useState<string>("");
@@ -47,6 +62,7 @@ export default function KunjunganPage() {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<KunjunganFormValues>({
     resolver: zodResolver(kunjunganSchema),
@@ -59,94 +75,98 @@ export default function KunjunganPage() {
     },
   });
 
-  // Auto-fill dari Profile API jika login
+  const jumlahPengunjungValue = watch("jumlah_pengunjung");
+
   useEffect(() => {
-    const token = localStorage.getItem("token") || undefined;
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     if (token) {
-      fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/profile`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002/api";
+      fetch(`${apiUrl}/profile`, {
         headers: {
-          "Authorization": `Bearer ${token}`,
-          "Accept": "application/json"
-        }
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
       })
-      .then(res => {
-        if (res.status === 401) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-          return null;
-        }
-        return res.json();
-      })
-      .then(data => {
-        if (data && data.success && data.data) {
-          setValue("nama_tamu", data.data.name || "");
-          setValue("no_whatsapp", data.data.no_hp || "");
-        }
-      })
-      .catch(err => console.error("Gagal auto-fill profil:", err));
+        .then((res) => {
+          if (res.status === 401) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            return null;
+          }
+          return res.json();
+        })
+        .then((data) => {
+          if (data && data.success && data.data) {
+            setValue("nama_tamu", data.data.name || "");
+            setValue("no_whatsapp", data.data.no_hp || "");
+          }
+        })
+        .catch(() => {});
     }
   }, [setValue]);
 
-  // Fetch Ketersediaan Waktu saat tanggal berubah
   useEffect(() => {
     if (date) {
-      setTime(""); // Reset jam terpilih
-      setIsCustomTime(false); // Reset custom time mode
+      setTime("");
+      setIsCustomTime(false);
       setTimeSlots([]);
       setIsLoadingSlots(true);
       const formattedDate = format(date, "yyyy-MM-dd");
-      
-      fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/kunjungan/ketersediaan?tanggal=${formattedDate}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.data && data.data.slot_waktu) {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002/api";
+
+      fetch(`${apiUrl}/kunjungan/ketersediaan?tanggal=${formattedDate}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.success && data.data && data.data.slot_waktu) {
             setTimeSlots(data.data.slot_waktu);
           }
         })
-        .catch(err => console.error("Gagal mengambil ketersediaan slot:", err))
+        .catch(() => {})
         .finally(() => setIsLoadingSlots(false));
     }
   }, [date]);
 
   const handleNextStep = () => {
-    setStepError(""); // Reset error
+    setStepError("");
     if (!date) {
-      setStepError("Silakan pilih tanggal kunjungan terlebih dahulu di kalender.");
+      setStepError("Tentukan tanggal kunjungan di kalender terlebih dahulu.");
       return;
     }
     if (!time) {
-      setStepError("Silakan pilih slot jam kunjungan yang tersedia.");
+      setStepError("Pilih slot jam kehadiran atau ajukan jam khusus.");
       return;
     }
     setValue("tanggal_kunjungan", date);
     setValue("waktu_kunjungan", time);
-    setStepError("");
     setStep(2);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const onSubmit = async (data: KunjunganFormValues) => {
     setIsLoading(true);
     setSubmitError("");
-    
+
     const formattedDate = format(data.tanggal_kunjungan, "yyyy-MM-dd");
     const isFullDay = data.waktu_kunjungan === "FULL DAY";
-    
-    // Gabungkan tanggal dan waktu
-    // Jika FULL DAY, kita bisa kirimkan 00:00:00 atau membiarkan backend yang memproses berdasarkan flag is_full_day
-    const timeString = isFullDay ? "00:00:00" : (data.waktu_kunjungan.length === 5 ? `${data.waktu_kunjungan}:00` : data.waktu_kunjungan);
+    const timeString = isFullDay
+      ? "00:00:00"
+      : data.waktu_kunjungan.length === 5
+      ? `${data.waktu_kunjungan}:00`
+      : data.waktu_kunjungan;
     const slotWaktu = `${formattedDate} ${timeString}`;
 
     try {
       const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
-        "Accept": "application/json",
+        Accept: "application/json",
       };
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/kunjungan`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002/api";
+      const response = await fetch(`${apiUrl}/kunjungan`, {
         method: "POST",
         headers,
         body: JSON.stringify({
@@ -160,15 +180,15 @@ export default function KunjunganPage() {
       });
 
       const resData = await response.json();
-
       if (!response.ok) {
-        throw new Error(resData.message || "Gagal mengirim permintaan kunjungan");
+        throw new Error(resData.message || "Gagal mengirim formulir kunjungan.");
       }
 
-      console.log("Data Kunjungan berhasil dikirim:", resData);
       setIsSuccess(true);
-    } catch (error: any) {
-      setSubmitError(error.message || "Terjadi kesalahan saat mengirim pengajuan kunjungan.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Terjadi kendala saat mengirim data kunjungan.";
+      setSubmitError(message);
     } finally {
       setIsLoading(false);
     }
@@ -176,285 +196,444 @@ export default function KunjunganPage() {
 
   if (isSuccess) {
     return (
-      <div className="flex min-h-[calc(100vh-16rem)] items-center justify-center py-12 px-4 bg-zinc-50 dark:bg-zinc-950">
-        <Card className="w-full max-w-lg border-red-500/50 bg-white/80 shadow-2xl backdrop-blur-xl dark:bg-zinc-900/80 text-center py-12">
-          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
-            <svg className="h-10 w-10 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-            </svg>
+      <main className="min-h-[80vh] bg-stone-50 dark:bg-zinc-950 flex items-center justify-center py-12 px-4 sm:px-6">
+        <div className="w-full max-w-lg bg-white dark:bg-zinc-900 border border-stone-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-10 shadow-sm text-center">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/50 flex items-center justify-center text-emerald-700 dark:text-emerald-400 mb-5">
+            <CheckCircle2 className="w-7 h-7" />
           </div>
-          <CardTitle className="mb-2 text-2xl text-red-700 dark:text-red-400">Pengajuan Terkirim!</CardTitle>
-          <CardDescription className="text-zinc-600 dark:text-zinc-300 px-6 mt-4 leading-relaxed">
-            Terima kasih telah menjadwalkan kunjungan Anda ke Panti Asuhan YAMUTI Tasikmalaya. Admin kami akan memverifikasi dan menghubungi Anda kembali melalui WhatsApp sesegera mungkin.
-          </CardDescription>
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 px-6">
+
+          <span className="inline-block text-[11px] font-bold tracking-wider uppercase text-emerald-800 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1 rounded-full mb-3 border border-emerald-200/60 dark:border-emerald-800/40">
+            Pengajuan Diterima
+          </span>
+
+          <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+            Jadwal Kunjungan Terkirim
+          </h1>
+
+          <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 mt-2 leading-relaxed max-w-md mx-auto">
+            Terima kasih atas niat tulus Anda bersilaturahmi. Pengurus asrama akan meninjau slot dan mengonfirmasi kesiapan penerimaan melalui WhatsApp sebelum hari H.
+          </p>
+
+          <div className="my-6 p-4 rounded-2xl bg-stone-50 dark:bg-zinc-800/60 border border-stone-200/80 dark:border-zinc-700/60 text-left text-xs space-y-2">
+            <div className="flex justify-between text-zinc-500 dark:text-zinc-400">
+              <span>Waktu Kunjungan</span>
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                {date ? format(date, "d MMMM yyyy", { locale: idLocale }) : "-"} • {time}
+              </span>
+            </div>
+            <div className="flex justify-between text-zinc-500 dark:text-zinc-400">
+              <span>Lokasi</span>
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">Asrama YAMUTI Tasikmalaya</span>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
             <Button
-              onClick={() => router.push('/profil?tab=kunjungan')}
-              className="w-full sm:w-auto rounded-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold px-6 shadow-sm cursor-pointer"
+              onClick={() => router.push("/profil?tab=kunjungan")}
+              className="h-11 px-6 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs shadow-sm cursor-pointer"
             >
-              Pantau Status Kunjungan Anda →
+              Pantau Status di Akun Saya
             </Button>
             <Button
-              onClick={() => { setIsSuccess(false); setStep(1); setDate(undefined); setTime(""); }}
+              onClick={() => {
+                setIsSuccess(false);
+                setStep(1);
+                setDate(undefined);
+                setTime("");
+              }}
               variant="outline"
-              className="w-full sm:w-auto rounded-full cursor-pointer"
+              className="h-11 px-6 rounded-xl border-stone-200 dark:border-zinc-800 font-semibold text-xs cursor-pointer"
             >
-              Ajukan Kunjungan Lain
+              Ajukan Jadwal Lain
             </Button>
           </div>
-        </Card>
-      </div>
+        </div>
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 pb-24 dark:bg-zinc-950">
-      {/* Header Section */}
-      <div className="relative bg-zinc-900 py-12 sm:py-16 text-center dark:bg-zinc-950 overflow-hidden">
-        <div className="absolute inset-0 z-0 pointer-events-none">
-          <div className="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-red-600/20 blur-[120px]" />
-          <div className="absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-rose-500/20 blur-[120px]" />
-        </div>
-        <div className="relative z-10 container mx-auto px-4">
-          <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold tracking-tight text-white">
-            Jadwalkan Kunjungan Anda
-          </h1>
-          <p className="mx-auto mt-3 sm:mt-4 max-w-2xl text-sm sm:text-base md:text-lg text-zinc-300 leading-relaxed">
-            Kehadiran Anda adalah semangat baru bagi anak-anak asuh kami. Mari jadwalkan kunjungan Anda dan buat kenangan berharga bersama mereka.
-          </p>
-        </div>
-      </div>
+    <main className="min-h-screen bg-stone-50/60 dark:bg-zinc-950 pb-20">
+      <header className="border-b border-stone-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-wider uppercase text-emerald-800 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1 rounded-full border border-emerald-200/60 dark:border-emerald-800/40 mb-3">
+                <CalendarCheck className="w-3.5 h-3.5" />
+                Silaturahmi & Kunjungan Kasih
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
+                Pilih Jadwal Silaturahmi Asrama
+              </h1>
+              <p className="mt-2 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed">
+                Pintu asrama terbuka hangat bagi bapak, ibu, dan keluarga yang ingin melihat langsung keseharian, makan bersama, atau berbagi keceriaan dengan anak-anak asuh kami.
+              </p>
+            </div>
 
-      <div className="container mx-auto mt-8 sm:mt-16 px-3 sm:px-4 flex justify-center">
-        <Card className="w-full max-w-3xl border-zinc-200 shadow-xl dark:border-zinc-800 rounded-2xl sm:rounded-3xl overflow-hidden bg-white dark:bg-zinc-900">
-          
-          {/* Premium Step Indicator */}
-          <div className="flex justify-center pt-6 sm:pt-10 pb-2 bg-white dark:bg-zinc-900">
-            <div className="flex items-center space-x-2 md:space-x-4">
-              <button 
-                onClick={() => step === 2 && setStep(1)}
-                className={cn("flex items-center gap-1.5 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full transition-all text-xs sm:text-sm md:text-base", step === 1 ? "bg-red-50 dark:bg-red-900/20 text-red-600 font-bold" : "text-zinc-400 hover:text-zinc-600 font-medium")}
-              >
-                <div className={cn("w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold", step === 1 ? "bg-red-600 text-white shadow-md shadow-red-500/30" : "bg-zinc-100 dark:bg-zinc-800")}>1</div>
-                <span>Pilih Jadwal</span>
-              </button>
-              
-              <div className="w-6 sm:w-16 h-1 rounded-full bg-zinc-100 dark:bg-zinc-800 relative overflow-hidden">
-                <div className="absolute top-0 left-0 h-full bg-red-600 transition-all duration-500 ease-in-out" style={{ width: step === 2 ? '100%' : '0%' }} />
+            <div className="text-xs text-zinc-500 dark:text-zinc-400 bg-stone-100/80 dark:bg-zinc-800/80 p-3.5 rounded-2xl border border-stone-200/80 dark:border-zinc-700/80 shrink-0 space-y-1">
+              <div className="flex items-center gap-2 font-semibold text-zinc-900 dark:text-zinc-200">
+                <MapPin className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+                <span>Asrama Utama YAMUTI</span>
               </div>
-              
-              <div className={cn("flex items-center gap-1.5 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full transition-all text-xs sm:text-sm md:text-base", step === 2 ? "bg-red-50 dark:bg-red-900/20 text-red-600 font-bold" : "text-zinc-400 font-medium")}>
-                <div className={cn("w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold", step === 2 ? "bg-red-600 text-white shadow-md shadow-red-500/30" : "bg-zinc-100 dark:bg-zinc-800")}>2</div>
-                <span>Data Diri</span>
-              </div>
+              <p className="text-[11px] text-zinc-600 dark:text-zinc-400">
+                Pasar Gunung Kalong, Tamansari, Tasikmalaya
+              </p>
             </div>
           </div>
+        </div>
+      </header>
 
-          <CardContent className="p-4 sm:p-6 md:p-8">
-            {step === 1 && (
-              <div className="space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                <div className="text-center">
-                  <h2 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">Kapan Anda ingin berkunjung?</h2>
-                  <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1.5 sm:mt-2">Pilih tanggal dan jam ketersediaan yang cocok untuk Anda.</p>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
+        <nav aria-label="Progress" className="mb-6 sm:mb-8">
+          <ol className="flex items-center gap-3 sm:gap-4 max-w-md">
+            <li className="flex-1">
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className={cn(
+                  "w-full text-left py-2 border-b-2 transition-colors cursor-pointer",
+                  step === 1
+                    ? "border-emerald-700 text-emerald-800 dark:border-emerald-400 dark:text-emerald-300 font-bold"
+                    : "border-stone-200 dark:border-zinc-800 text-zinc-400"
+                )}
+              >
+                <span className="text-[11px] block uppercase tracking-wider">Langkah 1</span>
+                <span className="text-xs sm:text-sm font-semibold">Waktu & Jam</span>
+              </button>
+            </li>
+            <li className="flex-1">
+              <button
+                type="button"
+                disabled={!date || !time}
+                onClick={() => {
+                  if (date && time) setStep(2);
+                }}
+                className={cn(
+                  "w-full text-left py-2 border-b-2 transition-colors",
+                  step === 2
+                    ? "border-emerald-700 text-emerald-800 dark:border-emerald-400 dark:text-emerald-300 font-bold cursor-pointer"
+                    : "border-stone-200 dark:border-zinc-800 text-zinc-400 disabled:opacity-60 disabled:cursor-not-allowed"
+                )}
+              >
+                <span className="text-[11px] block uppercase tracking-wider">Langkah 2</span>
+                <span className="text-xs sm:text-sm font-semibold">Identitas Tamu</span>
+              </button>
+            </li>
+          </ol>
+        </nav>
+
+        {step === 1 && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
+            <div className="lg:col-span-5 bg-white dark:bg-zinc-900 border border-stone-200 dark:border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-sm">
+              <div className="mb-4">
+                <h2 className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                  <CalendarDays className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
+                  1. Pilih Hari & Tanggal
+                </h2>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                  Pilih hari yang paling luang bagi Anda atau rombongan.
+                </p>
+              </div>
+
+              <div className="flex justify-center border border-stone-100 dark:border-zinc-800/80 rounded-2xl p-2 bg-stone-50/50 dark:bg-zinc-950/50">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={setDate}
+                  disabled={(d) => isBefore(d, startOfDay(new Date()))}
+                  className="rounded-xl w-full max-w-[320px]"
+                />
+              </div>
+
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-3.5 leading-relaxed">
+                * Asrama menerima tamu setiap hari. Untuk kunjungan kelompok di atas 15 orang, disarankan memilih waktu minimal 2 hari sebelumnya.
+              </p>
+            </div>
+
+            <div className="lg:col-span-7 bg-white dark:bg-zinc-900 border border-stone-200 dark:border-zinc-800 rounded-3xl p-5 sm:p-7 shadow-sm space-y-6">
+              <div>
+                <h2 className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
+                  2. Pilih Sesi Jam Kunjungan
+                </h2>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                  {date
+                    ? `Menampilkan jadwal untuk ${format(date, "EEEE, d MMMM yyyy", { locale: idLocale })}`
+                    : "Pilih tanggal di sisi kiri untuk melihat jam operasional asrama."}
+                </p>
+              </div>
+
+              {!date ? (
+                <div className="py-12 px-6 rounded-2xl border border-dashed border-stone-200 dark:border-zinc-800 text-center text-zinc-400 text-xs sm:text-sm">
+                  Silakan tentukan tanggal kunjungan pada kalender terlebih dahulu.
                 </div>
-                
-                <div className="flex flex-col md:flex-row gap-6 sm:gap-8 justify-center items-stretch md:items-start">
-                  {/* Kalender */}
-                  <div className="w-full md:w-auto flex justify-center bg-white dark:bg-zinc-950 p-2 sm:p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-x-auto">
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      onSelect={setDate}
-                      disabled={(d) => isBefore(d, startOfDay(new Date()))}
-                      className="rounded-md"
-                    />
+              ) : isLoadingSlots ? (
+                <div className="py-12 px-6 rounded-2xl border border-stone-200/80 dark:border-zinc-800 text-center space-y-3">
+                  <div className="w-5 h-5 border-2 border-emerald-700 border-t-transparent rounded-full animate-spin mx-auto" />
+                  <span className="text-xs text-zinc-500">Mengecek ketersediaan slot penerimaan...</span>
+                </div>
+              ) : timeSlots.length > 0 ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    {timeSlots.map((slot, i) => {
+                      const isFullDay = slot.jam === "FULL DAY";
+                      const isSelected = !isCustomTime && time === slot.jam;
+                      return (
+                        <button
+                          key={i}
+                          type="button"
+                          disabled={!slot.is_available}
+                          onClick={() => {
+                            setIsCustomTime(false);
+                            setTime(slot.jam);
+                          }}
+                          className={cn(
+                            "h-11 px-3 rounded-xl border text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer",
+                            isFullDay ? "col-span-2 sm:col-span-4" : "",
+                            isSelected
+                              ? "border-emerald-700 bg-emerald-700 text-white shadow-sm"
+                              : "border-stone-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:border-emerald-600 hover:text-emerald-700 dark:hover:text-emerald-400 bg-stone-50/50 dark:bg-zinc-800/40",
+                            !slot.is_available &&
+                              "opacity-40 cursor-not-allowed bg-stone-100 dark:bg-zinc-900 border-stone-200 dark:border-zinc-800 text-zinc-400 line-through"
+                          )}
+                        >
+                          <span>{slot.jam}</span>
+                          {!slot.is_available && <span className="text-[10px] no-underline">(Penuh)</span>}
+                        </button>
+                      );
+                    })}
                   </div>
 
-                  {/* Waktu */}
-                  <div className="flex-1 w-full space-y-4">
-                    <h3 className="font-semibold text-zinc-700 dark:text-zinc-300 text-sm sm:text-base">
-                      Slot Jam {date ? format(date, "d MMMM yyyy", { locale: idLocale }) : ""}
-                    </h3>
-                    
-                    {!date ? (
-                      <div className="p-6 text-center border border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl text-zinc-400 text-xs sm:text-sm">
-                        Pilih tanggal di kalender terlebih dahulu untuk melihat slot jam.
-                      </div>
-                    ) : isLoadingSlots ? (
-                      <div className="p-6 text-center flex flex-col items-center justify-center space-y-3 rounded-xl border border-zinc-100 dark:border-zinc-800">
-                        <svg className="animate-spin h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        <span className="text-sm text-zinc-500">Mengecek ketersediaan...</span>
-                      </div>
-                    ) : timeSlots.length > 0 ? (
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-                          {timeSlots.map((slot, i) => {
-                            const isFullDayBtn = slot.jam === "FULL DAY";
-                            const isSelected = !isCustomTime && time === slot.jam;
-                            return (
-                              <Button
-                                key={i}
-                                type="button"
-                                variant={isSelected ? "default" : "outline"}
-                                className={cn(
-                                  "min-h-[48px] h-12 rounded-xl border-zinc-200 dark:border-zinc-800 text-xs sm:text-sm transition-all",
-                                  isFullDayBtn ? "col-span-2" : "",
-                                  isSelected ? "bg-red-600 hover:bg-red-700 text-white ring-2 ring-red-600/20" : "",
-                                  !slot.is_available ? "opacity-50 cursor-not-allowed bg-zinc-50 dark:bg-zinc-900" : "hover:border-red-400 hover:text-red-600"
-                                )}
-                                disabled={!slot.is_available}
-                                onClick={() => {
-                                  setIsCustomTime(false);
-                                  setTime(slot.jam);
-                                }}
-                              >
-                                {slot.jam}
-                                {!slot.is_available && <span className="ml-1.5 text-xs font-normal">(Penuh)</span>}
-                              </Button>
-                            );
-                          })}
+                  <div className="pt-4 border-t border-stone-100 dark:border-zinc-800">
+                    {isCustomTime ? (
+                      <div className="p-4 rounded-2xl bg-stone-50 dark:bg-zinc-800/50 border border-stone-200/80 dark:border-zinc-700 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                            Masukkan Jam Khusus yang Dikehendaki
+                          </Label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsCustomTime(false);
+                              setTime("");
+                            }}
+                            className="text-xs text-zinc-500 hover:underline cursor-pointer"
+                          >
+                            Batal
+                          </button>
                         </div>
-                        
-                        <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                          {isCustomTime ? (
-                            <div className="space-y-2 animate-in fade-in zoom-in-95 duration-200">
-                              <Label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Pilih Waktu Khusus</Label>
-                              <div className="flex items-center gap-3">
-                                <Input 
-                                  type="time" 
-                                  value={time} 
-                                  onChange={(e) => setTime(e.target.value)}
-                                  className="h-12 rounded-xl"
-                                />
-                                <Button type="button" variant="ghost" onClick={() => { setIsCustomTime(false); setTime(""); }} className="text-zinc-500 rounded-full shrink-0">Batal</Button>
-                              </div>
-                            </div>
-                          ) : (
-                            <Button type="button" variant="ghost" onClick={() => { setIsCustomTime(true); setTime(""); }} className="w-full h-12 border border-dashed border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900">
-                              + Ajukan Waktu Khusus
-                            </Button>
-                          )}
+                        <div className="flex items-center gap-3">
+                          <Input
+                            type="time"
+                            value={time}
+                            onChange={(e) => setTime(e.target.value)}
+                            className="h-10 text-xs font-mono max-w-[160px] bg-white dark:bg-zinc-900 rounded-xl"
+                          />
+                          <span className="text-xs text-zinc-500 dark:text-zinc-400 leading-tight">
+                            Pengurus akan memastikan kesiapan jadwal anak-anak pada jam tersebut.
+                          </span>
                         </div>
                       </div>
                     ) : (
-                      <div className="p-6 text-center border border-dashed border-red-200 dark:border-red-900/30 bg-red-50 dark:bg-red-900/10 rounded-xl text-red-600 dark:text-red-400 text-sm">
-                        Tidak ada jadwal kunjungan di tanggal ini.
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsCustomTime(true);
+                          setTime("");
+                        }}
+                        className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 flex items-center gap-1 cursor-pointer"
+                      >
+                        + Butuh hadir di luar slot di atas? Ajukan jam khusus
+                      </button>
                     )}
                   </div>
                 </div>
-
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-zinc-100 dark:border-zinc-800">
-                  <div className="text-sm font-medium text-red-500">
-                    {stepError && <span className="flex items-center gap-1.5 animate-in fade-in slide-in-from-left-2"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>{stepError}</span>}
-                  </div>
-                  <Button 
-                    onClick={handleNextStep}
-                    className="h-12 px-8 rounded-xl bg-zinc-900 hover:bg-black text-white dark:bg-white dark:text-black dark:hover:bg-zinc-200 w-full sm:w-auto shrink-0"
-                  >
-                    Lanjut Isi Data &rarr;
-                  </Button>
+              ) : (
+                <div className="p-5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-900/40 text-xs text-amber-800 dark:text-amber-300">
+                  Belum ada slot jam pada tanggal yang dipilih. Silakan coba tanggal lain atau hubungi narahubung asrama.
                 </div>
+              )}
+
+              {stepError && (
+                <div
+                  role="alert"
+                  className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/40 text-xs text-rose-700 dark:text-rose-400 font-medium flex items-center gap-2"
+                >
+                  <ShieldAlert className="w-4 h-4 shrink-0" />
+                  <span>{stepError}</span>
+                </div>
+              )}
+
+              <div className="pt-2 flex justify-end">
+                <Button
+                  type="button"
+                  onClick={handleNextStep}
+                  disabled={!date || !time}
+                  className="h-11 px-6 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs shadow-sm cursor-pointer disabled:opacity-50"
+                >
+                  Lanjut ke Data Tamu <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {step === 2 && (
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="max-w-2xl mx-auto bg-white dark:bg-zinc-900 border border-stone-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6"
+          >
+            <div className="p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/40 flex items-center justify-between">
+              <div>
+                <span className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider block">
+                  Jadwal Dipilih
+                </span>
+                <span className="text-xs sm:text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                  {date ? format(date, "EEEE, d MMMM yyyy", { locale: idLocale }) : ""} • Pukul {time} WIB
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="text-xs text-emerald-800 dark:text-emerald-300 hover:underline font-semibold cursor-pointer"
+              >
+                Ubah Waktu
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="nama_tamu" className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+                  Nama Lengkap Perwakilan
+                </Label>
+                <Input
+                  id="nama_tamu"
+                  placeholder="Contoh: H. Agus Salim"
+                  {...register("nama_tamu")}
+                  className={cn(
+                    "h-11 rounded-xl text-xs bg-stone-50/50 dark:bg-zinc-950 border-stone-200 dark:border-zinc-800",
+                    errors.nama_tamu && "border-rose-500 focus-visible:ring-rose-500"
+                  )}
+                />
+                {errors.nama_tamu && (
+                  <p className="text-[11px] text-rose-600 font-medium">{errors.nama_tamu.message}</p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="no_whatsapp" className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+                    Nomor WhatsApp Aktif
+                  </Label>
+                  <Input
+                    id="no_whatsapp"
+                    type="tel"
+                    inputMode="numeric"
+                    placeholder="Contoh: 081234567890"
+                    {...register("no_whatsapp", {
+                      onChange: (e) => {
+                        e.target.value = e.target.value.replace(/[^0-9]/g, "");
+                      },
+                    })}
+                    maxLength={15}
+                    className={cn(
+                      "h-11 rounded-xl text-xs font-mono bg-stone-50/50 dark:bg-zinc-950 border-stone-200 dark:border-zinc-800",
+                      errors.no_whatsapp && "border-rose-500 focus-visible:ring-rose-500"
+                    )}
+                  />
+                  {errors.no_whatsapp ? (
+                    <p className="text-[11px] text-rose-600 font-medium">{errors.no_whatsapp.message}</p>
+                  ) : (
+                    <p className="text-[11px] text-zinc-500">Konfirmasi jadwal dikirim ke nomor ini.</p>
+                  )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="jumlah_pengunjung" className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+                    Jumlah Rombongan (Orang)
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="jumlah_pengunjung"
+                      type="number"
+                      min={1}
+                      max={100}
+                      {...register("jumlah_pengunjung", { valueAsNumber: true })}
+                      className={cn(
+                        "h-11 rounded-xl text-xs font-mono bg-stone-50/50 dark:bg-zinc-950 border-stone-200 dark:border-zinc-800 w-28",
+                        errors.jumlah_pengunjung && "border-rose-500 focus-visible:ring-rose-500"
+                      )}
+                    />
+                    <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                      <Users className="w-4 h-4 text-zinc-400" />
+                      <span>{jumlahPengunjungValue > 15 ? "Kategori Rombongan Besar" : "Keluarga / Pribadi"}</span>
+                    </div>
+                  </div>
+                  {errors.jumlah_pengunjung && (
+                    <p className="text-[11px] text-rose-600 font-medium">{errors.jumlah_pengunjung.message}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="maksud" className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+                  Tujuan atau Rencana Kegiatan Kunjungan
+                </Label>
+                <textarea
+                  id="maksud"
+                  rows={3}
+                  placeholder="Ceritakan gambaran singkat kunjungan, misalnya: silaturahmi keluarga, doa bersama santri, berbagi makan siang, atau perayaan ulang tahun..."
+                  {...register("maksud")}
+                  className={cn(
+                    "w-full rounded-xl border border-stone-200 bg-stone-50/50 dark:bg-zinc-950 dark:border-zinc-800 p-3 text-xs leading-relaxed transition-colors focus-visible:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600/30 resize-none",
+                    errors.maksud && "border-rose-500 focus:ring-rose-500/20"
+                  )}
+                />
+                {errors.maksud ? (
+                  <p className="text-[11px] text-rose-600 font-medium">{errors.maksud.message}</p>
+                ) : (
+                  <p className="text-[11px] text-zinc-500">Membantu asrama menyiapkan ruang pertemuan dan sambutan anak-anak.</p>
+                )}
+              </div>
+            </div>
+
+            {submitError && (
+              <div
+                role="alert"
+                className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/40 text-xs text-rose-700 dark:text-rose-400 font-medium flex items-center gap-2"
+              >
+                <ShieldAlert className="w-4 h-4 shrink-0" />
+                <span>{submitError}</span>
               </div>
             )}
 
-            {step === 2 && (
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                
-                {/* Ringkasan Pilihan Jadwal */}
-                <div className="bg-red-50 dark:bg-red-900/10 p-4 rounded-2xl flex items-center justify-between border border-red-100 dark:border-red-900/30">
-                  <div>
-                    <p className="text-sm text-red-600 dark:text-red-400 font-medium mb-1">Jadwal Terpilih:</p>
-                    <p className="font-bold text-zinc-900 dark:text-white">
-                      {date ? format(date, "EEEE, d MMMM yyyy", { locale: idLocale }) : ""} <span className="mx-2 text-zinc-300">|</span> Jam {time}
-                    </p>
-                  </div>
-                  <Button type="button" variant="ghost" size="sm" onClick={() => setStep(1)} className="text-red-600 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full">
-                    Ubah
-                  </Button>
-                </div>
+            <div className="pt-4 border-t border-stone-100 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 font-semibold flex items-center gap-1 cursor-pointer order-2 sm:order-1"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" /> Kembali Pilih Waktu
+              </button>
 
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="nama_tamu" className="font-semibold text-zinc-700 dark:text-zinc-300">Nama Perwakilan</Label>
-                    <Input
-                      id="nama_tamu"
-                      placeholder="Budi Santoso"
-                      {...register("nama_tamu")}
-                      className={cn("h-12 rounded-xl bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800", errors.nama_tamu && "border-red-500")}
-                    />
-                    {errors.nama_tamu && <p className="text-sm text-red-500">{errors.nama_tamu.message}</p>}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="no_whatsapp" className="font-semibold text-zinc-700 dark:text-zinc-300">No. WhatsApp</Label>
-                    <Input
-                      id="no_whatsapp"
-                      type="tel"
-                      placeholder="081234567890"
-                      {...register("no_whatsapp", {
-                        onChange: (e) => e.target.value = e.target.value.replace(/[^0-9]/g, "")
-                      })}
-                      maxLength={15}
-                      className={cn("h-12 rounded-xl bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800", errors.no_whatsapp && "border-red-500")}
-                    />
-                    {errors.no_whatsapp && <p className="text-sm text-red-500">{errors.no_whatsapp.message}</p>}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="jumlah_pengunjung" className="font-semibold text-zinc-700 dark:text-zinc-300">Estimasi Jumlah Pengunjung</Label>
-                  <Input
-                    id="jumlah_pengunjung"
-                    type="number"
-                    min="1"
-                    {...register("jumlah_pengunjung", { valueAsNumber: true })}
-                    className={cn("h-12 rounded-xl bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 max-w-[200px]", errors.jumlah_pengunjung && "border-red-500")}
-                  />
-                  {errors.jumlah_pengunjung && <p className="text-sm text-red-500">{errors.jumlah_pengunjung.message}</p>}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="maksud" className="font-semibold text-zinc-700 dark:text-zinc-300">Maksud / Tujuan Kunjungan</Label>
-                  <textarea
-                    id="maksud"
-                    rows={4}
-                    placeholder="Contoh: Ingin bersilaturahmi dan membagikan bingkisan untuk anak-anak..."
-                    {...register("maksud")}
-                    className={cn(
-                      "flex w-full rounded-xl border border-zinc-200 bg-zinc-50 dark:bg-zinc-950 dark:border-zinc-800 px-4 py-3 text-sm transition-all focus-visible:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-500/20 resize-none",
-                      errors.maksud ? "border-red-500 focus-visible:ring-red-500" : ""
-                    )}
-                  />
-                  {errors.maksud && <p className="text-sm text-red-500">{errors.maksud.message}</p>}
-                </div>
-
-                {submitError && (
-                  <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/40 text-red-700 dark:text-red-400 text-sm animate-in fade-in duration-200">
-                    {submitError}
-                  </div>
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full sm:w-auto h-11 px-7 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs shadow-sm cursor-pointer disabled:opacity-50 order-1 sm:order-2"
+              >
+                {isLoading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Menyimpan Jadwal...
+                  </span>
+                ) : (
+                  "Konfirmasi & Ajukan Jadwal Kunjungan"
                 )}
-
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  size="lg"
-                  className="w-full h-14 mt-6 rounded-xl bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-700 hover:to-amber-600 text-white text-lg font-bold shadow-lg shadow-red-500/25 transition-all hover:-translate-y-1"
-                >
-                  {isLoading ? (
-                    <span className="flex items-center gap-2">
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                      Mengirim Permintaan...
-                    </span>
-                  ) : (
-                    `Kirim Permintaan Kunjungan`
-                  )}
-                </Button>
-              </form>
-            )}
-          </CardContent>
-        </Card>
+              </Button>
+            </div>
+          </form>
+        )}
       </div>
-    </div>
+    </main>
   );
 }
