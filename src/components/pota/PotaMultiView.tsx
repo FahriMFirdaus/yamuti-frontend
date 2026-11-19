@@ -32,21 +32,11 @@ export function PotaMultiView({
   return (
     <div className="space-y-3.5">
       {/* Subheader & View Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1">
+      <div className="flex items-center justify-between gap-2.5 pb-1">
         <div className="flex items-center gap-2">
           <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
             Total {anakAsuhList.length} Ananda Binaan Aktif
           </span>
-          {anakAsuhList.length > 1 && onOpenBulkPay && (
-            <Button
-              type="button"
-              size="sm"
-              onClick={onOpenBulkPay}
-              className="h-7 px-2.5 text-[11px] font-bold bg-amber-500 hover:bg-amber-600 text-zinc-950 rounded-lg cursor-pointer"
-            >
-              Salur Sekaligus Semua Anak
-            </Button>
-          )}
         </div>
 
         {/* View Mode Toggle (Strip vs Grid) */}

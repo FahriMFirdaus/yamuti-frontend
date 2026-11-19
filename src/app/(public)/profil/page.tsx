@@ -1078,11 +1078,11 @@ function ProfilContent() {
                               : "Atur nominal infak beasiswa bulanan dan jadwal tanggal penyaluran."}
                         </CardDescription>
                       </div>
-                      <div className="flex items-center gap-2.5">
+                      <div className="flex flex-wrap items-center gap-2">
                         {anakAsuhSaya.length > 1 && !showPotaForm && (
                           <Button
                             onClick={() => setIsBulkPayOpen(true)}
-                            className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs shadow-sm cursor-pointer transition-all min-h-[38px] px-4"
+                            className="flex-1 sm:flex-initial bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs shadow-sm cursor-pointer transition-all min-h-[38px] px-3 sm:px-4"
                           >
                             ⚡ Salur Sekaligus ({anakAsuhSaya.length} Anak)
                           </Button>
@@ -1097,7 +1097,7 @@ function ProfilContent() {
                             }
                           }}
                           className={cn(
-                            "rounded-xl text-xs font-semibold cursor-pointer transition-all min-h-[38px] px-4",
+                            "flex-1 sm:flex-initial rounded-xl text-xs font-semibold cursor-pointer transition-all min-h-[38px] px-3 sm:px-4",
                             showPotaForm
                               ? "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700"
                               : "bg-emerald-700 hover:bg-emerald-800 text-white shadow-sm"
