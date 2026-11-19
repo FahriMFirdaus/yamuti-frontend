@@ -450,21 +450,31 @@ export default function PengaturanPage() {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="flex flex-nowrap overflow-x-auto sm:grid w-full sm:grid-cols-5 max-w-4xl mb-6 h-auto p-1 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl gap-1">
-          <TabsTrigger value="kontak" className="py-2.5 px-3 shrink-0 data-active:bg-emerald-600 data-active:text-white font-semibold rounded-lg text-xs sm:text-sm transition-all shadow-none data-active:shadow-sm">
-            <Compass className="w-4 h-4 mr-2 shrink-0" /> Profil & Kontak
+        <TabsList className="grid w-full grid-cols-5 max-w-4xl mb-6 h-auto p-1.5 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl gap-1">
+          <TabsTrigger value="kontak" className="py-2 px-1 sm:py-2.5 sm:px-3 data-active:bg-emerald-600 data-active:text-white font-semibold rounded-lg text-xs sm:text-sm transition-all shadow-none data-active:shadow-sm flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2">
+            <Compass className="w-4 h-4 shrink-0" />
+            <span className="hidden md:inline">Profil & Kontak</span>
+            <span className="md:hidden">Kontak</span>
           </TabsTrigger>
-          <TabsTrigger value="peta" className="py-2.5 px-3 shrink-0 data-active:bg-emerald-600 data-active:text-white font-semibold rounded-lg text-xs sm:text-sm transition-all shadow-none data-active:shadow-sm">
-            <MapPin className="w-4 h-4 mr-2 shrink-0" /> Lokasi & Peta
+          <TabsTrigger value="peta" className="py-2 px-1 sm:py-2.5 sm:px-3 data-active:bg-emerald-600 data-active:text-white font-semibold rounded-lg text-xs sm:text-sm transition-all shadow-none data-active:shadow-sm flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2">
+            <MapPin className="w-4 h-4 shrink-0" />
+            <span className="hidden md:inline">Lokasi & Peta</span>
+            <span className="md:hidden">Peta</span>
           </TabsTrigger>
-          <TabsTrigger value="jadwal" className="py-2.5 px-3 shrink-0 data-active:bg-emerald-600 data-active:text-white font-semibold rounded-lg text-xs sm:text-sm transition-all shadow-none data-active:shadow-sm">
-            <Clock className="w-4 h-4 mr-2 shrink-0" /> Jam & Kunjungan
+          <TabsTrigger value="jadwal" className="py-2 px-1 sm:py-2.5 sm:px-3 data-active:bg-emerald-600 data-active:text-white font-semibold rounded-lg text-xs sm:text-sm transition-all shadow-none data-active:shadow-sm flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2">
+            <Clock className="w-4 h-4 shrink-0" />
+            <span className="hidden md:inline">Jam & Kunjungan</span>
+            <span className="md:hidden">Jadwal</span>
           </TabsTrigger>
-          <TabsTrigger value="kas" className="py-2.5 px-3 shrink-0 data-active:bg-emerald-600 data-active:text-white font-semibold rounded-lg text-xs sm:text-sm transition-all shadow-none data-active:shadow-sm">
-            <Percent className="w-4 h-4 mr-2 shrink-0" /> Bagi Kas Donasi
+          <TabsTrigger value="kas" className="py-2 px-1 sm:py-2.5 sm:px-3 data-active:bg-emerald-600 data-active:text-white font-semibold rounded-lg text-xs sm:text-sm transition-all shadow-none data-active:shadow-sm flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2">
+            <Percent className="w-4 h-4 shrink-0" />
+            <span className="hidden md:inline">Bagi Kas Donasi</span>
+            <span className="md:hidden">Bagi Kas</span>
           </TabsTrigger>
-          <TabsTrigger value="zakat" className="py-2.5 px-3 shrink-0 data-active:bg-emerald-600 data-active:text-white font-semibold rounded-lg text-xs sm:text-sm transition-all shadow-none data-active:shadow-sm">
-            <Calculator className="w-4 h-4 mr-2 shrink-0" /> Nisab Zakat
+          <TabsTrigger value="zakat" className="py-2 px-1 sm:py-2.5 sm:px-3 data-active:bg-emerald-600 data-active:text-white font-semibold rounded-lg text-xs sm:text-sm transition-all shadow-none data-active:shadow-sm flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2">
+            <Calculator className="w-4 h-4 shrink-0" />
+            <span className="hidden md:inline">Nisab Zakat</span>
+            <span className="md:hidden">Zakat</span>
           </TabsTrigger>
         </TabsList>
 
