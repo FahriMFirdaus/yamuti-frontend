@@ -1,7 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Plus, Search, ShieldCheck, Shield, KeyRound, Check, Edit2, Trash2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import {
+  Plus,
+  Search,
+  ShieldCheck,
+  Shield,
+  KeyRound,
+  Check,
+  Edit2,
+  Trash2,
+  RefreshCw,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -140,12 +152,14 @@ const DEFAULT_ROLES: RoleItem[] = [
 ];
 
 export default function RolesPage() {
-  const [token, setToken] = useState<string | undefined>(undefined);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
   const [roles, setRoles] = useState<RoleItem[]>(DEFAULT_ROLES);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [modalFeedback, setModalFeedback] = useState<{ type: "error"; message: string } | null>(null);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<RoleItem | null>(null);
@@ -154,15 +168,20 @@ export default function RolesPage() {
   const [saving, setSaving] = useState(false);
 
   const [deleteTarget, setDeleteTarget] = useState<RoleItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  const fetchRoles = async () => {
+  const getAuthToken = async (): Promise<string | undefined> => {
+    const session = await getSession();
+    return (
+      session?.accessToken ||
+      (typeof window !== "undefined" ? localStorage.getItem("token") || undefined : undefined)
+    );
+  };
+
+  const fetchRoles = useCallback(async () => {
+    setLoading(true);
     try {
-      const session = await getSession();
-      const activeToken =
-        session?.accessToken ||
-        (typeof window !== "undefined" ? localStorage.getItem("token") || undefined : undefined);
-
-      if (activeToken) setToken(activeToken);
+      const activeToken = await getAuthToken();
 
       const res = await fetch(`${apiUrl}/roles`, {
         headers: {
@@ -172,7 +191,7 @@ export default function RolesPage() {
       });
       if (res.ok) {
         const json = await res.json();
-        if (json.data && json.data.length > 0) {
+        if (json.data && Array.isArray(json.data) && json.data.length > 0) {
           setRoles(json.data);
         }
       }
@@ -181,23 +200,31 @@ export default function RolesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [apiUrl]);
 
   useEffect(() => {
-    fetchRoles();
-  }, []);
+    let ignore = false;
+    if (!ignore) {
+      fetchRoles();
+    }
+    return () => {
+      ignore = true;
+    };
+  }, [fetchRoles]);
 
   const handleOpenCreate = () => {
     setEditingRole(null);
     setRoleName("");
     setSelectedPermissions([]);
+    setModalFeedback(null);
     setIsFormOpen(true);
   };
 
   const handleOpenEdit = (role: RoleItem) => {
     setEditingRole(role);
     setRoleName(role.name);
-    setSelectedPermissions(role.permissions.map((p) => p.name));
+    setSelectedPermissions(role.permissions?.map((p) => p.name) || []);
+    setModalFeedback(null);
     setIsFormOpen(true);
   };
 
@@ -221,7 +248,9 @@ export default function RolesPage() {
     if (!roleName.trim()) return;
 
     setSaving(true);
+    setModalFeedback(null);
     try {
+      const activeToken = await getAuthToken();
       const url = editingRole ? `${apiUrl}/roles/${editingRole.id}` : `${apiUrl}/roles`;
       const method = editingRole ? "PUT" : "POST";
 
@@ -230,7 +259,7 @@ export default function RolesPage() {
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {}),
         },
         body: JSON.stringify({
           name: roleName.trim(),
@@ -240,14 +269,26 @@ export default function RolesPage() {
 
       if (res.ok) {
         setIsFormOpen(false);
-        fetchRoles();
+        setFeedback({
+          type: "success",
+          message: editingRole
+            ? `Peran "${roleName.trim()}" berhasil diperbarui.`
+            : `Peran baru "${roleName.trim()}" berhasil ditambahkan.`,
+        });
+        await fetchRoles();
       } else {
-        const errJson = await res.json();
-        alert(errJson.message || "Gagal menyimpan role.");
+        const errJson = await res.json().catch(() => ({}));
+        setModalFeedback({
+          type: "error",
+          message: errJson.message || "Gagal menyimpan peran. Silakan periksa kembali formulir.",
+        });
       }
     } catch (err) {
       console.error("Error saving role:", err);
-      alert("Terjadi kesalahan jaringan.");
+      setModalFeedback({
+        type: "error",
+        message: "Terjadi kesalahan koneksi jaringan saat menyimpan peran.",
+      });
     } finally {
       setSaving(false);
     }
@@ -255,23 +296,41 @@ export default function RolesPage() {
 
   const handleDeleteRole = async () => {
     if (!deleteTarget) return;
+    setDeleting(true);
     try {
+      const activeToken = await getAuthToken();
       const res = await fetch(`${apiUrl}/roles/${deleteTarget.id}`, {
         method: "DELETE",
         headers: {
           Accept: "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {}),
         },
       });
       if (res.ok) {
+        const deletedName = deleteTarget.name;
         setDeleteTarget(null);
-        fetchRoles();
+        setFeedback({
+          type: "success",
+          message: `Peran "${deletedName}" berhasil dihapus.`,
+        });
+        await fetchRoles();
       } else {
-        const errJson = await res.json();
-        alert(errJson.message || "Gagal menghapus role.");
+        const errJson = await res.json().catch(() => ({}));
+        setFeedback({
+          type: "error",
+          message: errJson.message || "Gagal menghapus peran dari sistem.",
+        });
+        setDeleteTarget(null);
       }
     } catch (err) {
       console.error("Error deleting role:", err);
+      setFeedback({
+        type: "error",
+        message: "Terjadi kesalahan jaringan saat menghapus peran.",
+      });
+      setDeleteTarget(null);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -288,13 +347,54 @@ export default function RolesPage() {
             Peran & Hak Akses
           </h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Kelola peran (roles) dan matrix izin akses (permissions) untuk staf dan pengurus yayasan.
+            Kelola peran (roles) dan matriks izin akses (permissions) untuk staf dan pengurus yayasan.
           </p>
         </div>
-        <Button onClick={handleOpenCreate} className="bg-red-600 hover:bg-red-700 text-white shadow-sm flex items-center gap-2">
-          <Plus className="w-4 h-4" /> Tambah Peran Baru
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fetchRoles()}
+            disabled={loading}
+            className="h-10 text-xs flex items-center gap-2 border-zinc-200 dark:border-zinc-800"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+          <Button
+            onClick={handleOpenCreate}
+            className="h-10 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" /> Tambah Peran Baru
+          </Button>
+        </div>
       </div>
+
+      {/* Global Inline Feedback Banner */}
+      {feedback && (
+        <div
+          className={`flex items-center justify-between gap-3 p-4 rounded-lg text-sm transition-all ${
+            feedback.type === "success"
+              ? "bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-800"
+              : "bg-red-50 text-red-800 border border-red-200 dark:bg-red-950/40 dark:text-red-200 dark:border-red-800"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {feedback.type === "success" ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            ) : (
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+            )}
+            <span>{feedback.message}</span>
+          </div>
+          <button
+            onClick={() => setFeedback(null)}
+            className="text-xs font-semibold underline hover:opacity-75"
+          >
+            Tutup
+          </button>
+        </div>
+      )}
 
       {/* Filter / Search Bar */}
       <div className="flex items-center gap-2 max-w-sm">
@@ -313,6 +413,7 @@ export default function RolesPage() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {loading ? (
           <div className="col-span-full py-12 text-center text-zinc-500">
+            <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-emerald-600" />
             Memuat daftar peran & izin akses...
           </div>
         ) : filteredRoles.length === 0 ? (
@@ -331,7 +432,7 @@ export default function RolesPage() {
                     <div>
                       <CardTitle className="text-lg font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                         {isSuperAdmin ? (
-                          <ShieldCheck className="w-5 h-5 text-red-600" />
+                          <ShieldCheck className="w-5 h-5 text-emerald-600" />
                         ) : (
                           <Shield className="w-5 h-5 text-amber-500" />
                         )}
@@ -343,7 +444,7 @@ export default function RolesPage() {
                           : `${permCount} hak akses terkonfigurasi`}
                       </CardDescription>
                     </div>
-                    <Badge variant={isSuperAdmin ? "destructive" : "secondary"}>
+                    <Badge variant={isSuperAdmin ? "default" : "secondary"} className={isSuperAdmin ? "bg-emerald-600 hover:bg-emerald-700 text-white" : ""}>
                       {role.name.replace(/_/g, " ")}
                     </Badge>
                   </div>
@@ -351,7 +452,7 @@ export default function RolesPage() {
                 <CardContent className="space-y-4 pt-0">
                   <div className="rounded-md bg-zinc-50 dark:bg-zinc-900/50 p-3 text-xs text-zinc-600 dark:text-zinc-400 min-h-[70px]">
                     {isSuperAdmin ? (
-                      <span className="font-medium text-red-600 dark:text-red-400">
+                      <span className="font-medium text-emerald-600 dark:text-emerald-400">
                         Memiliki semua izin operasional yayasan.
                       </span>
                     ) : permCount > 0 ? (
@@ -377,7 +478,7 @@ export default function RolesPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleOpenEdit(role)}
-                      className="text-xs h-8 flex items-center gap-1"
+                      className="text-xs h-8 flex items-center gap-1 hover:text-emerald-600 hover:border-emerald-600"
                     >
                       <Edit2 className="w-3.5 h-3.5" /> Konfigurasi Akses
                     </Button>
@@ -411,6 +512,13 @@ export default function RolesPage() {
             </DialogDescription>
           </DialogHeader>
 
+          {modalFeedback && (
+            <div className="flex items-center gap-2 p-3 rounded-lg text-xs bg-red-50 text-red-800 border border-red-200 dark:bg-red-950/40 dark:text-red-200 dark:border-red-800">
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+              <span>{modalFeedback.message}</span>
+            </div>
+          )}
+
           <form onSubmit={handleSaveRole} className="space-y-6 pt-2">
             <div className="space-y-2">
               <Label htmlFor="role_name" className="text-sm font-semibold">Nama Peran / Jabatan</Label>
@@ -429,7 +537,7 @@ export default function RolesPage() {
 
             <div className="space-y-4">
               <Label className="text-sm font-semibold flex items-center gap-2">
-                <KeyRound className="w-4 h-4 text-red-600" /> Matrix Hak Akses (Permissions)
+                <KeyRound className="w-4 h-4 text-emerald-600" /> Matriks Hak Akses (Permissions)
               </Label>
 
               <div className="space-y-4 border rounded-lg p-4 bg-zinc-50/50 dark:bg-zinc-900/50">
@@ -446,7 +554,7 @@ export default function RolesPage() {
                         <button
                           type="button"
                           onClick={() => toggleGroup(grpKeys)}
-                          className="text-[11px] text-red-600 hover:underline font-medium"
+                          className="text-[11px] text-emerald-600 hover:text-emerald-700 hover:underline font-medium"
                         >
                           {isAllChecked ? "Batal Semua" : "Pilih Semua"}
                         </button>
@@ -460,13 +568,13 @@ export default function RolesPage() {
                               onClick={() => togglePermission(p.key)}
                               className={`flex items-center gap-2 p-2 rounded-md border text-xs cursor-pointer transition-colors ${
                                 isChecked
-                                  ? "border-red-500 bg-red-50/60 text-red-900 dark:bg-red-950/40 dark:text-red-200"
+                                  ? "border-emerald-500 bg-emerald-50/70 text-emerald-950 dark:bg-emerald-950/40 dark:text-emerald-200"
                                   : "border-zinc-200 hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800"
                               }`}
                             >
                               <div
                                 className={`w-4 h-4 rounded border flex items-center justify-center ${
-                                  isChecked ? "bg-red-600 border-red-600 text-white" : "border-zinc-300 dark:border-zinc-600"
+                                  isChecked ? "bg-emerald-600 border-emerald-600 text-white" : "border-zinc-300 dark:border-zinc-600"
                                 }`}
                               >
                                 {isChecked && <Check className="w-3 h-3 stroke-[3]" />}
@@ -486,7 +594,7 @@ export default function RolesPage() {
               <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>
                 Batal
               </Button>
-              <Button type="submit" disabled={saving} className="bg-red-600 hover:bg-red-700 text-white">
+              <Button type="submit" disabled={saving} className="bg-emerald-600 hover:bg-emerald-700 text-white">
                 {saving ? "Menyimpan..." : "Simpan Peran & Akses"}
               </Button>
             </DialogFooter>
@@ -495,7 +603,7 @@ export default function RolesPage() {
       </Dialog>
 
       {/* Alert Konfirmasi Hapus */}
-      <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Hapus Peran {deleteTarget?.name}?</AlertDialogTitle>
@@ -504,9 +612,13 @@ export default function RolesPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteRole} className="bg-red-600 hover:bg-red-700">
-              Hapus Peran
+            <AlertDialogCancel disabled={deleting}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteRole}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {deleting ? "Menghapus..." : "Hapus Peran"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
