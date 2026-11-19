@@ -11,23 +11,25 @@ import { ADMIN_NAV_SECTIONS, AdminNavItem } from "@/config/admin-nav";
 function SidebarNav() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [currentUser, setCurrentUser] = useState<{ name?: string; role?: string } | null>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem("user");
-        if (stored) return JSON.parse(stored);
-      } catch {
-        // ignore parse error
-      }
-    }
-    return null;
-  });
+  const [mounted, setMounted] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ name?: string; role?: string } | null>(null);
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({
     "CMS Website": true,
   });
 
   useEffect(() => {
+    setMounted(true);
     let isMounted = true;
+
+    // Load cached user from localStorage on client mount
+    try {
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        setCurrentUser(JSON.parse(stored));
+      }
+    } catch {
+      // ignore
+    }
 
     getSession()
       .then((session) => {
@@ -203,7 +205,7 @@ function SidebarNav() {
               )}
               <div className="space-y-1">
                 {section.items
-                  .filter((item) => !item.superAdminOnly || displayRole === "super_admin")
+                  .filter((item) => !item.superAdminOnly || (mounted && displayRole === "super_admin"))
                   .map((item) => renderNavItem(item))}
               </div>
             </div>

@@ -14,27 +14,26 @@ import { ADMIN_NAV_SECTIONS, AdminNavItem } from "@/config/admin-nav";
 function AdminHeaderContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [mounted, setMounted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [userRole, setUserRole] = useState<string>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem("user");
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed.role) return parsed.role;
-        }
-      } catch {
-        // ignore
-      }
-    }
-    return "admin";
-  });
+  const [userRole, setUserRole] = useState<string>("admin");
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({
     "CMS Website": true,
   });
 
   useEffect(() => {
+    setMounted(true);
     let isMounted = true;
+
+    try {
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.role) setUserRole(parsed.role);
+      }
+    } catch {
+      // ignore
+    }
 
     getSession().then((session) => {
       const r = (session?.user as { role?: string })?.role;
@@ -243,7 +242,7 @@ function AdminHeaderContent() {
                     )}
                     <div className="space-y-0.5">
                       {section.items
-                        .filter((item) => !item.superAdminOnly || userRole === "super_admin")
+                        .filter((item) => !item.superAdminOnly || (mounted && userRole === "super_admin"))
                         .map((item) => renderMobileNavItem(item))}
                     </div>
                   </div>
