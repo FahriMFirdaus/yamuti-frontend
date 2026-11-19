@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
   Save, 
   Plus, 
@@ -15,7 +15,8 @@ import {
   CheckCircle2,
   CalendarCheck,
   Calculator,
-  Info
+  Info,
+  RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,6 +69,7 @@ const DEFAULT_LOKASI_OPERASIONAL: LokasiOperasionalData = {
 
 export default function PengaturanPage() {
   const [activeTab, setActiveTab] = useState("kontak");
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   // State Split Rule Kas
   const [rules, setRules] = useState<SplitRule[]>([
@@ -100,64 +102,77 @@ export default function PengaturanPage() {
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
+  const getAuthToken = async (): Promise<string | undefined> => {
+    const session = await getSession();
+    return (
+      session?.accessToken ||
+      (typeof window !== "undefined" ? localStorage.getItem("token") || undefined : undefined)
+    );
+  };
+
   // Kalkulasi total persentase
   const totalPersentase = rules.reduce((acc, curr) => acc + (Number(curr.persentase) || 0), 0);
   const isTotalValid = totalPersentase === 100;
 
   // Load Settings
-  useEffect(() => {
-    const fetchAllSettings = async () => {
-      try {
-        const session = await getSession();
-        const token = session?.accessToken || (typeof window !== "undefined" ? localStorage.getItem("token") || undefined : undefined);
+  const fetchAllSettings = useCallback(async () => {
+    try {
+      const token = await getAuthToken();
 
-        // 1. Fetch Split Rule
-        const resSplit = await fetch(`${apiUrl}/settings`, {
-          headers: { 
-            "Authorization": `Bearer ${token || ""}`,
-            "Accept": "application/json"
-          }
-        });
-        if (resSplit.ok) {
-          const result = await resSplit.json();
-          const splitSetting = result.data?.find((s: any) => s.key === 'donasi_split_rule');
-          if (splitSetting && splitSetting.value) {
-            const parsed = typeof splitSetting.value === 'string' ? JSON.parse(splitSetting.value) : splitSetting.value;
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              setRules(parsed);
-            }
+      // 1. Fetch Split Rule
+      const resSplit = await fetch(`${apiUrl}/settings`, {
+        headers: { 
+          "Authorization": `Bearer ${token || ""}`,
+          "Accept": "application/json"
+        }
+      });
+      if (resSplit.ok) {
+        const result = await resSplit.json();
+        const splitSetting = result.data?.find((s: any) => s.key === 'donasi_split_rule');
+        if (splitSetting && splitSetting.value) {
+          const parsed = typeof splitSetting.value === 'string' ? JSON.parse(splitSetting.value) : splitSetting.value;
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setRules(parsed);
           }
         }
-
-        // 2. Fetch Lokasi & Operasional
-        const resLokasi = await fetch(`${apiUrl}/landing/operasional`);
-        if (resLokasi.ok) {
-          const resultLokasi = await resLokasi.json();
-          if (resultLokasi.data) {
-            setLokasiForm((prev) => ({
-              ...prev,
-              ...resultLokasi.data
-            }));
-          }
-        }
-
-        // 3. Fetch Nisab Zakat BAZNAS
-        const resNisab = await fetch(`${apiUrl}/landing/nisab-zakat`);
-        if (resNisab.ok) {
-          const resultNisab = await resNisab.json();
-          if (resultNisab.data) {
-            setNisabForm(resultNisab.data);
-          }
-        }
-      } catch (err) {
-        console.error("Gagal mengambil pengaturan:", err);
-      } finally {
-        setIsLoadingKas(false);
       }
-    };
 
-    fetchAllSettings();
+      // 2. Fetch Lokasi & Operasional
+      const resLokasi = await fetch(`${apiUrl}/landing/operasional`);
+      if (resLokasi.ok) {
+        const resultLokasi = await resLokasi.json();
+        if (resultLokasi.data) {
+          setLokasiForm((prev) => ({
+            ...prev,
+            ...resultLokasi.data
+          }));
+        }
+      }
+
+      // 3. Fetch Nisab Zakat BAZNAS
+      const resNisab = await fetch(`${apiUrl}/landing/nisab-zakat`);
+      if (resNisab.ok) {
+        const resultNisab = await resNisab.json();
+        if (resultNisab.data) {
+          setNisabForm(resultNisab.data);
+        }
+      }
+    } catch (err) {
+      console.error("Gagal mengambil pengaturan:", err);
+    } finally {
+      setIsLoadingKas(false);
+    }
   }, [apiUrl]);
+
+  useEffect(() => {
+    let ignore = false;
+    if (!ignore) {
+      fetchAllSettings();
+    }
+    return () => {
+      ignore = true;
+    };
+  }, [fetchAllSettings]);
 
   // --- Handlers Kas ---
   const handleAddRow = () => {
@@ -181,19 +196,25 @@ export default function PengaturanPage() {
 
   const handleSaveKas = async () => {
     if (!isTotalValid) {
-      alert("Total persentase harus tepat 100%!");
+      setFeedback({
+        type: "error",
+        message: "Total distribusi persentase kas harus tepat mencapai 100%!",
+      });
       return;
     }
 
     if (rules.some(r => !r.nama_kas.trim())) {
-      alert("Nama Kas tidak boleh ada yang kosong!");
+      setFeedback({
+        type: "error",
+        message: "Nama Kas tidak boleh ada yang kosong!",
+      });
       return;
     }
 
     setIsSubmittingKas(true);
+    setFeedback(null);
     try {
-      const session = await getSession();
-      const token = session?.accessToken || (typeof window !== "undefined" ? localStorage.getItem("token") || undefined : undefined);
+      const token = await getAuthToken();
 
       const res = await fetch(`${apiUrl}/settings/split-rule`, {
         method: "POST",
@@ -206,10 +227,16 @@ export default function PengaturanPage() {
       });
 
       if (!res.ok) throw new Error("Gagal menyimpan pengaturan");
-      alert("Pengaturan Split Rule Donasi berhasil diperbarui!");
+      setFeedback({
+        type: "success",
+        message: "Pengaturan Split Rule Donasi berhasil diperbarui dan disimpan!",
+      });
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan sistem saat menyimpan pengaturan.");
+      setFeedback({
+        type: "error",
+        message: "Terjadi kesalahan sistem saat menyimpan pengaturan kas.",
+      });
     } finally {
       setIsSubmittingKas(false);
     }
@@ -218,11 +245,15 @@ export default function PengaturanPage() {
   // --- Handlers Geolocation & Lokasi ---
   const handleDetectCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert("Perangkat atau browser Anda tidak mendukung fitur Geolocation.");
+      setFeedback({
+        type: "error",
+        message: "Perangkat atau browser Anda tidak mendukung fitur Geolocation.",
+      });
       return;
     }
 
     setIsDetectingGps(true);
+    setFeedback(null);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const lat = pos.coords.latitude;
@@ -260,20 +291,26 @@ export default function PengaturanPage() {
           // Tetap gunakan koordinat jika reverse geocoding gagal
         } finally {
           setIsDetectingGps(false);
-          alert(`Lokasi perangkat berhasil terdeteksi!\nLatitude: ${lat}\nLongitude: ${lng}`);
+          setFeedback({
+            type: "success",
+            message: `Lokasi perangkat berhasil terdeteksi! (Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)})`,
+          });
         }
       },
       (err) => {
         setIsDetectingGps(false);
         let msg = "Gagal mendeteksi lokasi perangkat.";
         if (err.code === err.PERMISSION_DENIED) {
-          msg = "Izin akses lokasi ditolak oleh pengguna/browser. Harap aktifkan izin lokasi di browser Anda.";
+          msg = "Izin akses lokasi ditolak oleh browser. Harap izinkan akses lokasi untuk fitur GPS ini.";
         } else if (err.code === err.POSITION_UNAVAILABLE) {
           msg = "Informasi lokasi GPS perangkat tidak tersedia.";
         } else if (err.code === err.TIMEOUT) {
           msg = "Waktu permintaan lokasi GPS habis (timeout).";
         }
-        alert(msg);
+        setFeedback({
+          type: "error",
+          message: msg,
+        });
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
@@ -281,7 +318,8 @@ export default function PengaturanPage() {
 
   const handleAddSlot = () => {
     if (!newSlotInput.trim()) return;
-    const formatted = newSlotInput.trim();
+    // Format input ke HH:mm jika dimasukkan HH.mm
+    const formatted = newSlotInput.trim().replace(".", ":");
     if (!lokasiForm.slot_kunjungan_aktif.includes(formatted)) {
       const updated = [...lokasiForm.slot_kunjungan_aktif, formatted].sort();
       setLokasiForm({ ...lokasiForm, slot_kunjungan_aktif: updated });
@@ -299,9 +337,9 @@ export default function PengaturanPage() {
   const handleSaveLokasiOperasional = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmittingLokasi(true);
+    setFeedback(null);
     try {
-      const session = await getSession();
-      const token = session?.accessToken || (typeof window !== "undefined" ? localStorage.getItem("token") || undefined : undefined);
+      const token = await getAuthToken();
 
       const res = await fetch(`${apiUrl}/settings/lokasi-operasional`, {
         method: "POST",
@@ -315,10 +353,16 @@ export default function PengaturanPage() {
 
       if (!res.ok) throw new Error("Gagal menyimpan lokasi & jam operasional");
 
-      alert("Lokasi Asrama dan Jam Operasional berhasil diperbarui dan disinkronkan ke Landing Page!");
+      setFeedback({
+        type: "success",
+        message: "Lokasi Asrama dan Jam Operasional berhasil diperbarui dan disinkronkan ke Landing Page!",
+      });
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan saat menyimpan pengaturan lokasi.");
+      setFeedback({
+        type: "error",
+        message: "Terjadi kesalahan saat menyimpan pengaturan lokasi & operasional.",
+      });
     } finally {
       setIsSubmittingLokasi(false);
     }
@@ -327,9 +371,9 @@ export default function PengaturanPage() {
   const handleSaveNisabZakat = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmittingNisab(true);
+    setFeedback(null);
     try {
-      const session = await getSession();
-      const token = session?.accessToken || (typeof window !== "undefined" ? localStorage.getItem("token") || undefined : undefined);
+      const token = await getAuthToken();
 
       const res = await fetch(`${apiUrl}/settings/nisab-zakat`, {
         method: "POST",
@@ -343,10 +387,16 @@ export default function PengaturanPage() {
 
       if (!res.ok) throw new Error("Gagal menyimpan ketetapan nisab zakat BAZNAS");
 
-      alert("Ketetapan Nisab Zakat BAZNAS berhasil diperbarui dan disinkronkan ke seluruh kalkulator zakat!");
+      setFeedback({
+        type: "success",
+        message: "Ketetapan Nisab Zakat BAZNAS berhasil diperbarui dan disinkronkan ke seluruh kalkulator zakat!",
+      });
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan saat menyimpan ketetapan nisab zakat.");
+      setFeedback({
+        type: "error",
+        message: "Terjadi kesalahan saat menyimpan ketetapan nisab zakat.",
+      });
     } finally {
       setIsSubmittingNisab(false);
     }
@@ -354,27 +404,63 @@ export default function PengaturanPage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-          Pengaturan Sistem & Operasional
-        </h2>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-          Kelola koordinat lokasi asrama, integrasi GPS Google Maps, jam operasional kunjungan, dan distribusi bagi hasil donasi.
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+            Pengaturan Sistem & Operasional
+          </h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+            Kelola koordinat lokasi asrama, integrasi GPS Google Maps, jam operasional kunjungan, dan distribusi bagi hasil donasi.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => fetchAllSettings()}
+          className="h-10 text-xs flex items-center gap-2 border-zinc-200 dark:border-zinc-800 self-start sm:self-auto"
+        >
+          <RefreshCw className="w-3.5 h-3.5" /> Muat Ulang
+        </Button>
       </div>
+
+      {/* Inline Feedback Banner */}
+      {feedback && (
+        <div
+          className={`flex items-center justify-between gap-3 p-4 rounded-lg text-sm transition-all ${
+            feedback.type === "success"
+              ? "bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-800"
+              : "bg-red-50 text-red-800 border border-red-200 dark:bg-red-950/40 dark:text-red-200 dark:border-red-800"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {feedback.type === "success" ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            ) : (
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+            )}
+            <span>{feedback.message}</span>
+          </div>
+          <button
+            onClick={() => setFeedback(null)}
+            className="text-xs font-semibold underline hover:opacity-75"
+          >
+            Tutup
+          </button>
+        </div>
+      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 max-w-4xl mb-6 h-auto p-1 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl">
-          <TabsTrigger value="kontak" className="py-2.5 data-[state=active]:bg-red-600 data-[state=active]:text-white font-semibold rounded-lg text-xs sm:text-sm">
+          <TabsTrigger value="kontak" className="py-2.5 data-[state=active]:bg-emerald-600 data-[state=active]:text-white font-semibold rounded-lg text-xs sm:text-sm">
             <Compass className="w-4 h-4 mr-2" /> Profil & Kontak
           </TabsTrigger>
-          <TabsTrigger value="peta" className="py-2.5 data-[state=active]:bg-red-600 data-[state=active]:text-white font-semibold rounded-lg text-xs sm:text-sm">
+          <TabsTrigger value="peta" className="py-2.5 data-[state=active]:bg-emerald-600 data-[state=active]:text-white font-semibold rounded-lg text-xs sm:text-sm">
             <MapPin className="w-4 h-4 mr-2" /> Lokasi & Peta
           </TabsTrigger>
-          <TabsTrigger value="jadwal" className="py-2.5 data-[state=active]:bg-red-600 data-[state=active]:text-white font-semibold rounded-lg text-xs sm:text-sm">
+          <TabsTrigger value="jadwal" className="py-2.5 data-[state=active]:bg-emerald-600 data-[state=active]:text-white font-semibold rounded-lg text-xs sm:text-sm">
             <Clock className="w-4 h-4 mr-2" /> Jam & Kunjungan
           </TabsTrigger>
-          <TabsTrigger value="kas" className="py-2.5 data-[state=active]:bg-red-600 data-[state=active]:text-white font-semibold rounded-lg text-xs sm:text-sm">
+          <TabsTrigger value="kas" className="py-2.5 data-[state=active]:bg-emerald-600 data-[state=active]:text-white font-semibold rounded-lg text-xs sm:text-sm">
             <Percent className="w-4 h-4 mr-2" /> Bagi Kas Donasi
           </TabsTrigger>
           <TabsTrigger value="zakat" className="py-2.5 data-[state=active]:bg-emerald-700 data-[state=active]:text-white font-semibold rounded-lg text-xs sm:text-sm">
@@ -382,15 +468,13 @@ export default function PengaturanPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* ======================================================== */}
-        {/* TAB 1: PROFIL & KONTAK RESMI                             */}
-        {/* ======================================================== */}
+        {/* TAB 1: PROFIL & KONTAK RESMI */}
         <TabsContent value="kontak" className="space-y-6">
           <form onSubmit={handleSaveLokasiOperasional} className="space-y-6">
             <Card className="border-zinc-200 dark:border-zinc-800 shadow-sm">
               <CardHeader className="border-b border-zinc-100 dark:border-zinc-800/50 pb-4">
                 <CardTitle className="text-lg font-bold flex items-center gap-2">
-                  <Compass className="w-5 h-5 text-red-600" /> Profil Kontak Yayasan
+                  <Compass className="w-5 h-5 text-emerald-600" /> Profil Kontak Yayasan
                 </CardTitle>
                 <CardDescription>
                   Kelola email resmi dan nomor kontak admin yang ditampilkan di website dan tombol WhatsApp mengambang.
@@ -421,7 +505,7 @@ export default function PengaturanPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="no_whatsapp_admin">
-                      Nomor WhatsApp Admin <span className="text-green-600 font-bold">(Ikon Mengambang)</span>
+                      Nomor WhatsApp Admin <span className="text-emerald-600 font-bold">(Ikon Mengambang)</span>
                     </Label>
                     <Input
                       id="no_whatsapp_admin"
@@ -429,7 +513,7 @@ export default function PengaturanPage() {
                       onChange={(e) => setLokasiForm({ ...lokasiForm, no_whatsapp_admin: e.target.value })}
                       placeholder="Contoh: +62 812 3456 7890"
                     />
-                    <p className="text-[11px] text-green-600 dark:text-green-400 font-medium">Tujuan chat saat pengunjung klik tombol WA hijau mengambang.</p>
+                    <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">Tujuan chat saat pengunjung klik tombol WA hijau mengambang.</p>
                   </div>
                 </div>
 
@@ -461,7 +545,7 @@ export default function PengaturanPage() {
               <Button
                 type="submit"
                 disabled={isSubmittingLokasi}
-                className="bg-red-600 hover:bg-red-700 text-white min-w-[200px] shadow-lg shadow-red-500/20 font-bold"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white min-w-[200px] shadow-sm font-bold"
               >
                 {isSubmittingLokasi ? "Menyimpan..." : (
                   <>
@@ -473,9 +557,7 @@ export default function PengaturanPage() {
           </form>
         </TabsContent>
 
-        {/* ======================================================== */}
-        {/* TAB 2: LOKASI GPS & PETA GOOGLE MAPS                     */}
-        {/* ======================================================== */}
+        {/* TAB 2: LOKASI GPS & PETA GOOGLE MAPS */}
         <TabsContent value="peta" className="space-y-6">
           <form onSubmit={handleSaveLokasiOperasional} className="space-y-6">
             <Card className="border-zinc-200 dark:border-zinc-800 shadow-sm">
@@ -483,7 +565,7 @@ export default function PengaturanPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
                     <CardTitle className="text-lg font-bold flex items-center gap-2">
-                      <MapPin className="w-5 h-5 text-red-600" /> Koordinat GPS & Peta Asrama
+                      <MapPin className="w-5 h-5 text-emerald-600" /> Koordinat GPS & Peta Asrama
                     </CardTitle>
                     <CardDescription>
                       Atur letak presisi asrama YAMUTI untuk navigasi donatur di Google Maps dan tampilan beranda.
@@ -493,7 +575,7 @@ export default function PengaturanPage() {
                     type="button"
                     onClick={handleDetectCurrentLocation}
                     disabled={isDetectingGps}
-                    className="bg-amber-600 hover:bg-amber-700 text-white font-semibold shadow-md shrink-0 flex items-center gap-2"
+                    className="bg-amber-600 hover:bg-amber-700 text-white font-semibold shadow-sm shrink-0 flex items-center gap-2"
                   >
                     <Navigation className={`w-4 h-4 ${isDetectingGps ? "animate-spin" : ""}`} />
                     {isDetectingGps ? "Membaca GPS..." : "Gunakan Lokasi Perangkat Ini (GPS)"}
@@ -566,7 +648,7 @@ export default function PengaturanPage() {
                       href={lokasiForm.google_maps_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs font-semibold text-red-600 hover:text-red-700 flex items-center gap-1"
+                      className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
                     >
                       Buka di Google Maps <ExternalLink className="w-3 h-3" />
                     </a>
@@ -589,7 +671,7 @@ export default function PengaturanPage() {
               <Button
                 type="submit"
                 disabled={isSubmittingLokasi}
-                className="bg-red-600 hover:bg-red-700 text-white min-w-[200px] shadow-lg shadow-red-500/20 font-bold"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white min-w-[200px] shadow-sm font-bold"
               >
                 {isSubmittingLokasi ? "Menyimpan..." : (
                   <>
@@ -601,15 +683,13 @@ export default function PengaturanPage() {
           </form>
         </TabsContent>
 
-        {/* ======================================================== */}
-        {/* TAB 3: JAM OPERASIONAL & JADWAL KUNJUNGAN                */}
-        {/* ======================================================== */}
+        {/* TAB 3: JAM OPERASIONAL & JADWAL KUNJUNGAN */}
         <TabsContent value="jadwal" className="space-y-6">
           <form onSubmit={handleSaveLokasiOperasional} className="space-y-6">
             <Card className="border-zinc-200 dark:border-zinc-800 shadow-sm">
               <CardHeader className="border-b border-zinc-100 dark:border-zinc-800/50 pb-4">
                 <CardTitle className="text-lg font-bold flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-red-600" /> Jam Buka & Jadwal Kunjungan
+                  <Clock className="w-5 h-5 text-emerald-600" /> Jam Buka & Jadwal Kunjungan
                 </CardTitle>
                 <CardDescription>
                   Tentukan jam layanan penerimaan tamu dan slot waktu yang tersedia saat donatur membuat janji kunjungan.
@@ -666,7 +746,7 @@ export default function PengaturanPage() {
                     Slot Jam Booking Kunjungan Aktif
                   </Label>
                   <p className="text-xs text-zinc-500">
-                    Slot jam berikut akan ditampilkan sebagai opsi yang bisa dipilih oleh donatur pada form booking kunjungan.
+                    Slot jam berikut akan ditampilkan sebagai opsi yang bisa dipilih oleh donatur pada form booking kunjungan. Format: HH:mm (contoh: 16:00).
                   </p>
                   <div className="flex flex-wrap gap-2 pt-1">
                     {lokasiForm.slot_kunjungan_aktif.map((slot) => (
@@ -705,7 +785,7 @@ export default function PengaturanPage() {
               <Button
                 type="submit"
                 disabled={isSubmittingLokasi}
-                className="bg-red-600 hover:bg-red-700 text-white min-w-[200px] shadow-lg shadow-red-500/20 font-bold"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white min-w-[200px] shadow-sm font-bold"
               >
                 {isSubmittingLokasi ? "Menyimpan..." : (
                   <>
@@ -717,9 +797,7 @@ export default function PengaturanPage() {
           </form>
         </TabsContent>
 
-        {/* ======================================================== */}
-        {/* TAB 4: ATURAN KAS DONASI                                 */}
-        {/* ======================================================== */}
+        {/* TAB 4: ATURAN KAS DONASI */}
         <TabsContent value="kas" className="space-y-4">
           <Card className="border-zinc-200 dark:border-zinc-800 shadow-sm">
             <CardHeader className="border-b border-zinc-100 dark:border-zinc-800/50 pb-4">
@@ -775,7 +853,7 @@ export default function PengaturanPage() {
                     type="button"
                     variant="outline"
                     onClick={handleAddRow}
-                    className="w-full border-dashed border-2 text-zinc-500 hover:text-blue-600 mt-4"
+                    className="w-full border-dashed border-2 text-zinc-500 hover:text-emerald-600 mt-4"
                   >
                     <Plus className="w-4 h-4 mr-2" /> Tambah Pembagian Kas Baru
                   </Button>
@@ -805,7 +883,7 @@ export default function PengaturanPage() {
             <Button
               onClick={handleSaveKas}
               disabled={!isTotalValid || isSubmittingKas || isLoadingKas}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white min-w-[200px] shadow-lg shadow-emerald-500/20 font-bold"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white min-w-[200px] shadow-sm font-bold"
             >
               {isSubmittingKas ? "Menyimpan..." : (
                 <>
@@ -816,11 +894,8 @@ export default function PengaturanPage() {
           </div>
         </TabsContent>
 
-        {/* ======================================================== */}
-        {/* TAB 5: KETETAPAN NISAB ZAKAT BAZNAS                      */}
-        {/* ======================================================== */}
+        {/* TAB 5: KETETAPAN NISAB ZAKAT BAZNAS */}
         <TabsContent value="zakat" className="space-y-6">
-          {/* Peringatan / Warning Banner Khusus Admin */}
           <div className="p-4 sm:p-5 rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 space-y-2 shadow-xs">
             <div className="flex items-center gap-2.5 font-bold text-sm">
               <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
