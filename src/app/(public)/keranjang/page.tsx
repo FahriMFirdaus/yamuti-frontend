@@ -4,10 +4,21 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Trash2, ShoppingCart, ShieldCheck, ArrowRight, Wallet, CheckCircle2, AlertCircle } from "lucide-react";
+import { 
+  Trash2, 
+  ShoppingCart, 
+  ShieldCheck, 
+  ArrowRight, 
+  Wallet, 
+  AlertCircle, 
+  ArrowLeft,
+  UserCheck,
+  Sparkles,
+  Heart
+} from "lucide-react";
 import Script from "next/script";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 
 interface CartItem {
   id: string;
@@ -41,11 +52,23 @@ function CartContent() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  const [userName, setUserName] = useState<string | null>(null);
+
   // Fetch Cart Items
   const fetchCart = async () => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token") || undefined;
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
+          const parsed = JSON.parse(storedUser);
+          if (parsed?.name) setUserName(parsed.name);
+        } catch {
+          // ignore
+        }
+      }
+
       if (!token) {
         router.push("/login");
         return;
@@ -182,32 +205,78 @@ function CartContent() {
         strategy="lazyOnload"
       />
 
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-24">
-      <div className="bg-zinc-900 py-12 dark:bg-zinc-950 border-b border-zinc-800">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Keranjang Donasi</h1>
-          <p className="mt-2 text-zinc-400 max-w-2xl mx-auto">Selesaikan donasi kebaikan Anda sekaligus dalam satu transaksi yang mudah.</p>
-        </div>
-      </div>
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-32">
+        {/* Header Hero Section */}
+        <div className="bg-gradient-to-b from-zinc-900 to-zinc-950 py-10 sm:py-12 border-b border-zinc-800 text-white">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400 mb-2">
+                  <Link href="/program" className="inline-flex items-center gap-1 hover:underline text-zinc-400 hover:text-white transition-colors">
+                    <ArrowLeft className="w-3.5 h-3.5" /> Program Donasi
+                  </Link>
+                  <span>/</span>
+                  <span className="text-zinc-200">Keranjang</span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Keranjang Donasi</h1>
+                <p className="mt-1 text-sm text-zinc-400 max-w-xl">
+                  Selesaikan niat baik Anda sekaligus dalam satu transaksi yang transparan dan amanah.
+                </p>
+              </div>
 
-      <div className="container mx-auto px-4 mt-8">
-        {items.length === 0 ? (
-          <div className="max-w-2xl mx-auto text-center py-24 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-            <div className="mx-auto w-24 h-24 mb-6 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-              <ShoppingCart className="w-10 h-10 text-zinc-300 dark:text-zinc-600" />
+              {/* Akun Donatur Badge */}
+              {userName && (
+                <div className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-zinc-800/80 border border-zinc-700/60 backdrop-blur-sm self-start sm:self-auto">
+                  <div className="w-7 h-7 rounded-full bg-emerald-600/30 text-emerald-400 flex items-center justify-center font-bold text-xs ring-1 ring-emerald-500/30">
+                    <UserCheck className="w-4 h-4" />
+                  </div>
+                  <div className="text-left text-xs">
+                    <p className="text-zinc-400 text-[10px]">Tercatat atas nama</p>
+                    <p className="font-semibold text-zinc-100 line-clamp-1">{userName}</p>
+                  </div>
+                </div>
+              )}
             </div>
-            <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">Keranjang Anda Kosong</h2>
-            <p className="text-zinc-500 mb-8 max-w-md mx-auto">Belum ada donasi yang ditambahkan ke keranjang. Mari temukan program kebaikan yang menanti uluran tangan Anda.</p>
-            <Link href="/program">
-              <Button className="h-12 px-8 rounded-full bg-red-600 hover:bg-red-700 text-white font-bold">
-                Jelajahi Program <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
-            </Link>
           </div>
-        ) : (
-          <div className="flex flex-col lg:flex-row gap-8 max-w-6xl mx-auto">
-            {/* Daftar Item */}
-            <div className="lg:w-2/3 space-y-4">
+        </div>
+
+        <div className="container mx-auto px-4 mt-6 max-w-6xl">
+          {items.length === 0 ? (
+            <div className="max-w-xl mx-auto text-center py-16 sm:py-20 px-6 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+              <div className="mx-auto w-20 h-20 mb-5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                <ShoppingCart className="w-9 h-9" />
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-white mb-2">Keranjang Anda Masih Kosong</h2>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8 max-w-md mx-auto leading-relaxed">
+                Belum ada donasi yang dimasukkan ke keranjang. Mari pilih program binaan atau tunaikan zakat untuk anak yatim piatu dhuafa.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Link href="/program" className="w-full sm:w-auto">
+                  <Button className="w-full sm:w-auto h-11 px-6 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-md shadow-emerald-600/20">
+                    Jelajahi Program <ArrowRight className="ml-2 w-4 h-4" />
+                  </Button>
+                </Link>
+                <Link href="/profil?tab=donasi" className="w-full sm:w-auto">
+                  <Button variant="outline" className="w-full sm:w-auto h-11 px-6 rounded-full border-zinc-200 dark:border-zinc-800 font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                    Lihat Riwayat Donasi
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col lg:flex-row gap-8">
+              {/* Daftar Item */}
+              <div className="lg:w-2/3 space-y-4">
+                {/* Banner Akuntabilitas Donasi */}
+                <div className="p-3.5 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/40 flex items-center justify-between gap-3 text-xs text-emerald-900 dark:text-emerald-200">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span>Kuitansi otomatis tersedia di <strong>Profil &gt; Riwayat Donasi</strong> setelah pembayaran berhasil.</span>
+                  </div>
+                  <Link href="/profil?tab=donasi" className="text-emerald-700 dark:text-emerald-300 font-bold hover:underline shrink-0 hidden sm:inline">
+                    Cek Riwayat
+                  </Link>
+                </div>
               {items.map((item) => {
                 const isZakat = Boolean(
                   item.kampanye?.slug?.includes("zakat") ||
@@ -295,7 +364,7 @@ function CartContent() {
                 <Card className="border-zinc-200 dark:border-zinc-800 shadow-xl overflow-hidden rounded-3xl bg-white dark:bg-zinc-900">
                   <div className="p-6 border-b border-zinc-100 dark:border-zinc-800">
                     <h3 className="font-bold text-lg flex items-center gap-2">
-                      <Wallet className="w-5 h-5 text-red-600" />
+                      <Wallet className="w-5 h-5 text-emerald-600" />
                       Ringkasan Pembayaran
                     </h3>
                   </div>
@@ -308,7 +377,7 @@ function CartContent() {
                     <div className="pt-4 border-t border-dashed border-zinc-200 dark:border-zinc-700">
                       <div className="flex flex-col gap-1">
                         <span className="text-sm text-zinc-500">Total Keseluruhan</span>
-                        <span className="text-3xl font-black text-red-600">{formatRupiah(totalAmount)}</span>
+                        <span className="text-3xl font-black text-emerald-700 dark:text-emerald-400">{formatRupiah(totalAmount)}</span>
                       </div>
                     </div>
 
@@ -328,7 +397,7 @@ function CartContent() {
                         <Button 
                           onClick={handleCheckoutAll} 
                           disabled={isProcessing}
-                          className="w-full h-14 mt-4 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-bold text-lg transition-all"
+                          className="w-full h-14 mt-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold text-lg shadow-lg shadow-emerald-600/20 transition-all hover:shadow-emerald-600/30"
                         >
                           {isProcessing ? "Memproses..." : "Checkout Semua"}
                         </Button>
@@ -342,6 +411,23 @@ function CartContent() {
                 </Card>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Mobile Sticky Checkout Bar */}
+        {items.length > 0 && !snapToken && (
+          <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800 p-4 px-6 shadow-2xl flex items-center justify-between gap-4">
+            <div className="flex flex-col">
+              <span className="text-xs text-zinc-500">Total ({items.length} donasi)</span>
+              <span className="text-lg font-black text-emerald-700 dark:text-emerald-400">{formatRupiah(totalAmount)}</span>
+            </div>
+            <Button
+              onClick={handleCheckoutAll}
+              disabled={isProcessing}
+              className="h-12 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base shadow-md shadow-emerald-600/20"
+            >
+              {isProcessing ? "Memproses..." : "Checkout"}
+            </Button>
           </div>
         )}
       </div>
