@@ -44,14 +44,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
 import Script from "next/script";
 import { PotaCard } from "@/components/pota/PotaCard";
 import { PotaMultiView } from "@/components/pota/PotaMultiView";
@@ -72,7 +64,6 @@ function ProfilContent() {
   const [kunjunganPage, setKunjunganPage] = useState(1);
   const [user, setUser] = useState<any>(null);
   const [isPasswordOpen, setIsPasswordOpen] = useState(false);
-  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
 
   // API states
   const [riwayatDonasi, setRiwayatDonasi] = useState<any[]>([]);
@@ -453,49 +444,22 @@ function ProfilContent() {
             <p className="text-zinc-500 mt-1 text-sm sm:text-base">Kelola informasi pribadi dan pantau jejak kebaikan Anda.</p>
           </div>
 
-          {/* Desktop Logout Button (>= lg) */}
-          <div className="hidden lg:block">
-            <Button
-              variant="outline"
-              onClick={async () => {
-                localStorage.removeItem("token");
-                localStorage.removeItem("user");
-                try {
-                  await signOut({ redirect: false });
-                } catch (e) {
-                  // ignore if NextAuth session not initialized
-                }
-                window.location.href = "/";
-              }}
-              className="text-zinc-600 border-zinc-200 hover:bg-zinc-100 hover:text-red-600 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-red-400 h-10 px-4 rounded-xl cursor-pointer text-sm"
-            >
-              <LogOut className="mr-2 h-4 w-4" /> Keluar Akun
-            </Button>
-          </div>
-
-          {/* Mobile Sheet Menu Trigger (< lg) */}
-          <div className="lg:hidden">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsMobileSheetOpen(true)}
-              className="h-10 px-3.5 rounded-xl border-zinc-200 dark:border-zinc-800 flex items-center gap-2 text-xs font-bold bg-white dark:bg-zinc-900 shadow-xs cursor-pointer text-emerald-800 dark:text-emerald-300"
-            >
-              {activeTab === "profil" && <User className="w-4 h-4 text-emerald-700" />}
-              {activeTab === "donasi" && <Heart className="w-4 h-4 text-emerald-700" />}
-              {activeTab === "anak-asuh" && <HeartHandshake className="w-4 h-4 text-emerald-700" />}
-              {activeTab === "zakat" && <Calculator className="w-4 h-4 text-emerald-700" />}
-              {activeTab === "kunjungan" && <CalendarDays className="w-4 h-4 text-emerald-700" />}
-              <span>
-                {activeTab === "profil" && "Data Diri"}
-                {activeTab === "donasi" && "Riwayat Donasi"}
-                {activeTab === "anak-asuh" && "Anak Asuh (POTA)"}
-                {activeTab === "zakat" && "Kalkulator Zakat"}
-                {activeTab === "kunjungan" && "Jadwal Kunjungan"}
-              </span>
-              <ChevronDown className="w-3.5 h-3.5 text-zinc-400 ml-0.5" />
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              localStorage.removeItem("token");
+              localStorage.removeItem("user");
+              try {
+                await signOut({ redirect: false });
+              } catch (e) {
+                // ignore if NextAuth session not initialized
+              }
+              window.location.href = "/";
+            }}
+            className="text-zinc-600 border-zinc-200 hover:bg-zinc-100 hover:text-red-600 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-red-400 h-9 sm:h-10 px-3 sm:px-4 rounded-xl cursor-pointer text-xs sm:text-sm"
+          >
+            <LogOut className="mr-1.5 sm:mr-2 h-4 w-4" /> Keluar
+          </Button>
         </div>
 
         {/* Executive Impact & KPI Strip (Above the fold) */}
@@ -1341,132 +1305,102 @@ function ProfilContent() {
               data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
               strategy="lazyOnload"
             />
-
-            {/* Mobile Sheet Menu (Bottom Sheet Drawer) */}
-            <Sheet open={isMobileSheetOpen} onOpenChange={setIsMobileSheetOpen}>
-              <SheetContent side="bottom" className="p-5 max-w-lg mx-auto rounded-t-3xl">
-                <SheetHeader className="pb-4 border-b border-zinc-100 dark:border-zinc-800">
-                  <div className="flex items-center gap-3">
-                    <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-lg font-bold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 overflow-hidden">
-                      {previewUrl ? (
-                        <Image src={previewUrl} alt="Foto Profil" fill className="object-cover" />
-                      ) : (
-                        <span>{user ? getInitials(user.name) : "..."}</span>
-                      )}
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <SheetTitle className="text-base truncate">{user?.name || "Donatur YAMUTI"}</SheetTitle>
-                      <SheetDescription className="truncate">{user?.email || "donatur@yamuti.org"}</SheetDescription>
-                    </div>
-                  </div>
-                </SheetHeader>
-
-                <div className="py-4 space-y-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveTab("profil");
-                      setIsMobileSheetOpen(false);
-                    }}
-                    className={cn(
-                      "flex items-center gap-3 w-full px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all text-left",
-                      activeTab === "profil"
-                        ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 font-bold"
-                        : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
-                    )}
-                  >
-                    <User className="h-4 w-4 shrink-0 text-emerald-700" />
-                    <span>Data Diri Pribadi</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveTab("donasi");
-                      setIsMobileSheetOpen(false);
-                    }}
-                    className={cn(
-                      "flex items-center gap-3 w-full px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all text-left",
-                      activeTab === "donasi"
-                        ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 font-bold"
-                        : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
-                    )}
-                  >
-                    <Heart className="h-4 w-4 shrink-0 text-emerald-700" />
-                    <span>Riwayat Donasi & Kwitansi</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveTab("anak-asuh");
-                      setIsMobileSheetOpen(false);
-                    }}
-                    className={cn(
-                      "flex items-center gap-3 w-full px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all text-left",
-                      activeTab === "anak-asuh"
-                        ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 font-bold"
-                        : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
-                    )}
-                  >
-                    <HeartHandshake className="h-4 w-4 shrink-0 text-emerald-700" />
-                    <span>Anak Asuh Binaan (POTA)</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveTab("zakat");
-                      setIsMobileSheetOpen(false);
-                    }}
-                    className={cn(
-                      "flex items-center gap-3 w-full px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all text-left",
-                      activeTab === "zakat"
-                        ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 font-bold"
-                        : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
-                    )}
-                  >
-                    <Calculator className="h-4 w-4 shrink-0 text-emerald-700" />
-                    <span>Hitung & Bayar Zakat</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveTab("kunjungan");
-                      setIsMobileSheetOpen(false);
-                    }}
-                    className={cn(
-                      "flex items-center gap-3 w-full px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all text-left",
-                      activeTab === "kunjungan"
-                        ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 font-bold"
-                        : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
-                    )}
-                  >
-                    <CalendarDays className="h-4 w-4 shrink-0 text-emerald-700" />
-                    <span>Jadwal Kunjungan Panti</span>
-                  </button>
-                </div>
-
-                <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800">
-                  <Button
-                    variant="outline"
-                    onClick={async () => {
-                      localStorage.removeItem("token");
-                      localStorage.removeItem("user");
-                      try {
-                        await signOut({ redirect: false });
-                      } catch (e) {
-                        // ignore
-                      }
-                      window.location.href = "/";
-                    }}
-                    className="w-full h-11 text-red-600 hover:text-red-700 border-red-200 dark:border-red-900/40 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <LogOut className="w-4 h-4" /> Keluar Akun
-                  </Button>
-                </div>
-              </SheetContent>
-            </Sheet>
           </div>
         </div>
       </div>
+
+      {/* STICKY BOTTOM NAVIGATION BAR UNTUK MOBILE (< lg) */}
+      <nav
+        aria-label="Navigasi Profil Mobile"
+        className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] pb-safe"
+      >
+        <div className="grid grid-cols-5 h-16 max-w-lg mx-auto px-1">
+          <button
+            type="button"
+            onClick={() => setActiveTab("profil")}
+            className={cn(
+              "flex flex-col items-center justify-center gap-1 transition-all relative py-1",
+              activeTab === "profil"
+                ? "text-emerald-700 dark:text-emerald-400 font-bold"
+                : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 font-medium"
+            )}
+          >
+            {activeTab === "profil" && (
+              <span className="absolute top-0 w-8 h-0.5 bg-emerald-600 rounded-full" />
+            )}
+            <User className={cn("w-5 h-5", activeTab === "profil" ? "stroke-[2.5]" : "stroke-[1.75]")} />
+            <span className="text-[10px] leading-tight">Profil</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("donasi")}
+            className={cn(
+              "flex flex-col items-center justify-center gap-1 transition-all relative py-1",
+              activeTab === "donasi"
+                ? "text-emerald-700 dark:text-emerald-400 font-bold"
+                : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 font-medium"
+            )}
+          >
+            {activeTab === "donasi" && (
+              <span className="absolute top-0 w-8 h-0.5 bg-emerald-600 rounded-full" />
+            )}
+            <Heart className={cn("w-5 h-5", activeTab === "donasi" ? "stroke-[2.5]" : "stroke-[1.75]")} />
+            <span className="text-[10px] leading-tight">Donasi</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("anak-asuh")}
+            className={cn(
+              "flex flex-col items-center justify-center gap-1 transition-all relative py-1",
+              activeTab === "anak-asuh"
+                ? "text-emerald-700 dark:text-emerald-400 font-bold"
+                : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 font-medium"
+            )}
+          >
+            {activeTab === "anak-asuh" && (
+              <span className="absolute top-0 w-8 h-0.5 bg-emerald-600 rounded-full" />
+            )}
+            <HeartHandshake className={cn("w-5 h-5", activeTab === "anak-asuh" ? "stroke-[2.5]" : "stroke-[1.75]")} />
+            <span className="text-[10px] leading-tight">POTA</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("zakat")}
+            className={cn(
+              "flex flex-col items-center justify-center gap-1 transition-all relative py-1",
+              activeTab === "zakat"
+                ? "text-emerald-700 dark:text-emerald-400 font-bold"
+                : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 font-medium"
+            )}
+          >
+            {activeTab === "zakat" && (
+              <span className="absolute top-0 w-8 h-0.5 bg-emerald-600 rounded-full" />
+            )}
+            <Calculator className={cn("w-5 h-5", activeTab === "zakat" ? "stroke-[2.5]" : "stroke-[1.75]")} />
+            <span className="text-[10px] leading-tight">Zakat</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("kunjungan")}
+            className={cn(
+              "flex flex-col items-center justify-center gap-1 transition-all relative py-1",
+              activeTab === "kunjungan"
+                ? "text-emerald-700 dark:text-emerald-400 font-bold"
+                : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 font-medium"
+            )}
+          >
+            {activeTab === "kunjungan" && (
+              <span className="absolute top-0 w-8 h-0.5 bg-emerald-600 rounded-full" />
+            )}
+            <CalendarDays className={cn("w-5 h-5", activeTab === "kunjungan" ? "stroke-[2.5]" : "stroke-[1.75]")} />
+            <span className="text-[10px] leading-tight">Kunjungan</span>
+          </button>
+        </div>
+      </nav>
     </div>
   );
 }
