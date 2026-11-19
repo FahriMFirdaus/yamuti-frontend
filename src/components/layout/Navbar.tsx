@@ -149,50 +149,61 @@ export default function Navbar() {
                 )}
               </Link>
 
-              {/* User Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-1 sm:pr-3 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors focus:outline-none">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 font-bold text-xs sm:text-sm">
-                    {getInitials(user.name)}
-                  </div>
-                  <span className="hidden md:inline-block text-sm font-semibold text-zinc-700 dark:text-zinc-300 truncate max-w-[120px]">
-                    {user.name.split(" ")[0]}
-                  </span>
-                  <ChevronDown className="h-4 w-4 text-zinc-400 hidden sm:inline-block" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64 rounded-xl border-zinc-200 dark:border-zinc-800">
-                  <div className="p-4 flex flex-col">
-                    <span className="text-base font-bold text-zinc-900 dark:text-white truncate">{user.name}</span>
-                    <span className="text-xs text-zinc-500 dark:text-zinc-400 truncate">{user.email}</span>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => router.push('/profil')} className="p-3 cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20">
-                    <User className="mr-3 h-5 w-5 text-zinc-500" />
-                    <span className="font-medium">Profil</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push('/profil?tab=donasi')} className="p-3 cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20">
-                    <FileText className="mr-3 h-5 w-5 text-zinc-500" />
-                    <span className="font-medium">Riwayat Donasi & Kwitansi</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push('/profil?tab=anak-asuh')} className="p-3 cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20">
-                    <User className="mr-3 h-5 w-5 text-emerald-600" />
-                    <span className="font-medium">Anak Asuh Binaan (POTA)</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push('/profil?tab=zakat')} className="p-3 cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20">
-                    <FileText className="mr-3 h-5 w-5 text-amber-600" />
-                    <span className="font-medium">Kalkulator & Bayar Zakat</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push('/profil?tab=kunjungan')} className="p-3 cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20">
-                    <CalendarClock className="mr-3 h-5 w-5 text-zinc-500" />
-                    <span className="font-medium">Status Ajuan Kunjungan</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="p-3 cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20">
-                    <LogOut className="mr-3 h-5 w-5" />
-                    <span className="font-bold">Keluar</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {/* User Avatar Direct Link on Mobile (< md) to avoid duplicate dropdown */}
+              <Link
+                href="/profil"
+                className="md:hidden flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold text-xs ring-1 ring-emerald-300 dark:ring-emerald-800 transition-transform active:scale-95"
+                aria-label="Buka Profil Donatur"
+              >
+                {getInitials(user.name)}
+              </Link>
+
+              {/* User Dropdown on Desktop (>= md) */}
+              <div className="hidden md:block">
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-1 sm:pr-3 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors focus:outline-none">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold text-xs sm:text-sm">
+                      {getInitials(user.name)}
+                    </div>
+                    <span className="inline-block text-sm font-semibold text-zinc-700 dark:text-zinc-300 truncate max-w-[120px]">
+                      {user.name.split(" ")[0]}
+                    </span>
+                    <ChevronDown className="h-4 w-4 text-zinc-400 inline-block" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-64 rounded-xl border-zinc-200 dark:border-zinc-800">
+                    <div className="p-4 flex flex-col">
+                      <span className="text-base font-bold text-zinc-900 dark:text-white truncate">{user.name}</span>
+                      <span className="text-xs text-zinc-500 dark:text-zinc-400 truncate">{user.email}</span>
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => router.push('/profil')} className="p-3 cursor-pointer hover:bg-emerald-50 dark:hover:bg-emerald-950/20">
+                      <User className="mr-3 h-5 w-5 text-emerald-600" />
+                      <span className="font-medium">Profil</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push('/profil?tab=donasi')} className="p-3 cursor-pointer hover:bg-emerald-50 dark:hover:bg-emerald-950/20">
+                      <FileText className="mr-3 h-5 w-5 text-emerald-600" />
+                      <span className="font-medium">Riwayat Donasi & Kwitansi</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push('/profil?tab=anak-asuh')} className="p-3 cursor-pointer hover:bg-emerald-50 dark:hover:bg-emerald-950/20">
+                      <User className="mr-3 h-5 w-5 text-emerald-600" />
+                      <span className="font-medium">Anak Asuh Binaan (POTA)</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push('/profil?tab=zakat')} className="p-3 cursor-pointer hover:bg-emerald-50 dark:hover:bg-emerald-950/20">
+                      <FileText className="mr-3 h-5 w-5 text-amber-600" />
+                      <span className="font-medium">Kalkulator & Bayar Zakat</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push('/profil?tab=kunjungan')} className="p-3 cursor-pointer hover:bg-emerald-50 dark:hover:bg-emerald-950/20">
+                      <CalendarClock className="mr-3 h-5 w-5 text-emerald-600" />
+                      <span className="font-medium">Status Ajuan Kunjungan</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="p-3 cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20">
+                      <LogOut className="mr-3 h-5 w-5" />
+                      <span className="font-bold">Keluar</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
 
               {/* Donasi Button (Desktop) */}
               <Link 
