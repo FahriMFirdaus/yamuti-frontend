@@ -1,7 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Plus, Search, MoreHorizontal, ShieldCheck, Shield, Trash2, Edit2, Users } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import {
+  Plus,
+  Search,
+  MoreHorizontal,
+  ShieldCheck,
+  Shield,
+  Trash2,
+  Edit2,
+  Users,
+  RefreshCw,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +23,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-
 import { getSession } from "next-auth/react";
 
 type RoleItem = {
@@ -80,7 +91,6 @@ const DEFAULT_ROLES: RoleItem[] = [
 ];
 
 export default function UsersPage() {
-  const [token, setToken] = useState<string | undefined>(undefined);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
   const [users, setUsers] = useState<UserAdmin[]>(DEFAULT_USERS);
@@ -88,6 +98,9 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("ALL");
+
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [modalFeedback, setModalFeedback] = useState<{ type: "error"; message: string } | null>(null);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserAdmin | null>(null);
@@ -101,16 +114,20 @@ export default function UsersPage() {
 
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserAdmin | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  const fetchData = async () => {
+  const getAuthToken = async (): Promise<string | undefined> => {
+    const session = await getSession();
+    return (
+      session?.accessToken ||
+      (typeof window !== "undefined" ? localStorage.getItem("token") || undefined : undefined)
+    );
+  };
+
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const session = await getSession();
-      const activeToken =
-        session?.accessToken ||
-        (typeof window !== "undefined" ? localStorage.getItem("token") || undefined : undefined);
-
-      if (activeToken) setToken(activeToken);
+      const activeToken = await getAuthToken();
 
       const headers: HeadersInit = {
         Accept: "application/json",
@@ -124,22 +141,32 @@ export default function UsersPage() {
 
       if (usersRes.ok) {
         const uJson = await usersRes.json();
-        setUsers(uJson.data || []);
+        if (uJson.data && Array.isArray(uJson.data) && uJson.data.length > 0) {
+          setUsers(uJson.data);
+        }
       }
       if (rolesRes.ok) {
         const rJson = await rolesRes.json();
-        setRoles(rJson.data || []);
+        if (rJson.data && Array.isArray(rJson.data) && rJson.data.length > 0) {
+          setRoles(rJson.data);
+        }
       }
     } catch (err) {
       console.error("Gagal memuat data pengguna/peran:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [apiUrl]);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    let ignore = false;
+    if (!ignore) {
+      fetchData();
+    }
+    return () => {
+      ignore = true;
+    };
+  }, [fetchData]);
 
   const handleOpenCreate = () => {
     setEditingUser(null);
@@ -151,6 +178,7 @@ export default function UsersPage() {
       password: "",
       role: defaultRole,
     });
+    setModalFeedback(null);
     setIsFormOpen(true);
   };
 
@@ -163,24 +191,30 @@ export default function UsersPage() {
       password: "",
       role: userRole,
     });
+    setModalFeedback(null);
     setIsFormOpen(true);
   };
 
   const handleSaveUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.email || (!editingUser && !formData.password)) {
-      alert("Harap lengkapi semua kolom yang wajib diisi.");
+    if (!formData.name.trim() || !formData.email.trim() || (!editingUser && !formData.password.trim())) {
+      setModalFeedback({
+        type: "error",
+        message: "Harap lengkapi semua kolom yang wajib diisi.",
+      });
       return;
     }
 
     setSaving(true);
+    setModalFeedback(null);
     try {
+      const activeToken = await getAuthToken();
       const url = editingUser ? `${apiUrl}/admins/${editingUser.id}` : `${apiUrl}/admins`;
       const method = editingUser ? "PUT" : "POST";
 
       const payload: Record<string, any> = {
-        name: formData.name,
-        email: formData.email,
+        name: formData.name.trim(),
+        email: formData.email.trim(),
         role: formData.role,
       };
 
@@ -193,21 +227,33 @@ export default function UsersPage() {
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {}),
         },
         body: JSON.stringify(payload),
       });
 
       if (res.ok) {
         setIsFormOpen(false);
-        fetchData();
+        setFeedback({
+          type: "success",
+          message: editingUser
+            ? `Akun staf "${formData.name.trim()}" berhasil diperbarui.`
+            : `Akun staf baru "${formData.name.trim()}" berhasil didaftarkan.`,
+        });
+        await fetchData();
       } else {
-        const errJson = await res.json();
-        alert(errJson.message || "Gagal menyimpan data pengguna.");
+        const errJson = await res.json().catch(() => ({}));
+        setModalFeedback({
+          type: "error",
+          message: errJson.message || "Gagal menyimpan data pengguna. Periksa kembali isian Anda.",
+        });
       }
     } catch (err) {
       console.error("Error saving user:", err);
-      alert("Terjadi kesalahan jaringan.");
+      setModalFeedback({
+        type: "error",
+        message: "Terjadi kesalahan jaringan saat menyimpan data staf.",
+      });
     } finally {
       setSaving(false);
     }
@@ -215,25 +261,45 @@ export default function UsersPage() {
 
   const handleDeleteUser = async () => {
     if (!selectedUser) return;
+    setDeleting(true);
     try {
+      const activeToken = await getAuthToken();
       const res = await fetch(`${apiUrl}/admins/${selectedUser.id}`, {
         method: "DELETE",
         headers: {
           Accept: "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {}),
         },
       });
 
       if (res.ok) {
+        const deletedName = selectedUser.name;
         setIsDeleteOpen(false);
         setSelectedUser(null);
-        fetchData();
+        setFeedback({
+          type: "success",
+          message: `Akun pengguna "${deletedName}" berhasil dihapus.`,
+        });
+        await fetchData();
       } else {
-        const errJson = await res.json();
-        alert(errJson.message || "Gagal menghapus admin.");
+        const errJson = await res.json().catch(() => ({}));
+        setFeedback({
+          type: "error",
+          message: errJson.message || "Gagal menghapus akun pengguna.",
+        });
+        setIsDeleteOpen(false);
+        setSelectedUser(null);
       }
     } catch (err) {
       console.error("Gagal menghapus user:", err);
+      setFeedback({
+        type: "error",
+        message: "Terjadi kesalahan koneksi saat menghapus akun staf.",
+      });
+      setIsDeleteOpen(false);
+      setSelectedUser(null);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -264,13 +330,51 @@ export default function UsersPage() {
             Daftar akun staf & pengurus yayasan yang telah diberikan peran dan akses sistem.
           </p>
         </div>
-        <Button 
-          className="bg-red-600 hover:bg-red-700 text-white shadow-md shadow-red-500/20 w-full sm:w-auto"
-          onClick={handleOpenCreate}
-        >
-          <Plus className="mr-2 h-4 w-4" /> Daftarkan Pengguna Baru
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fetchData()}
+            disabled={loading}
+            className="h-10 text-xs flex items-center gap-2 border-zinc-200 dark:border-zinc-800"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+          <Button 
+            className="h-10 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm flex items-center gap-2"
+            onClick={handleOpenCreate}
+          >
+            <Plus className="h-4 w-4" /> Daftarkan Pengguna Baru
+          </Button>
+        </div>
       </div>
+
+      {/* Feedback Banner */}
+      {feedback && (
+        <div
+          className={`flex items-center justify-between gap-3 p-4 rounded-lg text-sm transition-all ${
+            feedback.type === "success"
+              ? "bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-800"
+              : "bg-red-50 text-red-800 border border-red-200 dark:bg-red-950/40 dark:text-red-200 dark:border-red-800"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {feedback.type === "success" ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            ) : (
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+            )}
+            <span>{feedback.message}</span>
+          </div>
+          <button
+            onClick={() => setFeedback(null)}
+            className="text-xs font-semibold underline hover:opacity-75"
+          >
+            Tutup
+          </button>
+        </div>
+      )}
 
       <Card className="border-zinc-200 dark:border-zinc-800 shadow-sm">
         <CardHeader className="border-b border-zinc-100 dark:border-zinc-800/50 pb-4">
@@ -313,6 +417,7 @@ export default function UsersPage() {
               {loading ? (
                 <TableRow>
                   <TableCell colSpan={4} className="py-12 text-center text-zinc-500">
+                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-emerald-600" />
                     Memuat data pengguna...
                   </TableCell>
                 </TableRow>
@@ -341,15 +446,17 @@ export default function UsersPage() {
                       </TableCell>
                       <TableCell>
                         <Badge 
-                          variant={isSuperAdmin ? "destructive" : "secondary"}
-                          className="flex w-fit items-center gap-1 font-medium capitalize"
+                          variant={isSuperAdmin ? "default" : "secondary"}
+                          className={`flex w-fit items-center gap-1 font-medium capitalize ${
+                            isSuperAdmin ? "bg-emerald-600 hover:bg-emerald-700 text-white" : ""
+                          }`}
                         >
                           {isSuperAdmin ? <ShieldCheck className="w-3 h-3 text-white" /> : <Shield className="w-3 h-3 text-amber-500" />}
                           {roleName}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="border-green-200 text-green-700 bg-green-50 dark:border-green-900/50 dark:bg-green-900/20 dark:text-green-400 font-normal shadow-none text-xs">
+                        <Badge variant="outline" className="border-emerald-200 text-emerald-700 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-900/20 dark:text-emerald-400 font-normal shadow-none text-xs">
                           {user.status_pegawai || "Aktif"}
                         </Badge>
                       </TableCell>
@@ -369,7 +476,7 @@ export default function UsersPage() {
                                 className="cursor-pointer"
                                 onClick={() => handleOpenEdit(user)}
                               >
-                                <Edit2 className="mr-2 h-4 w-4 text-blue-600" /> Edit Peran & Akun
+                                <Edit2 className="mr-2 h-4 w-4 text-emerald-600" /> Edit Peran & Akun
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem 
@@ -405,6 +512,13 @@ export default function UsersPage() {
                 : "Buat akun staf baru dan pasangkan peran yang telah Anda buat."}
             </DialogDescription>
           </DialogHeader>
+
+          {modalFeedback && (
+            <div className="flex items-center gap-2 p-3 rounded-lg text-xs bg-red-50 text-red-800 border border-red-200 dark:bg-red-950/40 dark:text-red-200 dark:border-red-800">
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+              <span>{modalFeedback.message}</span>
+            </div>
+          )}
 
           <form onSubmit={handleSaveUser} className="space-y-4 pt-2">
             <div className="space-y-2">
@@ -450,7 +564,7 @@ export default function UsersPage() {
                 id="role_staf" 
                 value={formData.role}
                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 required
               >
                 {roles.length === 0 ? (
@@ -472,7 +586,7 @@ export default function UsersPage() {
               <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>
                 Batal
               </Button>
-              <Button type="submit" disabled={saving} className="bg-red-600 text-white hover:bg-red-700">
+              <Button type="submit" disabled={saving} className="bg-emerald-600 text-white hover:bg-emerald-700">
                 {saving ? "Menyimpan..." : editingUser ? "Simpan Perubahan" : "Buat Akun Staf"}
               </Button>
             </DialogFooter>
@@ -481,18 +595,22 @@ export default function UsersPage() {
       </Dialog>
 
       {/* Modal Hapus Permanen */}
-      <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+      <AlertDialog open={isDeleteOpen} onOpenChange={(open) => !open && setIsDeleteOpen(false)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <DialogTitle className="text-red-600">Hapus Akun Pengguna?</DialogTitle>
+            <AlertDialogTitle className="text-red-600">Hapus Akun Pengguna?</AlertDialogTitle>
             <AlertDialogDescription>
               Tindakan ini tidak bisa dibatalkan. Kredensial staf <strong>{selectedUser?.name}</strong> akan dihapus dari sistem.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteUser} className="bg-red-600 hover:bg-red-700 text-white">
-              Hapus Akun
+            <AlertDialogCancel disabled={deleting}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteUser}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {deleting ? "Menghapus..." : "Hapus Akun"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
