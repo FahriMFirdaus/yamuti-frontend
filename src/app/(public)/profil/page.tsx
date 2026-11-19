@@ -473,16 +473,27 @@ function ProfilContent() {
             </Button>
           </div>
 
-          {/* Mobile Sheet Trigger Button (< lg) */}
+          {/* Mobile Sheet Menu Trigger (< lg) */}
           <div className="lg:hidden">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setIsMobileSheetOpen(true)}
-              className="h-9 px-3 rounded-xl border-zinc-200 dark:border-zinc-800 flex items-center gap-2 text-xs font-semibold cursor-pointer"
+              className="h-10 px-3.5 rounded-xl border-zinc-200 dark:border-zinc-800 flex items-center gap-2 text-xs font-bold bg-white dark:bg-zinc-900 shadow-xs cursor-pointer text-emerald-800 dark:text-emerald-300"
             >
-              <Menu className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
-              <span>Menu Akun</span>
+              {activeTab === "profil" && <User className="w-4 h-4 text-emerald-700" />}
+              {activeTab === "donasi" && <Heart className="w-4 h-4 text-emerald-700" />}
+              {activeTab === "anak-asuh" && <HeartHandshake className="w-4 h-4 text-emerald-700" />}
+              {activeTab === "zakat" && <Calculator className="w-4 h-4 text-emerald-700" />}
+              {activeTab === "kunjungan" && <CalendarDays className="w-4 h-4 text-emerald-700" />}
+              <span>
+                {activeTab === "profil" && "Data Diri"}
+                {activeTab === "donasi" && "Riwayat Donasi"}
+                {activeTab === "anak-asuh" && "Anak Asuh (POTA)"}
+                {activeTab === "zakat" && "Kalkulator Zakat"}
+                {activeTab === "kunjungan" && "Jadwal Kunjungan"}
+              </span>
+              <ChevronDown className="w-3.5 h-3.5 text-zinc-400 ml-0.5" />
             </Button>
           </div>
         </div>
@@ -498,77 +509,6 @@ function ProfilContent() {
           statusBulanIniLunas={anakAsuhSaya.length > 0 && anakAsuhSaya.every(p => p.status_bulan_ini === 'lunas' || p.is_paid_this_month)}
           onNavigateTab={(tab) => setActiveTab(tab)}
         />
-
-        {/* Mobile Segmented Navigation (< lg) - Clean 5 tabs grid without scroll */}
-        <div className="lg:hidden mb-6">
-          <div className="grid grid-cols-5 p-1 bg-zinc-100 dark:bg-zinc-850 rounded-xl gap-1 border border-zinc-200/80 dark:border-zinc-800">
-            <button
-              type="button"
-              onClick={() => setActiveTab("profil")}
-              className={cn(
-                "flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition-all",
-                activeTab === "profil"
-                  ? "bg-emerald-700 text-white shadow-xs"
-                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
-              )}
-            >
-              <User className="h-4 w-4 shrink-0" />
-              <span>Profil</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("donasi")}
-              className={cn(
-                "flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition-all",
-                activeTab === "donasi"
-                  ? "bg-emerald-700 text-white shadow-xs"
-                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
-              )}
-            >
-              <Heart className="h-4 w-4 shrink-0" />
-              <span>Donasi</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("anak-asuh")}
-              className={cn(
-                "flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition-all",
-                activeTab === "anak-asuh"
-                  ? "bg-emerald-700 text-white shadow-xs"
-                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
-              )}
-            >
-              <HeartHandshake className="h-4 w-4 shrink-0" />
-              <span>POTA</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("zakat")}
-              className={cn(
-                "flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition-all",
-                activeTab === "zakat"
-                  ? "bg-emerald-700 text-white shadow-xs"
-                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
-              )}
-            >
-              <Calculator className="h-4 w-4 shrink-0" />
-              <span>Zakat</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("kunjungan")}
-              className={cn(
-                "flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition-all",
-                activeTab === "kunjungan"
-                  ? "bg-emerald-700 text-white shadow-xs"
-                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
-              )}
-            >
-              <CalendarDays className="h-4 w-4 shrink-0" />
-              <span>Kunjungan</span>
-            </button>
-          </div>
-        </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar Menu (Desktop: full menu sticky, Mobile: user card only) */}
