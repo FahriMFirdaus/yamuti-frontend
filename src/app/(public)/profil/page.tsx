@@ -1041,19 +1041,28 @@ function ProfilContent() {
                             </div>
                           </div>
                           <div className="flex items-center justify-between w-full sm:w-auto sm:justify-end gap-3">
-                            {kunjungan.status === 'Selesai' || kunjungan.status === 'selesai' || kunjungan.status === 'approved' ? (
-                              <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none shadow-none flex items-center gap-1.5 dark:bg-green-900/30 dark:text-green-400">
-                                <CheckCircle2 className="w-3 h-3" /> Disetujui
-                              </Badge>
-                            ) : kunjungan.status === 'Menunggu Konfirmasi' || kunjungan.status === 'pending' ? (
-                              <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-none shadow-none flex items-center gap-1.5 dark:bg-amber-900/30 dark:text-amber-400">
-                                <Clock className="w-3 h-3" /> Menunggu
-                              </Badge>
-                            ) : (
-                              <Badge className="bg-red-100 text-red-700 hover:bg-red-100 border-none shadow-none flex items-center gap-1.5 dark:bg-red-900/30 dark:text-red-400">
-                                <LogOut className="w-3 h-3" /> Dibatalkan
-                              </Badge>
-                            )}
+                            {(() => {
+                              const s = (kunjungan.status || '').toLowerCase();
+                              if (s === 'selesai' || s === 'approved' || s === 'completed' || s === 'disetujui') {
+                                return (
+                                  <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none shadow-none flex items-center gap-1.5 dark:bg-green-900/30 dark:text-green-400">
+                                    <CheckCircle2 className="w-3 h-3" /> Disetujui
+                                  </Badge>
+                                );
+                              }
+                              if (s === 'pending' || s === 'menunggu konfirmasi' || s === 'menunggu') {
+                                return (
+                                  <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-none shadow-none flex items-center gap-1.5 dark:bg-amber-900/30 dark:text-amber-400">
+                                    <Clock className="w-3 h-3" /> Menunggu Konfirmasi
+                                  </Badge>
+                                );
+                              }
+                              return (
+                                <Badge className="bg-red-100 text-red-700 hover:bg-red-100 border-none shadow-none flex items-center gap-1.5 dark:bg-red-900/30 dark:text-red-400">
+                                  <LogOut className="w-3 h-3" /> Dibatalkan
+                                </Badge>
+                              );
+                            })()}
                             <Button
                               variant="outline"
                               size="sm"
@@ -1282,13 +1291,16 @@ function ProfilContent() {
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Status</p>
-                        {selectedKunjungan.status === 'Selesai' || selectedKunjungan.status === 'selesai' || selectedKunjungan.status === 'approved' ? (
-                          <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none shadow-none mt-1">Disetujui</Badge>
-                        ) : selectedKunjungan.status === 'Menunggu Konfirmasi' || selectedKunjungan.status === 'pending' ? (
-                          <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-none shadow-none mt-1">Menunggu</Badge>
-                        ) : (
-                          <Badge className="bg-red-100 text-red-700 hover:bg-red-100 border-none shadow-none mt-1">Dibatalkan</Badge>
-                        )}
+                        {(() => {
+                          const s = (selectedKunjungan.status || '').toLowerCase();
+                          if (s === 'selesai' || s === 'approved' || s === 'completed' || s === 'disetujui') {
+                            return <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none shadow-none mt-1">Disetujui</Badge>;
+                          }
+                          if (s === 'pending' || s === 'menunggu konfirmasi' || s === 'menunggu') {
+                            return <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-none shadow-none mt-1">Menunggu Konfirmasi</Badge>;
+                          }
+                          return <Badge className="bg-red-100 text-red-700 hover:bg-red-100 border-none shadow-none mt-1">Dibatalkan</Badge>;
+                        })()}
                       </div>
                     </div>
 
