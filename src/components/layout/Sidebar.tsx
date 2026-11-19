@@ -2,32 +2,53 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { Suspense, useState, useEffect } from "react";
+import { getSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { ADMIN_NAV_SECTIONS } from "@/config/admin-nav";
 
 function SidebarNav() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { data: session } = useSession();
-  const [localUser, setLocalUser] = useState<{ name?: string; role?: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ name?: string; role?: string } | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+
+    // Coba baca dari localStorage terlebih dahulu untuk render instan
     if (typeof window !== "undefined") {
       try {
         const stored = localStorage.getItem("user");
         if (stored) {
-          setLocalUser(JSON.parse(stored));
+          const parsed = JSON.parse(stored);
+          if (isMounted) setCurrentUser(parsed);
         }
       } catch {
-        // Abaikan error parse localStorage
+        // abaikan error parse localStorage
       }
     }
+
+    // Ambil sesi NextAuth dengan getSession (bekerja tanpa SessionProvider)
+    getSession()
+      .then((session) => {
+        if (session?.user && isMounted) {
+          setCurrentUser({
+            name: session.user.name || undefined,
+            role: (session.user as any)?.role || undefined,
+          });
+        }
+      })
+      .catch(() => {
+        // Fallback tetap menggunakan localUser
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const displayName = session?.user?.name || localUser?.name || "Admin YAMUTI";
-  const displayRole = (session?.user as any)?.role || localUser?.role || "Pengurus";
+  const displayName = currentUser?.name || "Admin YAMUTI";
+  const displayRole = currentUser?.role || "Pengurus";
   const initials = displayName
     .split(" ")
     .filter(Boolean)
