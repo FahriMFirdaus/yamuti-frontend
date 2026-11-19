@@ -135,8 +135,101 @@ export function RiwayatDonasiTable({
         </div>
       </div>
 
-      {/* Modern Compact Table with Max Height & Internal Scroll */}
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden shadow-xs">
+      {/* MOBILE LIST CARD VIEW (< md) */}
+      <div className="md:hidden space-y-3">
+        {isLoading ? (
+          <div className="p-8 text-center text-xs text-zinc-500 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+            <div className="animate-spin w-5 h-5 border-2 border-emerald-600 border-t-transparent rounded-full mx-auto mb-2" />
+            <span>Memuat riwayat donasi...</span>
+          </div>
+        ) : data.length === 0 ? (
+          <div className="p-8 text-center text-xs text-zinc-500 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+            Tidak ada riwayat donasi yang sesuai.
+          </div>
+        ) : (
+          data.map((donasi) => {
+            const isPaid = isSuccessStatus(donasi.status);
+            const nominal = Number(donasi.gross_amount || donasi.nominal || 0);
+            const tanggal = donasi.created_at || donasi.tanggal;
+            const dateFormatted = tanggal
+              ? new Date(tanggal).toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                })
+              : "-";
+
+            return (
+              <div
+                key={donasi.id}
+                className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs space-y-2.5"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                    {donasi.invoice || `INV-${donasi.id}`}
+                  </span>
+                  {isPaid ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Berhasil
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
+                      <Clock className="w-3 h-3 text-amber-600" /> Pending
+                    </span>
+                  )}
+                </div>
+
+                <div>
+                  <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 line-clamp-2">
+                    {donasi.kampanye?.judul || donasi.program || "Donasi Infaq YAMUTI"}
+                  </p>
+                  <div className="flex items-center justify-between text-xs mt-1.5">
+                    <span className="text-[11px] text-zinc-400">{dateFormatted}</span>
+                    <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">
+                      Rp {nominal.toLocaleString("id-ID")}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
+                    {isPaid && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => onSelectKwitansi(donasi)}
+                          className="h-8 px-2.5 rounded-lg border border-emerald-200 dark:border-emerald-800 text-[11px] font-medium text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 flex items-center gap-1 transition-colors cursor-pointer"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                          <span>Kwitansi</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onSelectSertifikat(donasi)}
+                          className="h-8 px-2.5 rounded-lg border border-amber-200 dark:border-amber-800 text-[11px] font-medium text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40 flex items-center gap-1 transition-colors cursor-pointer"
+                        >
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>Sertifikat</span>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onSelectDetail(donasi)}
+                    className="h-8 px-3 rounded-lg border border-zinc-200 dark:border-zinc-700 text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center gap-1 cursor-pointer"
+                  >
+                    <Eye className="w-3.5 h-3.5" /> Detail
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* DESKTOP TABLE VIEW (>= md) */}
+      <div className="hidden md:block rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden shadow-xs">
         <div className="max-h-[460px] overflow-y-auto overscroll-contain [scrollbar-width:thin]">
           <Table>
             <TableHeader className="bg-zinc-50/80 dark:bg-zinc-800/50 sticky top-0 z-10 backdrop-blur-xs">
@@ -271,36 +364,36 @@ export function RiwayatDonasiTable({
             </TableBody>
           </Table>
         </div>
-
-        {/* Table Pagination Footer */}
-        {meta && meta.last_page && meta.last_page > 1 && (
-          <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-50/50 dark:bg-zinc-900 border-t border-zinc-100 dark:border-zinc-800 text-xs">
-            <span className="text-zinc-500">
-              Halaman {currentPage} dari {meta.last_page} ({meta.total || data.length} donasi)
-            </span>
-            <div className="flex items-center gap-1.5">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1 || isLoading}
-                className="h-7 px-2.5 text-xs rounded-lg cursor-pointer"
-              >
-                ← Sebelumnya
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onPageChange(Math.min(meta.last_page || 1, currentPage + 1))}
-                disabled={currentPage >= (meta.last_page || 1) || isLoading}
-                className="h-7 px-2.5 text-xs rounded-lg cursor-pointer"
-              >
-                Selanjutnya →
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Table Pagination Footer */}
+      {meta && meta.last_page && meta.last_page > 1 && (
+        <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 bg-zinc-50/50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs">
+          <span className="text-zinc-500">
+            Hal. {currentPage} / {meta.last_page} ({meta.total || data.length})
+          </span>
+          <div className="flex items-center gap-1.5">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1 || isLoading}
+              className="h-7 px-2.5 text-xs rounded-lg cursor-pointer"
+            >
+              ← Prev
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange(Math.min(meta.last_page || 1, currentPage + 1))}
+              disabled={currentPage >= (meta.last_page || 1) || isLoading}
+              className="h-7 px-2.5 text-xs rounded-lg cursor-pointer"
+            >
+              Next →
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

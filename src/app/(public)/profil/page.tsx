@@ -436,12 +436,12 @@ function ProfilContent() {
       <div className="container mx-auto px-4 md:px-8 max-w-6xl">
 
         {/* Page Header */}
-        <div className="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-zinc-200 pb-6 dark:border-zinc-800">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-zinc-200 pb-5 dark:border-zinc-800">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
               Dashboard Donatur
             </h1>
-            <p className="text-zinc-500 mt-2 text-base">Kelola informasi pribadi dan pantau jejak kebaikan Anda.</p>
+            <p className="text-zinc-500 mt-1 text-sm sm:text-base">Kelola informasi pribadi dan pantau jejak kebaikan Anda.</p>
           </div>
           <Button
             variant="outline"
@@ -455,7 +455,7 @@ function ProfilContent() {
               }
               window.location.href = "/";
             }}
-            className="text-zinc-600 border-zinc-200 hover:bg-zinc-100 hover:text-red-600 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-red-400 w-full md:w-auto h-10 px-4 rounded-xl cursor-pointer"
+            className="text-zinc-600 border-zinc-200 hover:bg-zinc-100 hover:text-red-600 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-red-400 h-9 sm:h-10 px-3.5 sm:px-4 rounded-xl cursor-pointer self-start sm:self-auto text-xs sm:text-sm"
           >
             <LogOut className="mr-2 h-4 w-4" /> Keluar Akun
           </Button>
@@ -473,63 +473,73 @@ function ProfilContent() {
           onNavigateTab={(tab) => setActiveTab(tab)}
         />
 
-        {/* Mobile Horizontal Pill Navigation (< lg) */}
+        {/* Mobile Segmented Navigation (< lg) - Clean 5 tabs grid without scroll */}
         <div className="lg:hidden mb-6">
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div className="grid grid-cols-5 p-1 bg-zinc-100 dark:bg-zinc-850 rounded-xl gap-1 border border-zinc-200/80 dark:border-zinc-800">
             <button
+              type="button"
               onClick={() => setActiveTab("profil")}
               className={cn(
-                "flex items-center gap-2 whitespace-nowrap px-4 py-2.5 rounded-full text-sm font-semibold transition-all shrink-0 border",
+                "flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition-all",
                 activeTab === "profil"
-                  ? "bg-emerald-700 text-white border-emerald-700 shadow-sm shadow-emerald-700/20"
-                  : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50"
+                  ? "bg-emerald-700 text-white shadow-xs"
+                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
               )}
             >
-              <User className="h-4 w-4" /> Data Diri
+              <User className="h-4 w-4 shrink-0" />
+              <span>Profil</span>
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab("donasi")}
               className={cn(
-                "flex items-center gap-2 whitespace-nowrap px-4 py-2.5 rounded-full text-sm font-semibold transition-all shrink-0 border",
+                "flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition-all",
                 activeTab === "donasi"
-                  ? "bg-emerald-700 text-white border-emerald-700 shadow-sm shadow-emerald-700/20"
-                  : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50"
+                  ? "bg-emerald-700 text-white shadow-xs"
+                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
               )}
             >
-              <Heart className="h-4 w-4" /> Riwayat Donasi
+              <Heart className="h-4 w-4 shrink-0" />
+              <span>Donasi</span>
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab("anak-asuh")}
               className={cn(
-                "flex items-center gap-2 whitespace-nowrap px-4 py-2.5 rounded-full text-sm font-semibold transition-all shrink-0 border",
+                "flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition-all",
                 activeTab === "anak-asuh"
-                  ? "bg-emerald-700 text-white border-emerald-700 shadow-sm shadow-emerald-700/20"
-                  : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50"
+                  ? "bg-emerald-700 text-white shadow-xs"
+                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
               )}
             >
-              <HeartHandshake className="h-4 w-4" /> Anak Asuh (POTA)
+              <HeartHandshake className="h-4 w-4 shrink-0" />
+              <span>POTA</span>
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab("zakat")}
               className={cn(
-                "flex items-center gap-2 whitespace-nowrap px-4 py-2.5 rounded-full text-sm font-semibold transition-all shrink-0 border",
+                "flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition-all",
                 activeTab === "zakat"
-                  ? "bg-emerald-700 text-white border-emerald-700 shadow-sm shadow-emerald-700/20"
-                  : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50"
+                  ? "bg-emerald-700 text-white shadow-xs"
+                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
               )}
             >
-              <Calculator className="h-4 w-4" /> Bayar Zakat
+              <Calculator className="h-4 w-4 shrink-0" />
+              <span>Zakat</span>
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab("kunjungan")}
               className={cn(
-                "flex items-center gap-2 whitespace-nowrap px-4 py-2.5 rounded-full text-sm font-semibold transition-all shrink-0 border",
+                "flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition-all",
                 activeTab === "kunjungan"
-                  ? "bg-emerald-700 text-white border-emerald-700 shadow-sm shadow-emerald-700/20"
-                  : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50"
+                  ? "bg-emerald-700 text-white shadow-xs"
+                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
               )}
             >
-              <CalendarDays className="h-4 w-4" /> Kunjungan
+              <CalendarDays className="h-4 w-4 shrink-0" />
+              <span>Kunjungan</span>
             </button>
           </div>
         </div>
