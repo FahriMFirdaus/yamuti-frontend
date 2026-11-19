@@ -15,6 +15,8 @@ import {
   RefreshCw,
   AlertCircle,
   ExternalLink,
+  Maximize2,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,7 +52,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { getSession } from "next-auth/react";
 
 interface ArtikelData {
@@ -74,9 +76,11 @@ interface GaleriData {
   judul: string;
   deskripsi?: string;
   file_url: string;
+  created_at?: string;
 }
 
 export default function CMSPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState(tabParam === "galeri" ? "galeri" : "artikel");
@@ -93,7 +97,11 @@ export default function CMSPage() {
   const [formJudulFoto, setFormJudulFoto] = useState("");
   const [formDeskripsiFoto, setFormDeskripsiFoto] = useState("");
   const [formFileFoto, setFormFileFoto] = useState<File | null>(null);
+  const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
   const [formUploadError, setFormUploadError] = useState<string | null>(null);
+
+  // Lightbox Preview Foto
+  const [previewFoto, setPreviewFoto] = useState<GaleriData | null>(null);
 
   // Delete Dialog State
   const [deleteItem, setDeleteItem] = useState<{ id: string; type: "artikel" | "galeri"; title: string } | null>(null);
@@ -108,6 +116,13 @@ export default function CMSPage() {
       token = localStorage.getItem("token") || undefined;
     }
     return token || "";
+  };
+
+  // Synchronize Tab changes with URL query string
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    const newUrl = value === "galeri" ? "/admin/cms?tab=galeri" : "/admin/cms";
+    router.replace(newUrl, { scroll: false });
   };
 
   const fetchArtikels = useCallback(async () => {
@@ -234,11 +249,28 @@ export default function CMSPage() {
     }
   };
 
-  // Upload Foto Handler
+  const resetUploadForm = () => {
+    setFormJudulFoto("");
+    setFormDeskripsiFoto("");
+    setFormFileFoto(null);
+    if (filePreviewUrl) {
+      URL.revokeObjectURL(filePreviewUrl);
+      setFilePreviewUrl(null);
+    }
+    setFormUploadError(null);
+  };
+
+  // Upload Foto Handler with File Validation
   const handleUploadFoto = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formJudulFoto.trim() || !formFileFoto) {
       setFormUploadError("Harap masukkan judul foto dan pilih berkas foto.");
+      return;
+    }
+
+    // Size limit: 5MB
+    if (formFileFoto.size > 5 * 1024 * 1024) {
+      setFormUploadError("Ukuran berkas terlalu besar! Maksimal ukuran foto adalah 5 MB.");
       return;
     }
 
@@ -264,9 +296,7 @@ export default function CMSPage() {
 
       if (res.ok) {
         setIsUnggahFotoOpen(false);
-        setFormJudulFoto("");
-        setFormDeskripsiFoto("");
-        setFormFileFoto(null);
+        resetUploadForm();
         fetchGaleri();
         setFeedbackMessage({
           text: `Foto "${formJudulFoto}" berhasil diunggah ke galeri publik.`,
@@ -281,6 +311,20 @@ export default function CMSPage() {
       setFormUploadError("Terjadi kesalahan jaringan saat mengunggah foto.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.size > 5 * 1024 * 1024) {
+        setFormUploadError("Ukuran foto melebihi 5 MB. Harap kompres atau pilih foto lain.");
+        return;
+      }
+      setFormFileFoto(file);
+      setFormUploadError(null);
+      const objectUrl = URL.createObjectURL(file);
+      setFilePreviewUrl(objectUrl);
     }
   };
 
@@ -337,7 +381,7 @@ export default function CMSPage() {
             <Button
               size="sm"
               onClick={() => {
-                setFormUploadError(null);
+                resetUploadForm();
                 setIsUnggahFotoOpen(true);
               }}
               className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm gap-1.5"
@@ -351,11 +395,10 @@ export default function CMSPage() {
       {/* Global Feedback Banner */}
       {feedbackMessage && (
         <div
-          className={`p-3.5 rounded-lg border text-sm flex items-center justify-between ${
-            feedbackMessage.type === "success"
-              ? "bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/50 dark:border-emerald-800 dark:text-emerald-200"
-              : "bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-950/50 dark:border-rose-800 dark:text-rose-200"
-          }`}
+          className={`p-3.5 rounded-lg border text-sm flex items-center justify-between ${feedbackMessage.type === "success"
+            ? "bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/50 dark:border-emerald-800 dark:text-emerald-200"
+            : "bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-950/50 dark:border-rose-800 dark:text-rose-200"
+            }`}
         >
           <span>{feedbackMessage.text}</span>
           <button
@@ -368,7 +411,7 @@ export default function CMSPage() {
       )}
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <TabsList className="grid w-full sm:w-auto grid-cols-2 max-w-[360px]">
             <TabsTrigger
@@ -589,7 +632,16 @@ export default function CMSPage() {
                       alt={foto.judul}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex justify-end p-2.5">
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex justify-between items-start p-2.5">
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        className="h-7 w-7 rounded-full shadow-md bg-white/90 text-zinc-800 hover:bg-white"
+                        onClick={() => setPreviewFoto(foto)}
+                        title="Perbesar Foto"
+                      >
+                        <Maximize2 className="h-3.5 w-3.5" />
+                      </Button>
                       <Button
                         size="icon"
                         variant="destructive"
@@ -616,6 +668,15 @@ export default function CMSPage() {
                         {foto.deskripsi}
                       </p>
                     )}
+                    {foto.created_at && (
+                      <span className="text-[10px] text-zinc-400 mt-2 block">
+                        {new Date(foto.created_at).toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -624,8 +685,46 @@ export default function CMSPage() {
         </TabsContent>
       </Tabs>
 
+      {/* Lightbox Modal Foto Ukuran Penuh */}
+      <Dialog open={previewFoto !== null} onOpenChange={(open) => !open && setPreviewFoto(null)}>
+        <DialogContent className="sm:max-w-3xl p-2 bg-zinc-950 border-zinc-800 text-white">
+          <div className="relative flex flex-col">
+            <div className="flex justify-between items-center px-3 py-2 border-b border-zinc-800">
+              <span className="font-semibold text-sm truncate max-w-md">{previewFoto?.judul}</span>
+              <button
+                onClick={() => setPreviewFoto(null)}
+                className="text-zinc-400 hover:text-white p-1 rounded-md"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="max-h-[70vh] overflow-hidden flex items-center justify-center p-2">
+              {previewFoto && (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={previewFoto.file_url}
+                  alt={previewFoto.judul}
+                  className="max-h-[65vh] w-auto max-w-full object-contain rounded-lg"
+                />
+              )}
+            </div>
+            {previewFoto?.deskripsi && (
+              <p className="text-xs text-zinc-300 px-3 py-2 border-t border-zinc-800/80 leading-relaxed">
+                {previewFoto.deskripsi}
+              </p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Modal Unggah Galeri */}
-      <Dialog open={isUnggahFotoOpen} onOpenChange={setIsUnggahFotoOpen}>
+      <Dialog
+        open={isUnggahFotoOpen}
+        onOpenChange={(open) => {
+          if (!open) resetUploadForm();
+          setIsUnggahFotoOpen(open);
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <form onSubmit={handleUploadFoto}>
             <DialogHeader>
@@ -644,23 +743,36 @@ export default function CMSPage() {
 
             <div className="space-y-4 py-3 text-sm">
               <div className="space-y-1.5">
-                <Label>Pilih Berkas Foto *</Label>
-                <div className="relative border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-xl p-6 flex flex-col items-center justify-center bg-zinc-50/50 dark:bg-zinc-900/50 hover:bg-zinc-50 transition-colors cursor-pointer">
+                <Label>Pilih Berkas Foto * (Maks. 5 MB)</Label>
+                <div className="relative border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-xl p-4 flex flex-col items-center justify-center bg-zinc-50/50 dark:bg-zinc-900/50 hover:bg-zinc-50 transition-colors cursor-pointer overflow-hidden">
                   <input
                     type="file"
-                    accept="image/*"
-                    className="absolute inset-0 opacity-0 cursor-pointer"
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        setFormFileFoto(e.target.files[0]);
-                      }
-                    }}
-                    required
+                    accept="image/jpeg,image/png,image/webp,image/jpg"
+                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                    onChange={handleFileChange}
+                    required={!formFileFoto}
                   />
-                  <ImageIcon className="h-8 w-8 text-zinc-400 mb-2" />
-                  <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300 text-center">
-                    {formFileFoto ? formFileFoto.name : "Klik untuk pilih berkas foto (JPG / PNG)"}
-                  </p>
+                  {filePreviewUrl ? (
+                    <div className="w-full flex flex-col items-center gap-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={filePreviewUrl}
+                        alt="Pratinjau"
+                        className="max-h-40 w-auto object-cover rounded-md border"
+                      />
+                      <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium truncate max-w-xs">
+                        {formFileFoto?.name} ({((formFileFoto?.size || 0) / (1024 * 1024)).toFixed(2)} MB)
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <ImageIcon className="h-8 w-8 text-zinc-400 mb-2" />
+                      <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300 text-center">
+                        Klik untuk pilih berkas foto (JPG / PNG / WebP)
+                      </p>
+                      <p className="text-[10px] text-zinc-400 mt-1">Maksimal resolusi wajar hingga 5 MB</p>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -691,7 +803,10 @@ export default function CMSPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setIsUnggahFotoOpen(false)}
+                onClick={() => {
+                  resetUploadForm();
+                  setIsUnggahFotoOpen(false);
+                }}
                 disabled={isSubmitting}
               >
                 Batal
