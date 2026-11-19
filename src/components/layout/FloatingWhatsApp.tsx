@@ -41,7 +41,7 @@ export function FloatingWhatsApp({ initialPhone = "+62 877 0031 2182" }: Floatin
       href={waUrl}
       target="_blank"
       rel="noreferrer"
-      className="fixed bottom-6 right-6 z-[99] flex items-center justify-center w-14 h-14 md:w-16 md:h-16 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 group focus:outline-none focus:ring-4 focus:ring-emerald-400/30"
+      className="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-[99] flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 group focus:outline-none focus:ring-4 focus:ring-emerald-400/30"
       aria-label="Chat WhatsApp Admin"
     >
       <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7 md:w-8 md:h-8 relative z-10 transition-transform group-hover:scale-105">

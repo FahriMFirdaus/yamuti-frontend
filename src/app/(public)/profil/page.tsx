@@ -462,21 +462,26 @@ function ProfilContent() {
           </Button>
         </div>
 
-        {/* Executive Impact & KPI Strip (Above the fold) */}
-        <ProfilSummaryStrip
-          totalNominalDonasi={riwayatDonasi.reduce((acc, d) => {
-            const isPaid = d.status === 'success' || d.status === 'settlement' || d.status === 'Berhasil' || d.status === 'PAID' || d.status === 'paid';
-            return isPaid ? acc + Number(d.gross_amount || d.nominal || 0) : acc;
-          }, 0)}
-          totalFrekuensiDonasi={donasiMeta?.total || riwayatDonasi.length || 0}
-          totalAnakAsuh={anakAsuhSaya.length}
-          statusBulanIniLunas={anakAsuhSaya.length > 0 && anakAsuhSaya.every(p => p.status_bulan_ini === 'lunas' || p.is_paid_this_month)}
-          onNavigateTab={(tab) => setActiveTab(tab)}
-        />
+        {/* Executive Impact & KPI Strip (Shown on Desktop, or only on Profil tab on Mobile) */}
+        <div className={cn(activeTab !== "profil" && "hidden lg:block")}>
+          <ProfilSummaryStrip
+            totalNominalDonasi={riwayatDonasi.reduce((acc, d) => {
+              const isPaid = d.status === 'success' || d.status === 'settlement' || d.status === 'Berhasil' || d.status === 'PAID' || d.status === 'paid';
+              return isPaid ? acc + Number(d.gross_amount || d.nominal || 0) : acc;
+            }, 0)}
+            totalFrekuensiDonasi={donasiMeta?.total || riwayatDonasi.length || 0}
+            totalAnakAsuh={anakAsuhSaya.length}
+            statusBulanIniLunas={anakAsuhSaya.length > 0 && anakAsuhSaya.every(p => p.status_bulan_ini === 'lunas' || p.is_paid_this_month)}
+            onNavigateTab={(tab) => setActiveTab(tab)}
+          />
+        </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar Menu (Desktop: full menu sticky, Mobile: user card only) */}
-          <div className="w-full lg:w-72 shrink-0 space-y-6 lg:sticky lg:top-24 self-start">
+          {/* Sidebar Menu (Desktop: full menu sticky, Mobile: user card only on Profil tab) */}
+          <div className={cn(
+            "w-full lg:w-72 shrink-0 space-y-6 lg:sticky lg:top-24 self-start",
+            activeTab !== "profil" && "hidden lg:block"
+          )}>
             {/* User Info Card */}
             <Card className="border-zinc-200 shadow-sm dark:border-zinc-800">
               <CardContent className="p-6 text-center">
