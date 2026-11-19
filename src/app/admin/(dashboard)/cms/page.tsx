@@ -416,13 +416,13 @@ export default function CMSPage() {
           <TabsList className="grid w-full sm:w-auto grid-cols-2 max-w-[360px]">
             <TabsTrigger
               value="artikel"
-              className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white text-xs font-semibold"
+              className="data-active:bg-emerald-600 data-active:text-white text-xs font-semibold"
             >
               <FileText className="w-3.5 h-3.5 mr-1.5" /> Artikel ({artikelList.length})
             </TabsTrigger>
             <TabsTrigger
               value="galeri"
-              className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white text-xs font-semibold"
+              className="data-active:bg-emerald-600 data-active:text-white text-xs font-semibold"
             >
               <ImageIcon className="w-3.5 h-3.5 mr-1.5" /> Galeri Foto ({galeriList.length})
             </TabsTrigger>

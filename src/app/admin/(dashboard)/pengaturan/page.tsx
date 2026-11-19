@@ -450,21 +450,21 @@ export default function PengaturanPage() {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 max-w-4xl mb-6 h-auto p-1 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl">
-          <TabsTrigger value="kontak" className="py-2.5 data-[state=active]:bg-emerald-600 data-[state=active]:text-white font-semibold rounded-lg text-xs sm:text-sm">
-            <Compass className="w-4 h-4 mr-2" /> Profil & Kontak
+        <TabsList className="flex flex-nowrap overflow-x-auto sm:grid w-full sm:grid-cols-5 max-w-4xl mb-6 h-auto p-1 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl gap-1">
+          <TabsTrigger value="kontak" className="py-2.5 px-3 shrink-0 data-active:bg-emerald-600 data-active:text-white font-semibold rounded-lg text-xs sm:text-sm transition-all shadow-none data-active:shadow-sm">
+            <Compass className="w-4 h-4 mr-2 shrink-0" /> Profil & Kontak
           </TabsTrigger>
-          <TabsTrigger value="peta" className="py-2.5 data-[state=active]:bg-emerald-600 data-[state=active]:text-white font-semibold rounded-lg text-xs sm:text-sm">
-            <MapPin className="w-4 h-4 mr-2" /> Lokasi & Peta
+          <TabsTrigger value="peta" className="py-2.5 px-3 shrink-0 data-active:bg-emerald-600 data-active:text-white font-semibold rounded-lg text-xs sm:text-sm transition-all shadow-none data-active:shadow-sm">
+            <MapPin className="w-4 h-4 mr-2 shrink-0" /> Lokasi & Peta
           </TabsTrigger>
-          <TabsTrigger value="jadwal" className="py-2.5 data-[state=active]:bg-emerald-600 data-[state=active]:text-white font-semibold rounded-lg text-xs sm:text-sm">
-            <Clock className="w-4 h-4 mr-2" /> Jam & Kunjungan
+          <TabsTrigger value="jadwal" className="py-2.5 px-3 shrink-0 data-active:bg-emerald-600 data-active:text-white font-semibold rounded-lg text-xs sm:text-sm transition-all shadow-none data-active:shadow-sm">
+            <Clock className="w-4 h-4 mr-2 shrink-0" /> Jam & Kunjungan
           </TabsTrigger>
-          <TabsTrigger value="kas" className="py-2.5 data-[state=active]:bg-emerald-600 data-[state=active]:text-white font-semibold rounded-lg text-xs sm:text-sm">
-            <Percent className="w-4 h-4 mr-2" /> Bagi Kas Donasi
+          <TabsTrigger value="kas" className="py-2.5 px-3 shrink-0 data-active:bg-emerald-600 data-active:text-white font-semibold rounded-lg text-xs sm:text-sm transition-all shadow-none data-active:shadow-sm">
+            <Percent className="w-4 h-4 mr-2 shrink-0" /> Bagi Kas Donasi
           </TabsTrigger>
-          <TabsTrigger value="zakat" className="py-2.5 data-[state=active]:bg-emerald-700 data-[state=active]:text-white font-semibold rounded-lg text-xs sm:text-sm">
-            <Calculator className="w-4 h-4 mr-2" /> Nisab Zakat
+          <TabsTrigger value="zakat" className="py-2.5 px-3 shrink-0 data-active:bg-emerald-600 data-active:text-white font-semibold rounded-lg text-xs sm:text-sm transition-all shadow-none data-active:shadow-sm">
+            <Calculator className="w-4 h-4 mr-2 shrink-0" /> Nisab Zakat
           </TabsTrigger>
         </TabsList>
 
