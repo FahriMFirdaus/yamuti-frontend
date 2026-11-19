@@ -10,10 +10,18 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const session = await getServerSession(authOptions);
+  const userRole = (session?.user as any)?.role;
 
+  // Wajib memiliki sesi login
   if (!session) {
     redirect("/admin/login");
   }
+
+  // Wajib memiliki hak akses staf/admin (tolak akun donatur publik)
+  if (userRole !== "admin" && userRole !== "super_admin") {
+    redirect("/admin/login?error=UnauthorizedRole");
+  }
+
   return (
     <div className="flex min-h-screen bg-zinc-50 dark:bg-zinc-900">
       {/* Sidebar for Desktop */}

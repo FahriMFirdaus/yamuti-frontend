@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { LogOut, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { signOut } from "next-auth/react";
+import { signOut, getSession } from "next-auth/react";
 import { NotificationBell } from "@/components/layout/NotificationBell";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,31 @@ function AdminHeaderContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [userRole, setUserRole] = useState<string>("admin");
+
+  useEffect(() => {
+    let isMounted = true;
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("user");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (isMounted && parsed.role) setUserRole(parsed.role);
+        }
+      } catch {
+        // abaikan
+      }
+    }
+
+    getSession().then((session) => {
+      const r = (session?.user as any)?.role;
+      if (r && isMounted) setUserRole(r);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const isTabGaleri = pathname === "/admin/cms" && searchParams?.get("tab") === "galeri";
 
@@ -96,7 +121,9 @@ function AdminHeaderContent() {
                       </div>
                     )}
                     <div className="space-y-0.5">
-                      {section.items.map((item) => {
+                      {section.items
+                        .filter((item) => !item.superAdminOnly || userRole === "super_admin")
+                        .map((item) => {
                         const isActive =
                           item.href === "/admin/cms?tab=galeri"
                             ? isTabGaleri

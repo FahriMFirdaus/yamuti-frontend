@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -21,9 +22,15 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-export default function AdminLoginPage() {
+function AdminLoginForm() {
   const router = useRouter();
-  const [errorMsg, setErrorMsg] = useState("");
+  const searchParams = useSearchParams();
+  const [errorMsg, setErrorMsg] = useState(() => {
+    if (typeof window !== "undefined" && searchParams?.get("error") === "UnauthorizedRole") {
+      return "Akses ditolak. Anda tidak memiliki izin untuk mengakses area panel admin.";
+    }
+    return "";
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -52,9 +59,19 @@ export default function AdminLoginPage() {
       const apiJson = await apiRes.json();
 
       if (apiRes.ok && apiJson.data?.token) {
+        const user = apiJson.data.user;
+        const role = user?.role;
+
+        // Validasi peran admin: tolak donatur
+        if (role !== "admin" && role !== "super_admin") {
+          setErrorMsg("Akses ditolak. Akun Anda terdaftar sebagai donatur dan tidak memiliki izin mengakses panel admin.");
+          setIsLoading(false);
+          return;
+        }
+
         localStorage.setItem("token", apiJson.data.token);
-        if (apiJson.data.user) {
-          localStorage.setItem("user", JSON.stringify(apiJson.data.user));
+        if (user) {
+          localStorage.setItem("user", JSON.stringify(user));
         }
       }
 
@@ -242,5 +259,13 @@ export default function AdminLoginPage() {
         </p>
       </footer>
     </main>
+  );
+}
+
+export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-stone-100/70 dark:bg-zinc-950" />}>
+      <AdminLoginForm />
+    </Suspense>
   );
 }

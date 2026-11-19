@@ -19,6 +19,7 @@ export interface AdminNavItem {
   name: string;
   href: string;
   icon: LucideIcon;
+  superAdminOnly?: boolean;
 }
 
 export interface AdminNavSection {
@@ -60,8 +61,8 @@ export const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
   {
     title: "Pengaturan & Akses",
     items: [
-      { name: "Peran & Akses", href: "/admin/roles", icon: ShieldCheck },
-      { name: "Pengguna", href: "/admin/users", icon: UserCog },
+      { name: "Peran & Akses", href: "/admin/roles", icon: ShieldCheck, superAdminOnly: true },
+      { name: "Pengguna", href: "/admin/users", icon: UserCog, superAdminOnly: true },
       { name: "Pengaturan Sistem", href: "/admin/pengaturan", icon: Settings },
     ],
   },

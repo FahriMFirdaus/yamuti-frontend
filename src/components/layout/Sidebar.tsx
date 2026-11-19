@@ -78,7 +78,9 @@ function SidebarNav() {
                 </div>
               )}
               <div className="space-y-1">
-                {section.items.map((item) => {
+                {section.items
+                  .filter((item) => !item.superAdminOnly || displayRole === "super_admin")
+                  .map((item) => {
                   const isActive =
                     item.href === "/admin/cms?tab=galeri"
                       ? isTabGaleri
