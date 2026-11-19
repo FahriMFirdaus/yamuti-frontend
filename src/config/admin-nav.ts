@@ -12,14 +12,22 @@ import {
   ShieldCheck, 
   UserCog, 
   Settings,
+  Newspaper,
   LucideIcon
 } from "lucide-react";
+
+export interface AdminNavChild {
+  name: string;
+  href: string;
+  icon?: LucideIcon;
+}
 
 export interface AdminNavItem {
   name: string;
   href: string;
   icon: LucideIcon;
   superAdminOnly?: boolean;
+  children?: AdminNavChild[];
 }
 
 export interface AdminNavSection {
@@ -53,8 +61,15 @@ export const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
   {
     title: "Publikasi & CMS",
     items: [
-      { name: "CMS Berita", href: "/admin/cms", icon: FileText },
-      { name: "Galeri Foto", href: "/admin/cms?tab=galeri", icon: ImageIcon },
+      { 
+        name: "CMS Website", 
+        href: "/admin/cms", 
+        icon: Newspaper,
+        children: [
+          { name: "Artikel Berita", href: "/admin/cms", icon: FileText },
+          { name: "Galeri Foto", href: "/admin/cms?tab=galeri", icon: ImageIcon },
+        ]
+      },
       { name: "WhatsApp Broadcast", href: "/admin/broadcast", icon: Megaphone },
     ],
   },
