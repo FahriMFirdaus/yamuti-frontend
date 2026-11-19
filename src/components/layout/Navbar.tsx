@@ -22,53 +22,48 @@ export default function Navbar() {
   const [cartCount, setCartCount] = useState<number>(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
-  // Tutup menu saat navigasi berpindah
+  // Inisialisasi data profil & keranjang saat pertama kali token ada
   useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [pathname]);
+    if (typeof window === "undefined") return;
+    const token = localStorage.getItem("token") || undefined;
+    if (!token) {
+      setUser(null);
+      setCartCount(0);
+      return;
+    }
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token") || undefined;
-      if (token) {
-        // Fetch User Profile
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/profile`, {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Accept": "application/json"
-          }
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.data) {
-            setUser({ name: data.data.name, email: data.data.email });
-          } else {
-            localStorage.removeItem("token");
-            setUser(null);
-          }
-        })
-        .catch(() => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+    };
+
+    // Fetch User Profile
+    fetch(`${apiUrl}/profile`, { headers })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.data) {
+          setUser({ name: data.data.name, email: data.data.email });
+        } else {
           localStorage.removeItem("token");
           setUser(null);
-        });
+        }
+      })
+      .catch(() => {
+        localStorage.removeItem("token");
+        setUser(null);
+      });
 
-        // Fetch Cart Count
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/keranjang/count`, {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Accept": "application/json"
-          }
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.data) {
-            setCartCount(data.data.count);
-          }
-        })
-        .catch(err => console.error("Gagal mengambil count keranjang:", err));
-      }
-    }
-  }, [pathname]);
+    // Fetch Cart Count
+    fetch(`${apiUrl}/keranjang/count`, { headers })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.data) {
+          setCartCount(data.data.count);
+        }
+      })
+      .catch((err) => console.error("Gagal mengambil count keranjang:", err));
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");

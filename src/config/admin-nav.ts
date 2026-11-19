@@ -1,0 +1,68 @@
+import { 
+  LayoutDashboard, 
+  Users, 
+  HeartHandshake, 
+  CalendarDays, 
+  Package, 
+  Wallet, 
+  BookOpen, 
+  Megaphone, 
+  FileText, 
+  ImageIcon, 
+  ShieldCheck, 
+  UserCog, 
+  Settings,
+  LucideIcon
+} from "lucide-react";
+
+export interface AdminNavItem {
+  name: string;
+  href: string;
+  icon: LucideIcon;
+}
+
+export interface AdminNavSection {
+  title?: string;
+  items: AdminNavItem[];
+}
+
+export const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
+  {
+    items: [
+      { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+    ],
+  },
+  {
+    title: "Program & Asrama",
+    items: [
+      { name: "Anak Asuh", href: "/admin/anak-asuh", icon: Users },
+      { name: "Orang Tua Asuh", href: "/admin/orang-tua-asuh", icon: HeartHandshake },
+      { name: "Kunjungan", href: "/admin/kunjungan", icon: CalendarDays },
+      { name: "Inventaris", href: "/admin/inventaris", icon: Package },
+    ],
+  },
+  {
+    title: "Keuangan & Donasi",
+    items: [
+      { name: "Donasi", href: "/admin/donasi", icon: Wallet },
+      { name: "Buku Kas", href: "/admin/kas", icon: BookOpen },
+      { name: "Program Donasi", href: "/admin/program", icon: Megaphone },
+    ],
+  },
+  {
+    title: "Publikasi & CMS",
+    items: [
+      { name: "CMS Berita", href: "/admin/cms", icon: FileText },
+      { name: "Galeri Foto", href: "/admin/cms?tab=galeri", icon: ImageIcon },
+      { name: "WhatsApp Broadcast", href: "/admin/broadcast", icon: Megaphone },
+    ],
+  },
+  {
+    title: "Pengaturan & Akses",
+    items: [
+      { name: "Peran & Akses", href: "/admin/roles", icon: ShieldCheck },
+      { name: "Pengguna", href: "/admin/users", icon: UserCog },
+      { name: "Pengaturan Sistem", href: "/admin/pengaturan", icon: Settings },
+    ],
+  },
+];

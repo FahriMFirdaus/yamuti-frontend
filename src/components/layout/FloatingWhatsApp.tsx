@@ -24,8 +24,8 @@ export function FloatingWhatsApp({ initialPhone = "+62 877 0031 2182" }: Floatin
             setPhone(targetWa);
           }
         }
-      } catch (err) {
-        // Fallback ke initialPhone jika error
+      } catch {
+        // Gunakan nomor bawaan jika request gagal
       }
     };
 

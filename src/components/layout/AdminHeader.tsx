@@ -1,64 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { LogOut, Menu, X, LayoutDashboard, Users, HeartHandshake, CalendarDays, Package, Wallet, BookOpen, Megaphone, FileText, ImageIcon, ShieldCheck, UserCog, Settings } from "lucide-react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { LogOut, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signOut } from "next-auth/react";
 import { NotificationBell } from "@/components/layout/NotificationBell";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
+import { ADMIN_NAV_SECTIONS } from "@/config/admin-nav";
 
-const adminNavSections = [
-  {
-    items: [
-      { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-    ],
-  },
-  {
-    title: "Program & Asrama",
-    items: [
-      { name: "Anak Asuh", href: "/admin/anak-asuh", icon: Users },
-      { name: "Orang Tua Asuh", href: "/admin/orang-tua-asuh", icon: HeartHandshake },
-      { name: "Kunjungan", href: "/admin/kunjungan", icon: CalendarDays },
-      { name: "Inventaris", href: "/admin/inventaris", icon: Package },
-    ],
-  },
-  {
-    title: "Keuangan & Donasi",
-    items: [
-      { name: "Donasi", href: "/admin/donasi", icon: Wallet },
-      { name: "Buku Kas", href: "/admin/kas", icon: BookOpen },
-      { name: "Program Donasi", href: "/admin/program", icon: Megaphone },
-    ],
-  },
-  {
-    title: "Publikasi & CMS",
-    items: [
-      { name: "CMS Berita", href: "/admin/cms", icon: FileText },
-      { name: "Galeri Foto", href: "/admin/cms?tab=galeri", icon: ImageIcon },
-      { name: "WhatsApp Broadcast", href: "/admin/broadcast", icon: Megaphone },
-    ],
-  },
-  {
-    title: "Pengaturan & Akses",
-    items: [
-      { name: "Peran & Akses", href: "/admin/roles", icon: ShieldCheck },
-      { name: "Pengguna", href: "/admin/users", icon: UserCog },
-      { name: "Pengaturan Sistem", href: "/admin/pengaturan", icon: Settings },
-    ],
-  },
-];
-
-export default function AdminHeader() {
+function AdminHeaderContent() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Tutup drawer mobile jika berpindah rute
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [pathname]);
+  const isTabGaleri = pathname === "/admin/cms" && searchParams?.get("tab") === "galeri";
 
   return (
     <>
@@ -130,7 +88,7 @@ export default function AdminHeader() {
             {/* Navigation items list */}
             <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5">
               <nav className="space-y-4">
-                {adminNavSections.map((section, idx) => (
+                {ADMIN_NAV_SECTIONS.map((section, idx) => (
                   <div key={section.title || `admin-sec-${idx}`} className="space-y-1">
                     {section.title && (
                       <div className="px-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
@@ -141,8 +99,11 @@ export default function AdminHeader() {
                       {section.items.map((item) => {
                         const isActive =
                           item.href === "/admin/cms?tab=galeri"
-                            ? pathname === "/admin/cms"
-                            : pathname === item.href || (item.href !== "/admin/dashboard" && pathname.startsWith(`${item.href}/`));
+                            ? isTabGaleri
+                            : pathname === item.href ||
+                              (item.href !== "/admin/dashboard" &&
+                                !item.href.includes("?tab=") &&
+                                pathname.startsWith(`${item.href}/`));
                         const Icon = item.icon;
 
                         return (
@@ -184,5 +145,13 @@ export default function AdminHeader() {
         </div>
       )}
     </>
+  );
+}
+
+export default function AdminHeader() {
+  return (
+    <Suspense fallback={<header className="sticky top-0 z-40 h-16 w-full border-b border-zinc-200 bg-white/80 px-4 sm:px-6 dark:border-zinc-800 dark:bg-zinc-950/80" />}>
+      <AdminHeaderContent />
+    </Suspense>
   );
 }

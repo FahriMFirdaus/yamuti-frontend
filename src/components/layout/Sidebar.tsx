@@ -1,79 +1,41 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { Suspense, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { 
-  LayoutDashboard, 
-  Users, 
-  Megaphone, 
-  Wallet, 
-  CalendarDays, 
-  Package, 
-  FileText,
-  Settings,
-  BookOpen,
-  Percent,
-  ShieldCheck,
-  UserCog,
-  HeartHandshake,
-  Image as ImageIcon
-} from "lucide-react";
+import { ADMIN_NAV_SECTIONS } from "@/config/admin-nav";
 
-type NavItem = {
-  name: string;
-  href: string;
-  icon: any;
-};
-
-type NavSection = {
-  title?: string;
-  items: NavItem[];
-};
-
-const navSections: NavSection[] = [
-  {
-    items: [
-      { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-    ],
-  },
-  {
-    title: "Program & Asrama",
-    items: [
-      { name: "Anak Asuh", href: "/admin/anak-asuh", icon: Users },
-      { name: "Orang Tua Asuh", href: "/admin/orang-tua-asuh", icon: HeartHandshake },
-      { name: "Kunjungan", href: "/admin/kunjungan", icon: CalendarDays },
-      { name: "Inventaris", href: "/admin/inventaris", icon: Package },
-    ],
-  },
-  {
-    title: "Keuangan & Donasi",
-    items: [
-      { name: "Donasi", href: "/admin/donasi", icon: Wallet },
-      { name: "Buku Kas", href: "/admin/kas", icon: BookOpen },
-      { name: "Program Donasi", href: "/admin/program", icon: Megaphone },
-    ],
-  },
-  {
-    title: "Publikasi & CMS",
-    items: [
-      { name: "CMS Berita", href: "/admin/cms", icon: FileText },
-      { name: "Galeri Foto", href: "/admin/cms?tab=galeri", icon: ImageIcon },
-      { name: "WhatsApp Broadcast", href: "/admin/broadcast", icon: Megaphone },
-    ],
-  },
-  {
-    title: "Pengaturan & Akses",
-    items: [
-      { name: "Peran & Akses", href: "/admin/roles", icon: ShieldCheck },
-      { name: "Pengguna", href: "/admin/users", icon: UserCog },
-      { name: "Pengaturan Sistem", href: "/admin/pengaturan", icon: Settings },
-    ],
-  },
-];
-
-export default function Sidebar() {
+function SidebarNav() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { data: session } = useSession();
+  const [localUser, setLocalUser] = useState<{ name?: string; role?: string } | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("user");
+        if (stored) {
+          setLocalUser(JSON.parse(stored));
+        }
+      } catch {
+        // Abaikan error parse localStorage
+      }
+    }
+  }, []);
+
+  const displayName = session?.user?.name || localUser?.name || "Admin YAMUTI";
+  const displayRole = (session?.user as any)?.role || localUser?.role || "Pengurus";
+  const initials = displayName
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((n) => n[0].toUpperCase())
+    .join("") || "AD";
+
+  const isTabGaleri = pathname === "/admin/cms" && searchParams?.get("tab") === "galeri";
 
   return (
     <aside className="fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
@@ -84,10 +46,10 @@ export default function Sidebar() {
           </span>
         </Link>
       </div>
-      
+
       <div className="flex flex-1 flex-col overflow-y-auto px-4 py-5 space-y-6">
         <nav className="flex-1 space-y-5">
-          {navSections.map((section, idx) => (
+          {ADMIN_NAV_SECTIONS.map((section, idx) => (
             <div key={section.title || `section-${idx}`} className="space-y-1">
               {section.title && (
                 <div className="px-3 pb-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
@@ -98,10 +60,13 @@ export default function Sidebar() {
                 {section.items.map((item) => {
                   const isActive =
                     item.href === "/admin/cms?tab=galeri"
-                      ? pathname === "/admin/cms" && typeof window !== "undefined" && window.location.search.includes("tab=galeri")
-                      : pathname === item.href || (item.href !== "/admin/dashboard" && pathname.startsWith(`${item.href}/`));
+                      ? isTabGaleri
+                      : pathname === item.href ||
+                        (item.href !== "/admin/dashboard" &&
+                          !item.href.includes("?tab=") &&
+                          pathname.startsWith(`${item.href}/`));
                   const Icon = item.icon;
-                  
+
                   return (
                     <Link
                       key={item.name}
@@ -113,10 +78,14 @@ export default function Sidebar() {
                           : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-100"
                       )}
                     >
-                      <Icon className={cn(
-                        "h-4 w-4 shrink-0 transition-colors",
-                        isActive ? "text-red-600 dark:text-red-400" : "text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300"
-                      )} />
+                      <Icon
+                        className={cn(
+                          "h-4 w-4 shrink-0 transition-colors",
+                          isActive
+                            ? "text-red-600 dark:text-red-400"
+                            : "text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300"
+                        )}
+                      />
                       {item.name}
                     </Link>
                   );
@@ -126,18 +95,32 @@ export default function Sidebar() {
           ))}
         </nav>
       </div>
-      
+
       <div className="border-t border-zinc-200 p-4 dark:border-zinc-800">
         <div className="flex items-center gap-3 rounded-lg px-3 py-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
-            <span className="font-semibold text-red-700 dark:text-red-400">SA</span>
+            <span className="font-semibold text-xs text-red-700 dark:text-red-400">
+              {initials}
+            </span>
           </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Super Admin</span>
-            <span className="text-xs text-zinc-500 dark:text-zinc-400">Owner</span>
+          <div className="flex flex-col min-w-0">
+            <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
+              {displayName}
+            </span>
+            <span className="text-xs text-zinc-500 dark:text-zinc-400 capitalize truncate">
+              {displayRole.replace(/_/g, " ")}
+            </span>
           </div>
         </div>
       </div>
     </aside>
+  );
+}
+
+export default function Sidebar() {
+  return (
+    <Suspense fallback={<aside className="fixed inset-y-0 left-0 z-50 w-64 border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950" />}>
+      <SidebarNav />
+    </Suspense>
   );
 }
