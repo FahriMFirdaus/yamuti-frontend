@@ -19,11 +19,13 @@ import {
   Printer,
   ChevronRight,
   RefreshCw,
+  PieChart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { VisualisasiAkuntansi } from "@/components/akuntansi/VisualisasiAkuntansi";
 
 function formatRupiah(angka: number) {
   return new Intl.NumberFormat("id-ID", {
@@ -37,7 +39,7 @@ function AkuntansiContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<"jurnal" | "buku-besar" | "neraca" | "aktivitas">("jurnal");
+  const [activeTab, setActiveTab] = useState<"visualisasi" | "jurnal" | "buku-besar" | "neraca" | "aktivitas">("visualisasi");
   const [token, setToken] = useState<string | null>(null);
 
   // States Jurnal Umum
@@ -63,7 +65,7 @@ function AkuntansiContent() {
 
   useEffect(() => {
     const tabParam = searchParams.get("tab");
-    if (tabParam && ["jurnal", "buku-besar", "neraca", "aktivitas"].includes(tabParam)) {
+    if (tabParam && ["visualisasi", "jurnal", "buku-besar", "neraca", "aktivitas"].includes(tabParam)) {
       setActiveTab(tabParam as any);
     }
 
@@ -141,9 +143,9 @@ function AkuntansiContent() {
     }
   }, [activeTab, token, selectedCoaId]);
 
-  // Fetch Neraca & Aktivitas
+  // Fetch Neraca & Aktivitas (Diambil juga untuk tab visualisasi)
   useEffect(() => {
-    if ((activeTab === "neraca" || activeTab === "aktivitas") && token) {
+    if ((activeTab === "visualisasi" || activeTab === "neraca" || activeTab === "aktivitas") && token) {
       setIsLoadingNeraca(true);
       setIsLoadingAktivitas(true);
 
@@ -163,7 +165,7 @@ function AkuntansiContent() {
     }
   }, [activeTab, token]);
 
-  const handleTabChange = (t: "jurnal" | "buku-besar" | "neraca" | "aktivitas") => {
+  const handleTabChange = (t: "visualisasi" | "jurnal" | "buku-besar" | "neraca" | "aktivitas") => {
     setActiveTab(t);
     router.push(`/admin/akuntansi?tab=${t}`);
   };
@@ -201,6 +203,18 @@ function AkuntansiContent() {
       {/* Navigasi Tab Akuntansi */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-zinc-100 dark:border-zinc-800 text-sm">
         <button
+          onClick={() => handleTabChange("visualisasi")}
+          className={cn(
+            "px-4 py-2 rounded-xl font-semibold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5",
+            activeTab === "visualisasi"
+              ? "bg-emerald-700 text-white shadow-sm"
+              : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+          )}
+        >
+          <PieChart className="w-4 h-4" />
+          1. Grafik & Analisis Visual
+        </button>
+        <button
           onClick={() => handleTabChange("jurnal")}
           className={cn(
             "px-4 py-2 rounded-xl font-semibold transition-all cursor-pointer whitespace-nowrap",
@@ -209,7 +223,7 @@ function AkuntansiContent() {
               : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
           )}
         >
-          1. Jurnal Umum
+          2. Jurnal Umum
         </button>
         <button
           onClick={() => handleTabChange("buku-besar")}
@@ -220,7 +234,7 @@ function AkuntansiContent() {
               : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
           )}
         >
-          2. Buku Besar (Ledger)
+          3. Buku Besar (Ledger)
         </button>
         <button
           onClick={() => handleTabChange("neraca")}
@@ -231,7 +245,7 @@ function AkuntansiContent() {
               : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
           )}
         >
-          3. Neraca (Posisi Keuangan)
+          4. Neraca (Posisi Keuangan)
         </button>
         <button
           onClick={() => handleTabChange("aktivitas")}
@@ -242,9 +256,18 @@ function AkuntansiContent() {
               : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
           )}
         >
-          4. Laporan Aktivitas (Penerimaan vs Beban)
+          5. Laporan Aktivitas (Penerimaan vs Beban)
         </button>
       </div>
+
+      {/* TAB 0: GRAFIK & ANALISIS VISUAL */}
+      {activeTab === "visualisasi" && (
+        <VisualisasiAkuntansi
+          neracaData={neracaData}
+          aktivitasData={aktivitasData}
+          jurnalList={jurnalList}
+        />
+      )}
 
       {/* TAB 1: JURNAL UMUM */}
       {activeTab === "jurnal" && (
