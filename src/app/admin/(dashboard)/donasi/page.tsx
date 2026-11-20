@@ -13,7 +13,18 @@ import {
   DollarSign,
   CheckCircle2,
   Clock,
+  Eye,
+  Check,
+  X,
+  ExternalLink,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +45,8 @@ export type Donasi = {
   status: string;
   no_hp?: string;
   created_at: string;
+  bukti_transfer?: string;
+  bukti_transfer_url?: string;
 };
 
 type StatusFilter = "ALL" | "PAID" | "PENDING" | "OTHER";
@@ -47,6 +60,8 @@ export default function DonasiPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
   const [selectedKwitansi, setSelectedKwitansi] = useState<Donasi | null>(null);
+  const [previewBukti, setPreviewBukti] = useState<Donasi | null>(null);
+  const [verifyingId, setVerifyingId] = useState<string | number | null>(null);
 
   const fetchDonasi = useCallback(async (page = 1, showLoading = true) => {
     if (showLoading) setIsLoading(true);
@@ -99,8 +114,14 @@ export default function DonasiPage() {
           token = localStorage.getItem("token") || undefined;
         }
 
+        const queryParams = new URLSearchParams({
+          page: String(currentPage),
+        });
+        if (searchQuery.trim()) queryParams.set("search", searchQuery.trim());
+        if (statusFilter && statusFilter !== "ALL") queryParams.set("status", statusFilter);
+
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/donasi?page=${currentPage}`,
+          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/donasi?${queryParams.toString()}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -137,7 +158,49 @@ export default function DonasiPage() {
     return () => {
       ignore = true;
     };
-  }, [currentPage]);
+  }, [currentPage, searchQuery, statusFilter]);
+
+  const handleVerifyDonasi = async (id: string | number) => {
+    if (!confirm("Apakah Anda yakin ingin memverifikasi donasi ini sebagai LUNAS? Split kas yayasan akan langsung dieksekusi.")) {
+      return;
+    }
+
+    setVerifyingId(id);
+    try {
+      const session = await getSession();
+      let token = session?.accessToken;
+      if (!token && typeof window !== "undefined") {
+        token = localStorage.getItem("token") || undefined;
+      }
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/donasi/${id}/verify`,
+        {
+          method: "PATCH",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.message || "Gagal memverifikasi donasi");
+      }
+
+      setData((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, status: "PAID" } : item))
+      );
+      setPreviewBukti(null);
+      alert("Alhamdulillah, donasi berhasil diverifikasi dan dana telah dialokasikan ke kas yayasan.");
+    } catch (err: unknown) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : "Gagal memverifikasi donasi");
+    } finally {
+      setVerifyingId(null);
+    }
+  };
 
   const formatRupiah = (amount: number) => {
     return new Intl.NumberFormat("id-ID", {
@@ -285,11 +348,10 @@ export default function DonasiPage() {
         <button
           type="button"
           onClick={() => setStatusFilter("ALL")}
-          className={`text-left p-4 rounded-xl border transition-all ${
-            statusFilter === "ALL"
-              ? "bg-zinc-50 border-zinc-400 ring-1 ring-zinc-400 dark:bg-zinc-800/80 dark:border-zinc-600"
-              : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300"
-          }`}
+          className={`text-left p-4 rounded-xl border transition-all ${statusFilter === "ALL"
+            ? "bg-zinc-50 border-zinc-400 ring-1 ring-zinc-400 dark:bg-zinc-800/80 dark:border-zinc-600"
+            : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300"
+            }`}
         >
           <div className="flex items-center justify-between">
             <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Total Transaksi (Hal ini)</p>
@@ -303,11 +365,10 @@ export default function DonasiPage() {
         <button
           type="button"
           onClick={() => setStatusFilter(statusFilter === "PAID" ? "ALL" : "PAID")}
-          className={`text-left p-4 rounded-xl border transition-all ${
-            statusFilter === "PAID"
-              ? "bg-emerald-50/80 border-emerald-300 ring-1 ring-emerald-300 dark:bg-emerald-950/40 dark:border-emerald-700"
-              : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300"
-          }`}
+          className={`text-left p-4 rounded-xl border transition-all ${statusFilter === "PAID"
+            ? "bg-emerald-50/80 border-emerald-300 ring-1 ring-emerald-300 dark:bg-emerald-950/40 dark:border-emerald-700"
+            : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300"
+            }`}
         >
           <div className="flex items-center justify-between">
             <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
@@ -323,11 +384,10 @@ export default function DonasiPage() {
         <button
           type="button"
           onClick={() => setStatusFilter(statusFilter === "PENDING" ? "ALL" : "PENDING")}
-          className={`text-left p-4 rounded-xl border transition-all ${
-            statusFilter === "PENDING"
-              ? "bg-amber-50/80 border-amber-300 ring-1 ring-amber-300 dark:bg-amber-950/40 dark:border-amber-700"
-              : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300"
-          }`}
+          className={`text-left p-4 rounded-xl border transition-all ${statusFilter === "PENDING"
+            ? "bg-amber-50/80 border-amber-300 ring-1 ring-amber-300 dark:bg-amber-950/40 dark:border-amber-700"
+            : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300"
+            }`}
         >
           <div className="flex items-center justify-between">
             <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
@@ -349,31 +409,28 @@ export default function DonasiPage() {
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 text-xs">
             <button
               onClick={() => setStatusFilter("ALL")}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap ${
-                statusFilter === "ALL"
-                  ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-sm"
-                  : "bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100"
-              }`}
+              className={`px-3 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap ${statusFilter === "ALL"
+                ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-sm"
+                : "bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100"
+                }`}
             >
               Semua ({data.length})
             </button>
             <button
               onClick={() => setStatusFilter("PAID")}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap ${
-                statusFilter === "PAID"
-                  ? "bg-emerald-600 text-white shadow-sm"
-                  : "bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100"
-              }`}
+              className={`px-3 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap ${statusFilter === "PAID"
+                ? "bg-emerald-600 text-white shadow-sm"
+                : "bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100"
+                }`}
             >
               Lunas ({countPaid})
             </button>
             <button
               onClick={() => setStatusFilter("PENDING")}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap ${
-                statusFilter === "PENDING"
-                  ? "bg-amber-600 text-white shadow-sm"
-                  : "bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100"
-              }`}
+              className={`px-3 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap ${statusFilter === "PENDING"
+                ? "bg-amber-600 text-white shadow-sm"
+                : "bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100"
+                }`}
             >
               Pending ({countPending})
             </button>
@@ -523,30 +580,57 @@ export default function DonasiPage() {
                           <span className="text-[11px] text-zinc-500 font-medium">
                             {donasi.created_at
                               ? new Date(donasi.created_at).toLocaleString("id-ID", {
-                                  dateStyle: "medium",
-                                  timeStyle: "short",
-                                })
+                                dateStyle: "medium",
+                                timeStyle: "short",
+                              })
                               : "-"}
                           </span>
                         </div>
                       </TableCell>
                       <TableCell className="text-left pl-4 py-4 align-top pt-4">
-                        {isPaid(donasi.status) ? (
-                          <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50 border border-emerald-200/60 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800 text-xs gap-1">
-                            <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> Lunas (PAID)
-                          </Badge>
-                        ) : isPending(donasi.status) ? (
-                          <Badge className="bg-amber-50 text-amber-700 hover:bg-amber-50 border border-amber-200/60 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800 text-xs gap-1">
-                            <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" /> Pending
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-rose-50 text-rose-700 hover:bg-rose-50 border border-rose-200/60 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800 text-xs capitalize">
-                            {donasi.status || "Batal"}
-                          </Badge>
-                        )}
+                        <div className="space-y-1.5">
+                          {isPaid(donasi.status) ? (
+                            <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50 border border-emerald-200/60 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800 text-xs gap-1">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> Lunas (PAID)
+                            </Badge>
+                          ) : isPending(donasi.status) ? (
+                            <Badge className="bg-amber-50 text-amber-700 hover:bg-amber-50 border border-amber-200/60 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800 text-xs gap-1">
+                              <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" /> Pending
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-rose-50 text-rose-700 hover:bg-rose-50 border border-rose-200/60 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800 text-xs capitalize">
+                              {donasi.status || "Batal"}
+                            </Badge>
+                          )}
+
+                          {/* Tombol Preview Bukti Transfer jika ada */}
+                          {donasi.bukti_transfer_url && (
+                            <div>
+                              <button
+                                type="button"
+                                onClick={() => setPreviewBukti(donasi)}
+                                className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 hover:underline cursor-pointer"
+                              >
+                                <Eye className="w-3 h-3" /> Bukti Struk
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="text-center pr-6 py-4 align-top pt-4">
-                        <div className="flex items-center justify-center gap-1.5">
+                        <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                          {isPending(donasi.status) && (
+                            <Button
+                              size="sm"
+                              onClick={() => handleVerifyDonasi(donasi.id)}
+                              disabled={verifyingId === donasi.id}
+                              className="h-8 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                              title="Verifikasi Lunas dan Alokasikan Kas"
+                            >
+                              <Check className="w-3.5 h-3.5 mr-1" />
+                              {verifyingId === donasi.id ? "Memproses..." : "Verifikasi Lunas"}
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             variant="outline"
@@ -566,12 +650,10 @@ export default function DonasiPage() {
                                   ?.replace(/^0/, "62")
                                   .replace(/[^0-9]/g, "");
                                 const text = encodeURIComponent(
-                                  `Assalamu'alaikum Wr. Wb. Bpk/Ibu ${
-                                    donasi.nama_donatur || "Donatur"
+                                  `Assalamu'alaikum Wr. Wb. Bpk/Ibu ${donasi.nama_donatur || "Donatur"
                                   },\n\nTerima kasih atas infak & donasi yang disalurkan melalui Yayasan YAMUTI sebesar ${formatRupiah(
                                     donasi.gross_amount
-                                  )} untuk ${
-                                    donasi.program_nama || "Donasi Umum"
+                                  )} untuk ${donasi.program_nama || "Donasi Umum"
                                   } (ID: ${donasi.order_id || "#" + donasi.id}).\n\nSemoga menjadi amal jariyah yang membawa keberkahan dan dilipatgandakan rezekinya oleh Allah SWT. Aamiin ya Rabbal 'Alamin.\n\nSalam hormat,\nPengurus Yayasan YAMUTI`
                                 );
                                 window.open(`https://wa.me/${cleanPhone}?text=${text}`, "_blank");
@@ -620,6 +702,72 @@ export default function DonasiPage() {
         </div>
       )}
 
+      {/* MODAL PREVIEW BUKTI TRANSFER */}
+      <Dialog open={!!previewBukti} onOpenChange={(open) => !open && setPreviewBukti(null)}>
+        <DialogContent className="max-w-md sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="w-5 h-5 text-emerald-600" />
+              Bukti Transfer Donasi
+            </DialogTitle>
+            <DialogDescription>
+              Detail struk pembayaran dari {previewBukti?.nama_donatur || "Donatur"} sebesar{" "}
+              <strong className="text-zinc-900 dark:text-zinc-100">
+                {previewBukti ? formatRupiah(previewBukti.gross_amount) : ""}
+              </strong>
+            </DialogDescription>
+          </DialogHeader>
+
+          {previewBukti?.bukti_transfer_url && (
+            <div className="space-y-4">
+              <div className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60 p-2 flex items-center justify-center max-h-[60vh]">
+                <img
+                  src={previewBukti.bukti_transfer_url}
+                  alt="Bukti Transfer Donatur"
+                  className="max-h-[55vh] w-auto object-contain rounded-xl shadow-sm"
+                />
+              </div>
+
+              <div className="flex items-center justify-between gap-3 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(previewBukti.bukti_transfer_url, "_blank")}
+                  className="gap-1.5 text-xs rounded-xl"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" /> Buka Ukuran Penuh
+                </Button>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setPreviewBukti(null)}
+                    className="text-xs rounded-xl"
+                  >
+                    Tutup
+                  </Button>
+                  {isPending(previewBukti.status) && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => handleVerifyDonasi(previewBukti.id)}
+                      disabled={verifyingId === previewBukti.id}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 text-xs rounded-xl"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      {verifyingId === previewBukti.id ? "Memproses..." : "Verifikasi Lunas"}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* MODAL KWITANSI RESMI */}
       <ModalKwitansi
         isOpen={!!selectedKwitansi}
@@ -627,15 +775,15 @@ export default function DonasiPage() {
         data={
           selectedKwitansi
             ? {
-                id: selectedKwitansi.id,
-                order_id: selectedKwitansi.order_id,
-                nama_donatur: selectedKwitansi.nama_donatur || "Hamba Allah",
-                nominal: selectedKwitansi.gross_amount,
-                program_nama: selectedKwitansi.program_nama,
-                payment_type: selectedKwitansi.payment_type,
-                created_at: selectedKwitansi.created_at,
-                status: selectedKwitansi.status,
-              }
+              id: selectedKwitansi.id,
+              order_id: selectedKwitansi.order_id,
+              nama_donatur: selectedKwitansi.nama_donatur || "Hamba Allah",
+              nominal: selectedKwitansi.gross_amount,
+              program_nama: selectedKwitansi.program_nama,
+              payment_type: selectedKwitansi.payment_type,
+              created_at: selectedKwitansi.created_at,
+              status: selectedKwitansi.status,
+            }
             : null
         }
       />

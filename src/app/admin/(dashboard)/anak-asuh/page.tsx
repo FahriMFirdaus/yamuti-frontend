@@ -52,7 +52,13 @@ export default function AnakAsuhPage() {
       }
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-      const res = await fetch(`${apiUrl}/anak-asuh?page=${currentPage}`, {
+      const params = new URLSearchParams({
+        page: String(currentPage),
+      });
+      if (searchQuery.trim()) params.set("search", searchQuery.trim());
+      if (statusFilter && statusFilter !== "ALL") params.set("status", statusFilter);
+
+      const res = await fetch(`${apiUrl}/anak-asuh?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",

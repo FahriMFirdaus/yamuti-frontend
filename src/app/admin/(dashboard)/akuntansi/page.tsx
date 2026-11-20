@@ -90,7 +90,32 @@ export interface LedgerResponse {
   ending_balance: number;
 }
 
-type TabType = "visualisasi" | "jurnal" | "buku-besar" | "neraca" | "aktivitas";
+export interface ArusKasResponse {
+  start_date: string;
+  end_date: string;
+  saldo_awal_kas: number;
+  aktivitas_operasi: {
+    masuk: Array<{ nama: string; nominal: number }>;
+    keluar: Array<{ nama: string; nominal: number }>;
+    total_masuk: number;
+    total_keluar: number;
+    net: number;
+  };
+  aktivitas_investasi: {
+    masuk: Array<{ nama: string; nominal: number }>;
+    keluar: Array<{ nama: string; nominal: number }>;
+    net: number;
+  };
+  aktivitas_pendanaan: {
+    masuk: Array<{ nama: string; nominal: number }>;
+    keluar: Array<{ nama: string; nominal: number }>;
+    net: number;
+  };
+  kenaikan_penurunan_kas: number;
+  saldo_akhir_kas: number;
+}
+
+type TabType = "visualisasi" | "jurnal" | "buku-besar" | "neraca" | "aktivitas" | "arus-kas";
 
 function formatRupiah(angka: number) {
   return new Intl.NumberFormat("id-ID", {
@@ -128,12 +153,14 @@ function AkuntansiContent() {
   const [isLoadingNeraca, setIsLoadingNeraca] = useState(false);
   const [aktivitasData, setAktivitasData] = useState<LaporanAktivitasResponse | null>(null);
   const [isLoadingAktivitas, setIsLoadingAktivitas] = useState(false);
+  const [arusKasData, setArusKasData] = useState<ArusKasResponse | null>(null);
+  const [isLoadingArusKas, setIsLoadingArusKas] = useState(false);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
   useEffect(() => {
     const tabParam = searchParams.get("tab");
-    if (tabParam && ["visualisasi", "jurnal", "buku-besar", "neraca", "aktivitas"].includes(tabParam)) {
+    if (tabParam && ["visualisasi", "jurnal", "buku-besar", "neraca", "aktivitas", "arus-kas"].includes(tabParam)) {
       setActiveTab(tabParam as TabType);
     }
 
@@ -216,9 +243,10 @@ function AkuntansiContent() {
   }, [activeTab, token, selectedCoaId, startDate, endDate]);
 
   useEffect(() => {
-    if ((activeTab === "visualisasi" || activeTab === "neraca" || activeTab === "aktivitas") && token) {
+    if ((activeTab === "visualisasi" || activeTab === "neraca" || activeTab === "aktivitas" || activeTab === "arus-kas") && token) {
       setIsLoadingNeraca(true);
       setIsLoadingAktivitas(true);
+      setIsLoadingArusKas(true);
 
       const neracaParams = new URLSearchParams();
       if (endDate) neracaParams.set("as_of", endDate);
@@ -242,6 +270,14 @@ function AkuntansiContent() {
         .then((res) => res.data && setAktivitasData(res.data))
         .catch((err) => console.error("Gagal mengambil data aktivitas:", err))
         .finally(() => setIsLoadingAktivitas(false));
+
+      fetch(`${apiUrl}/akuntansi/arus-kas?${aktivitasParams.toString()}`, {
+        headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+      })
+        .then((res) => res.json())
+        .then((res) => res.data && setArusKasData(res.data))
+        .catch((err) => console.error("Gagal mengambil data arus kas:", err))
+        .finally(() => setIsLoadingArusKas(false));
     }
   }, [activeTab, token, startDate, endDate, apiUrl]);
 
@@ -465,6 +501,23 @@ function AkuntansiContent() {
             )}
           >
             Laporan Aktivitas
+          </button>
+          <button
+            role="tab"
+            aria-selected={activeTab === "arus-kas"}
+            aria-controls="panel-arus-kas"
+            id="tab-arus-kas"
+            tabIndex={activeTab === "arus-kas" ? 0 : -1}
+            onClick={() => handleTabChange("arus-kas")}
+            className={cn(
+              "min-h-[44px] px-4 py-2 rounded-xl font-semibold transition-all cursor-pointer whitespace-nowrap",
+              "focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:outline-none",
+              activeTab === "arus-kas"
+                ? "bg-emerald-600 text-white shadow-xs"
+                : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/60 dark:text-zinc-400 dark:hover:bg-zinc-800"
+            )}
+          >
+            Laporan Arus Kas
           </button>
         </div>
       </div>
@@ -1026,6 +1079,156 @@ function AkuntansiContent() {
                 {formatRupiah(aktivitasData?.surplus_defisit || 0)}
               </span>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Panel 5: Laporan Arus Kas (ISAK 35) */}
+      {activeTab === "arus-kas" && (
+        <div role="tabpanel" id="panel-arus-kas" aria-labelledby="tab-arus-kas" className="space-y-6">
+          {/* Header Ringkasan Arus Kas */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="rounded-2xl border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm p-4">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">Saldo Awal Kas & Bank</p>
+              <p className="text-xl font-bold font-mono text-zinc-900 dark:text-white mt-1">
+                {formatRupiah(arusKasData?.saldo_awal_kas || 0)}
+              </p>
+            </Card>
+            <Card className="rounded-2xl border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm p-4">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">Kenaikan / (Penurunan) Kas</p>
+              <p className={cn("text-xl font-bold font-mono mt-1", (arusKasData?.kenaikan_penurunan_kas || 0) >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400")}>
+                {formatRupiah(arusKasData?.kenaikan_penurunan_kas || 0)}
+              </p>
+            </Card>
+            <Card className="rounded-2xl border-emerald-200 dark:border-emerald-800/40 bg-emerald-50/50 dark:bg-emerald-950/20 shadow-sm p-4">
+              <p className="text-xs text-emerald-800 dark:text-emerald-300 font-semibold">Saldo Akhir Kas & Bank</p>
+              <p className="text-xl font-bold font-mono text-emerald-700 dark:text-emerald-400 mt-1">
+                {formatRupiah(arusKasData?.saldo_akhir_kas || 0)}
+              </p>
+            </Card>
+          </div>
+
+          {/* Rincian 3 Aktivitas */}
+          <div className="space-y-4">
+            {/* 1. Aktivitas Operasi */}
+            <Card className="rounded-2xl border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden bg-white dark:bg-zinc-900">
+              <CardHeader className="p-4 sm:p-5 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/40 flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-sm font-bold text-zinc-900 dark:text-white">
+                    1. Arus Kas dari Aktivitas Operasi
+                  </CardTitle>
+                  <CardDescription className="text-xs text-zinc-500">
+                    Penerimaan infaq/sedekah dan pembayaran operasional/gaji yayasan.
+                  </CardDescription>
+                </div>
+                <span className={cn("font-mono font-bold text-sm", (arusKasData?.aktivitas_operasi?.net || 0) >= 0 ? "text-emerald-600" : "text-red-600")}>
+                  {formatRupiah(arusKasData?.aktivitas_operasi?.net || 0)}
+                </span>
+              </CardHeader>
+              <CardContent className="p-0">
+                <table className="w-full text-xs">
+                  <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                    {arusKasData?.aktivitas_operasi?.masuk?.map((item, idx) => (
+                      <tr key={`op-in-${idx}`} className="hover:bg-zinc-50/50">
+                        <td className="py-2.5 px-4 text-zinc-700 dark:text-zinc-300 pl-8">Penerimaan: {item.nama}</td>
+                        <td className="py-2.5 px-4 text-right font-mono font-medium text-emerald-600">+{formatRupiah(item.nominal)}</td>
+                      </tr>
+                    ))}
+                    {arusKasData?.aktivitas_operasi?.keluar?.map((item, idx) => (
+                      <tr key={`op-out-${idx}`} className="hover:bg-zinc-50/50">
+                        <td className="py-2.5 px-4 text-zinc-700 dark:text-zinc-300 pl-8">Pembayaran: {item.nama}</td>
+                        <td className="py-2.5 px-4 text-right font-mono font-medium text-red-600">{formatRupiah(item.nominal)}</td>
+                      </tr>
+                    ))}
+                    {(!arusKasData?.aktivitas_operasi?.masuk?.length && !arusKasData?.aktivitas_operasi?.keluar?.length) && (
+                      <tr>
+                        <td colSpan={2} className="py-4 px-4 text-center text-zinc-400 italic">Tidak ada arus kas operasi pada periode ini</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
+
+            {/* 2. Aktivitas Investasi */}
+            <Card className="rounded-2xl border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden bg-white dark:bg-zinc-900">
+              <CardHeader className="p-4 sm:p-5 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/40 flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-sm font-bold text-zinc-900 dark:text-white">
+                    2. Arus Kas dari Aktivitas Investasi
+                  </CardTitle>
+                  <CardDescription className="text-xs text-zinc-500">
+                    Pengadaan atau pelepasan aset tetap, sarana asrama, dan inventaris.
+                  </CardDescription>
+                </div>
+                <span className={cn("font-mono font-bold text-sm", (arusKasData?.aktivitas_investasi?.net || 0) >= 0 ? "text-emerald-600" : "text-red-600")}>
+                  {formatRupiah(arusKasData?.aktivitas_investasi?.net || 0)}
+                </span>
+              </CardHeader>
+              <CardContent className="p-0">
+                <table className="w-full text-xs">
+                  <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                    {arusKasData?.aktivitas_investasi?.masuk?.map((item, idx) => (
+                      <tr key={`inv-in-${idx}`} className="hover:bg-zinc-50/50">
+                        <td className="py-2.5 px-4 text-zinc-700 dark:text-zinc-300 pl-8">{item.nama}</td>
+                        <td className="py-2.5 px-4 text-right font-mono font-medium text-emerald-600">+{formatRupiah(item.nominal)}</td>
+                      </tr>
+                    ))}
+                    {arusKasData?.aktivitas_investasi?.keluar?.map((item, idx) => (
+                      <tr key={`inv-out-${idx}`} className="hover:bg-zinc-50/50">
+                        <td className="py-2.5 px-4 text-zinc-700 dark:text-zinc-300 pl-8">{item.nama}</td>
+                        <td className="py-2.5 px-4 text-right font-mono font-medium text-red-600">{formatRupiah(item.nominal)}</td>
+                      </tr>
+                    ))}
+                    {(!arusKasData?.aktivitas_investasi?.masuk?.length && !arusKasData?.aktivitas_investasi?.keluar?.length) && (
+                      <tr>
+                        <td colSpan={2} className="py-4 px-4 text-center text-zinc-400 italic">Tidak ada arus kas investasi pada periode ini</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
+
+            {/* 3. Aktivitas Pendanaan */}
+            <Card className="rounded-2xl border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden bg-white dark:bg-zinc-900">
+              <CardHeader className="p-4 sm:p-5 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/40 flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-sm font-bold text-zinc-900 dark:text-white">
+                    3. Arus Kas dari Aktivitas Pendanaan
+                  </CardTitle>
+                  <CardDescription className="text-xs text-zinc-500">
+                    Penerimaan wakaf terikat jangka panjang atau pinjaman amanah.
+                  </CardDescription>
+                </div>
+                <span className={cn("font-mono font-bold text-sm", (arusKasData?.aktivitas_pendanaan?.net || 0) >= 0 ? "text-emerald-600" : "text-red-600")}>
+                  {formatRupiah(arusKasData?.aktivitas_pendanaan?.net || 0)}
+                </span>
+              </CardHeader>
+              <CardContent className="p-0">
+                <table className="w-full text-xs">
+                  <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                    {arusKasData?.aktivitas_pendanaan?.masuk?.map((item, idx) => (
+                      <tr key={`pen-in-${idx}`} className="hover:bg-zinc-50/50">
+                        <td className="py-2.5 px-4 text-zinc-700 dark:text-zinc-300 pl-8">{item.nama}</td>
+                        <td className="py-2.5 px-4 text-right font-mono font-medium text-emerald-600">+{formatRupiah(item.nominal)}</td>
+                      </tr>
+                    ))}
+                    {arusKasData?.aktivitas_pendanaan?.keluar?.map((item, idx) => (
+                      <tr key={`pen-out-${idx}`} className="hover:bg-zinc-50/50">
+                        <td className="py-2.5 px-4 text-zinc-700 dark:text-zinc-300 pl-8">{item.nama}</td>
+                        <td className="py-2.5 px-4 text-right font-mono font-medium text-red-600">{formatRupiah(item.nominal)}</td>
+                      </tr>
+                    ))}
+                    {(!arusKasData?.aktivitas_pendanaan?.masuk?.length && !arusKasData?.aktivitas_pendanaan?.keluar?.length) && (
+                      <tr>
+                        <td colSpan={2} className="py-4 px-4 text-center text-zinc-400 italic">Tidak ada arus kas pendanaan pada periode ini</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
           </div>
         </div>
       )}
