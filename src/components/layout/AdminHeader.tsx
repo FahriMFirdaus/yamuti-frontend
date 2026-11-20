@@ -195,7 +195,27 @@ function AdminHeaderContent() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => signOut({ callbackUrl: "/admin/login" })}
+            onClick={async () => {
+              try {
+                const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+                if (token) {
+                  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+                  await fetch(`${apiUrl}/auth/logout`, {
+                    method: "POST",
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                      Accept: "application/json",
+                    },
+                  }).catch(() => {});
+                }
+              } finally {
+                if (typeof window !== "undefined") {
+                  localStorage.removeItem("token");
+                  localStorage.removeItem("user");
+                }
+                signOut({ callbackUrl: "/admin/login" });
+              }
+            }}
             className="text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:border-zinc-800 dark:hover:bg-rose-950/30 text-xs sm:text-sm px-2.5 sm:px-3"
           >
             <LogOut className="sm:mr-2 h-4 w-4" />
