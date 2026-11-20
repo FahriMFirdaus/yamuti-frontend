@@ -191,6 +191,9 @@ function AkuntansiContent() {
   const handleTabChange = (t: "visualisasi" | "jurnal" | "buku-besar" | "neraca" | "aktivitas") => {
     setActiveTab(t);
     router.push(`/admin/akuntansi?tab=${t}`);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const handlePresetChange = (preset: "semua" | "bulan_ini" | "tahun_ini") => {
@@ -236,7 +239,7 @@ function AkuntansiContent() {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header Halaman */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-5">
         <div>
@@ -297,64 +300,66 @@ function AkuntansiContent() {
         </div>
       </div>
 
-      {/* Navigasi Tab Akuntansi */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-zinc-100 dark:border-zinc-800 text-sm">
-        <button
-          onClick={() => handleTabChange("visualisasi")}
-          className={cn(
-            "px-4 py-2 rounded-xl font-semibold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5",
-            activeTab === "visualisasi"
-              ? "bg-emerald-700 text-white shadow-sm"
-              : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-          )}
-        >
-          <PieChart className="w-4 h-4" />
-          1. Grafik & Analisis Visual
-        </button>
-        <button
-          onClick={() => handleTabChange("jurnal")}
-          className={cn(
-            "px-4 py-2 rounded-xl font-semibold transition-all cursor-pointer whitespace-nowrap",
-            activeTab === "jurnal"
-              ? "bg-emerald-700 text-white shadow-sm"
-              : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-          )}
-        >
-          2. Jurnal Umum
-        </button>
-        <button
-          onClick={() => handleTabChange("buku-besar")}
-          className={cn(
-            "px-4 py-2 rounded-xl font-semibold transition-all cursor-pointer whitespace-nowrap",
-            activeTab === "buku-besar"
-              ? "bg-emerald-700 text-white shadow-sm"
-              : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-          )}
-        >
-          3. Buku Besar (Ledger)
-        </button>
-        <button
-          onClick={() => handleTabChange("neraca")}
-          className={cn(
-            "px-4 py-2 rounded-xl font-semibold transition-all cursor-pointer whitespace-nowrap",
-            activeTab === "neraca"
-              ? "bg-emerald-700 text-white shadow-sm"
-              : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-          )}
-        >
-          4. Neraca (Posisi Keuangan)
-        </button>
-        <button
-          onClick={() => handleTabChange("aktivitas")}
-          className={cn(
-            "px-4 py-2 rounded-xl font-semibold transition-all cursor-pointer whitespace-nowrap",
-            activeTab === "aktivitas"
-              ? "bg-emerald-700 text-white shadow-sm"
-              : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-          )}
-        >
-          5. Laporan Aktivitas (Penerimaan vs Beban)
-        </button>
+      {/* Navigasi Tab Akuntansi (Sticky on scroll) */}
+      <div className="sticky top-16 z-30 bg-zinc-50/95 dark:bg-zinc-900/95 backdrop-blur-md py-2 border-b border-zinc-200/80 dark:border-zinc-800">
+        <div className="flex items-center gap-2 overflow-x-auto text-sm no-scrollbar">
+          <button
+            onClick={() => handleTabChange("visualisasi")}
+            className={cn(
+              "px-4 py-2 rounded-xl font-semibold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5",
+              activeTab === "visualisasi"
+                ? "bg-emerald-700 text-white shadow-sm"
+                : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/60 dark:text-zinc-400 dark:hover:bg-zinc-800"
+            )}
+          >
+            <PieChart className="w-4 h-4" />
+            1. Grafik & Analisis Visual
+          </button>
+          <button
+            onClick={() => handleTabChange("jurnal")}
+            className={cn(
+              "px-4 py-2 rounded-xl font-semibold transition-all cursor-pointer whitespace-nowrap",
+              activeTab === "jurnal"
+                ? "bg-emerald-700 text-white shadow-sm"
+                : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/60 dark:text-zinc-400 dark:hover:bg-zinc-800"
+            )}
+          >
+            2. Jurnal Umum
+          </button>
+          <button
+            onClick={() => handleTabChange("buku-besar")}
+            className={cn(
+              "px-4 py-2 rounded-xl font-semibold transition-all cursor-pointer whitespace-nowrap",
+              activeTab === "buku-besar"
+                ? "bg-emerald-700 text-white shadow-sm"
+                : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/60 dark:text-zinc-400 dark:hover:bg-zinc-800"
+            )}
+          >
+            3. Buku Besar (Ledger)
+          </button>
+          <button
+            onClick={() => handleTabChange("neraca")}
+            className={cn(
+              "px-4 py-2 rounded-xl font-semibold transition-all cursor-pointer whitespace-nowrap",
+              activeTab === "neraca"
+                ? "bg-emerald-700 text-white shadow-sm"
+                : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/60 dark:text-zinc-400 dark:hover:bg-zinc-800"
+            )}
+          >
+            4. Neraca (Posisi Keuangan)
+          </button>
+          <button
+            onClick={() => handleTabChange("aktivitas")}
+            className={cn(
+              "px-4 py-2 rounded-xl font-semibold transition-all cursor-pointer whitespace-nowrap",
+              activeTab === "aktivitas"
+                ? "bg-emerald-700 text-white shadow-sm"
+                : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/60 dark:text-zinc-400 dark:hover:bg-zinc-800"
+            )}
+          >
+            5. Laporan Aktivitas (Penerimaan vs Beban)
+          </button>
+        </div>
       </div>
 
       {/* TAB 0: GRAFIK & ANALISIS VISUAL */}
