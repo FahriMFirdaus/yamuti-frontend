@@ -55,6 +55,16 @@ export const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
     items: [
       { name: "Donasi", href: "/admin/donasi", icon: Wallet },
       { name: "Buku Kas", href: "/admin/kas", icon: BookOpen },
+      { 
+        name: "Akuntansi Yayasan", 
+        href: "/admin/akuntansi", 
+        icon: FileText,
+        children: [
+          { name: "Jurnal Umum", href: "/admin/akuntansi?tab=jurnal" },
+          { name: "Buku Besar", href: "/admin/akuntansi?tab=buku-besar" },
+          { name: "Neraca & Aktivitas", href: "/admin/akuntansi?tab=neraca" },
+        ]
+      },
       { name: "Program Donasi", href: "/admin/program", icon: Megaphone },
     ],
   },
