@@ -20,12 +20,14 @@ import {
   ChevronRight,
   RefreshCw,
   PieChart,
+  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { VisualisasiAkuntansi } from "@/components/akuntansi/VisualisasiAkuntansi";
+import { ModalJurnalManual } from "@/components/akuntansi/ModalJurnalManual";
 
 function formatRupiah(angka: number) {
   return new Intl.NumberFormat("id-ID", {
@@ -41,6 +43,14 @@ function AkuntansiContent() {
 
   const [activeTab, setActiveTab] = useState<"visualisasi" | "jurnal" | "buku-besar" | "neraca" | "aktivitas">("visualisasi");
   const [token, setToken] = useState<string | null>(null);
+
+  // States Filter Periode Global
+  const [periodePreset, setPeriodePreset] = useState<"semua" | "bulan_ini" | "tahun_ini">("tahun_ini");
+  const [startDate, setStartDate] = useState<string>(`${new Date().getFullYear()}-01-01`);
+  const [endDate, setEndDate] = useState<string>(new Date().toISOString().split("T")[0]);
+
+  // Modal Jurnal Manual
+  const [isModalJurnalOpen, setIsModalJurnalOpen] = useState(false);
 
   // States Jurnal Umum
   const [jurnalList, setJurnalList] = useState<any[]>([]);
@@ -99,6 +109,8 @@ function AkuntansiContent() {
     setIsLoadingJurnal(true);
     const params = new URLSearchParams({ page: String(page), per_page: "15" });
     if (q) params.set("q", q);
+    if (startDate) params.set("start_date", startDate);
+    if (endDate) params.set("end_date", endDate);
 
     fetch(`${apiUrl}/akuntansi/jurnal?${params.toString()}`, {
       headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
@@ -118,13 +130,17 @@ function AkuntansiContent() {
     if (activeTab === "jurnal" && token) {
       fetchJurnal(jurnalPage, jurnalSearch);
     }
-  }, [activeTab, token, jurnalPage]);
+  }, [activeTab, token, jurnalPage, startDate, endDate]);
 
   // Fetch Buku Besar
   const fetchLedger = (accountId: string) => {
     if (!token || !accountId) return;
     setIsLoadingLedger(true);
-    fetch(`${apiUrl}/akuntansi/buku-besar?account_id=${accountId}`, {
+    const params = new URLSearchParams({ account_id: accountId });
+    if (startDate) params.set("start_date", startDate);
+    if (endDate) params.set("end_date", endDate);
+
+    fetch(`${apiUrl}/akuntansi/buku-besar?${params.toString()}`, {
       headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
     })
       .then((res) => res.json())
@@ -141,7 +157,7 @@ function AkuntansiContent() {
     if (activeTab === "buku-besar" && token && selectedCoaId) {
       fetchLedger(selectedCoaId);
     }
-  }, [activeTab, token, selectedCoaId]);
+  }, [activeTab, token, selectedCoaId, startDate, endDate]);
 
   // Fetch Neraca & Aktivitas (Diambil juga untuk tab visualisasi)
   useEffect(() => {
@@ -149,25 +165,74 @@ function AkuntansiContent() {
       setIsLoadingNeraca(true);
       setIsLoadingAktivitas(true);
 
-      fetch(`${apiUrl}/akuntansi/neraca`, {
+      const neracaParams = new URLSearchParams();
+      if (endDate) neracaParams.set("as_of", endDate);
+
+      const aktivitasParams = new URLSearchParams();
+      if (startDate) aktivitasParams.set("start_date", startDate);
+      if (endDate) aktivitasParams.set("end_date", endDate);
+
+      fetch(`${apiUrl}/akuntansi/neraca?${neracaParams.toString()}`, {
         headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
       })
         .then((res) => res.json())
         .then((res) => res.data && setNeracaData(res.data))
         .finally(() => setIsLoadingNeraca(false));
 
-      fetch(`${apiUrl}/akuntansi/laporan-aktivitas`, {
+      fetch(`${apiUrl}/akuntansi/laporan-aktivitas?${aktivitasParams.toString()}`, {
         headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
       })
         .then((res) => res.json())
         .then((res) => res.data && setAktivitasData(res.data))
         .finally(() => setIsLoadingAktivitas(false));
     }
-  }, [activeTab, token]);
+  }, [activeTab, token, startDate, endDate]);
 
   const handleTabChange = (t: "visualisasi" | "jurnal" | "buku-besar" | "neraca" | "aktivitas") => {
     setActiveTab(t);
     router.push(`/admin/akuntansi?tab=${t}`);
+  };
+
+  const handlePresetChange = (preset: "semua" | "bulan_ini" | "tahun_ini") => {
+    setPeriodePreset(preset);
+    const today = new Date();
+    const todayStr = today.toISOString().split("T")[0];
+
+    if (preset === "semua") {
+      setStartDate("");
+      setEndDate(todayStr);
+    } else if (preset === "bulan_ini") {
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      setStartDate(`${year}-${month}-01`);
+      setEndDate(todayStr);
+    } else if (preset === "tahun_ini") {
+      setStartDate(`${today.getFullYear()}-01-01`);
+      setEndDate(todayStr);
+    }
+  };
+
+  // Fungsi Ekspor Data CSV
+  const exportBukuBesarCSV = () => {
+    if (!ledgerData?.entries?.length) return;
+    const headers = ["Tanggal", "No. Referensi", "Keterangan", "Debit", "Kredit", "Saldo"];
+    const rows = ledgerData.entries.map((e: any) => [
+      `"${e.tanggal}"`,
+      `"${e.nomor_referensi}"`,
+      `"${(e.keterangan || "").replace(/"/g, '""')}"`,
+      e.debit,
+      e.kredit,
+      e.saldo,
+    ]);
+
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((r: any[]) => r.join(","))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Buku_Besar_${ledgerData.account?.kode_akun || "akun"}_${endDate}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -189,15 +254,47 @@ function AkuntansiContent() {
           </p>
         </div>
 
-        {/* Tombol Print Dokumen */}
-        <Button
-          variant="outline"
-          onClick={() => window.print()}
-          className="self-start sm:self-auto h-10 px-4 rounded-xl border-zinc-200 dark:border-zinc-800 font-semibold gap-2 shadow-xs"
-        >
-          <Printer className="w-4 h-4 text-emerald-600" />
-          <span>Cetak Laporan</span>
-        </Button>
+        {/* Action Header: Filter Periode & Cetak */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex items-center bg-zinc-100 dark:bg-zinc-800/80 p-1 rounded-xl text-xs font-semibold">
+            <button
+              onClick={() => handlePresetChange("bulan_ini")}
+              className={cn(
+                "px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer",
+                periodePreset === "bulan_ini" ? "bg-white dark:bg-zinc-900 text-emerald-700 dark:text-emerald-400 shadow-xs" : "text-zinc-600 dark:text-zinc-400"
+              )}
+            >
+              Bulan Ini
+            </button>
+            <button
+              onClick={() => handlePresetChange("tahun_ini")}
+              className={cn(
+                "px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer",
+                periodePreset === "tahun_ini" ? "bg-white dark:bg-zinc-900 text-emerald-700 dark:text-emerald-400 shadow-xs" : "text-zinc-600 dark:text-zinc-400"
+              )}
+            >
+              Tahun {new Date().getFullYear()}
+            </button>
+            <button
+              onClick={() => handlePresetChange("semua")}
+              className={cn(
+                "px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer",
+                periodePreset === "semua" ? "bg-white dark:bg-zinc-900 text-emerald-700 dark:text-emerald-400 shadow-xs" : "text-zinc-600 dark:text-zinc-400"
+              )}
+            >
+              Semua
+            </button>
+          </div>
+
+          <Button
+            variant="outline"
+            onClick={() => window.print()}
+            className="h-9 px-3 rounded-xl border-zinc-200 dark:border-zinc-800 font-semibold gap-1.5 text-xs shadow-xs"
+          >
+            <Printer className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Cetak PDF</span>
+          </Button>
+        </div>
       </div>
 
       {/* Navigasi Tab Akuntansi */}
@@ -280,16 +377,24 @@ function AkuntansiContent() {
                   Setiap transaksi donasi dan kas keluar otomatis terjurnal Debit & Kredit secara seimbang.
                 </CardDescription>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => setIsModalJurnalOpen(true)}
+                  className="h-9 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-1.5 shadow-xs cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>+ Catat Jurnal Manual</span>
+                </Button>
                 <input
                   type="text"
                   placeholder="Cari referensi / keterangan..."
                   value={jurnalSearch}
                   onChange={(e) => setJurnalSearch(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && fetchJurnal(1, jurnalSearch)}
-                  className="h-9 px-3 text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 w-56"
+                  className="h-9 px-3 text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 w-48 sm:w-56"
                 />
-                <Button size="sm" onClick={() => fetchJurnal(1, jurnalSearch)} className="h-9 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs">
+                <Button size="sm" onClick={() => fetchJurnal(1, jurnalSearch)} className="h-9 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-xs">
                   Cari
                 </Button>
               </div>
@@ -390,11 +495,22 @@ function AkuntansiContent() {
               </div>
 
               {ledgerData && (
-                <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 text-right">
-                  <span className="text-[11px] text-emerald-800 dark:text-emerald-300 block">Saldo Akhir Akun Ini:</span>
-                  <span className="text-lg font-black text-emerald-700 dark:text-emerald-400">
-                    {formatRupiah(ledgerData.ending_balance || 0)}
-                  </span>
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={exportBukuBesarCSV}
+                    className="h-10 px-3 rounded-xl border-zinc-200 dark:border-zinc-800 text-xs font-semibold gap-1.5"
+                  >
+                    <Download className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Ekspor CSV</span>
+                  </Button>
+                  <div className="p-2.5 px-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 text-right">
+                    <span className="text-[10px] text-emerald-800 dark:text-emerald-300 block font-semibold">Saldo Akhir Akun:</span>
+                    <span className="text-base font-black text-emerald-700 dark:text-emerald-400">
+                      {formatRupiah(ledgerData.ending_balance || 0)}
+                    </span>
+                  </div>
                 </div>
               )}
             </div>
@@ -635,6 +751,19 @@ function AkuntansiContent() {
           </div>
         </div>
       )}
+
+      {/* Modal Dialog Form Jurnal Manual */}
+      <ModalJurnalManual
+        isOpen={isModalJurnalOpen}
+        onClose={() => setIsModalJurnalOpen(false)}
+        onSuccess={() => {
+          fetchJurnal(1, jurnalSearch);
+          if (selectedCoaId) fetchLedger(selectedCoaId);
+        }}
+        coaList={coaList}
+        token={token}
+        apiUrl={apiUrl}
+      />
     </div>
   );
 }

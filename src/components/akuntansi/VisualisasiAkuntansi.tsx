@@ -74,7 +74,7 @@ export function VisualisasiAkuntansi({ neracaData, aktivitasData, jurnalList = [
     const items = aktivitasData.penerimaan.items.map((it: any) => ({
       name: it.nama_akun.replace("Penerimaan ", "").replace("Donasi ", ""),
       fullName: it.nama_akun,
-      total: Number(it.total) || 0,
+      total: Number(it.nominal ?? it.total) || 0,
     })).filter((it: any) => it.total > 0);
 
     return items.length > 0
@@ -99,7 +99,7 @@ export function VisualisasiAkuntansi({ neracaData, aktivitasData, jurnalList = [
     const items = aktivitasData.beban.items.map((it: any) => ({
       name: it.nama_akun.replace("Beban ", "").replace("Penyaluran ", ""),
       fullName: it.nama_akun,
-      value: Number(it.total) || 0,
+      value: Number(it.nominal ?? it.total) || 0,
     })).filter((it: any) => it.value > 0);
 
     return items.length > 0
@@ -140,7 +140,7 @@ export function VisualisasiAkuntansi({ neracaData, aktivitasData, jurnalList = [
 
     if (aktivitasData?.beban?.items?.length) {
       aktivitasData.beban.items.forEach((it: any) => {
-        const val = Number(it.total) || 0;
+        const val = Number(it.nominal ?? it.total) || 0;
         if (it.nama_akun.toLowerCase().includes("operasional") || it.kode_akun.startsWith("5-2")) {
           operasional += val;
         } else {
