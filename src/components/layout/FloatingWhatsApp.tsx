@@ -1,15 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 interface FloatingWhatsAppProps {
   initialPhone?: string;
 }
 
 export function FloatingWhatsApp({ initialPhone = "+62 877 0031 2182" }: FloatingWhatsAppProps) {
+  const pathname = usePathname();
   const [phone, setPhone] = useState(initialPhone);
 
+  // Sembunyikan tombol WhatsApp di seluruh halaman admin
+  const isAdminRoute = pathname?.startsWith("/admin");
+
   useEffect(() => {
+    if (isAdminRoute) return;
+
     // Ambil nomor kontak terbaru dari pengaturan sistem secara client-side
     const fetchLatestPhone = async () => {
       try {
@@ -30,7 +37,11 @@ export function FloatingWhatsApp({ initialPhone = "+62 877 0031 2182" }: Floatin
     };
 
     fetchLatestPhone();
-  }, []);
+  }, [isAdminRoute]);
+
+  if (isAdminRoute) {
+    return null;
+  }
 
   const cleanWa = phone.replace(/[^0-9]/g, "");
   const waNumber = cleanWa.startsWith("0") ? `62${cleanWa.slice(1)}` : cleanWa;
