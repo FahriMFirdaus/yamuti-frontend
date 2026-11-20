@@ -172,20 +172,20 @@ export function ModalBayarPayroll({
     setErrorMessage(null);
 
     try {
-      // Execute payment for target payrolls
-      for (const target of targetPayrolls) {
+      if (targetPayrolls.length > 1) {
+        // Gunakan atomic batch payment endpoint
         const payload: Record<string, unknown> = {
+          payroll_ids: targetPayrolls.map((t) => t.id),
           metode_pembayaran: metodePembayaran,
           tanggal_pembayaran: tanggalPembayaran,
           catatan: catatan.trim() || undefined,
         };
 
-        // Only send kas_bank_akun_id if it's a real UUID (not placeholder)
         if (selectedAkunId && !selectedAkunId.includes("default")) {
           payload.kas_bank_akun_id = selectedAkunId;
         }
 
-        const res = await fetch(`${apiUrl}/payroll/${target.id}/pay`, {
+        const res = await fetch(`${apiUrl}/payroll/pay-bulk`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -197,9 +197,37 @@ export function ModalBayarPayroll({
 
         const json = await res.json();
         if (!res.ok) {
-          throw new Error(
-            json.message || `Gagal mencairkan slip ${target.nomor_slip || target.id}`
-          );
+          throw new Error(json.message || "Gagal mencairkan payroll massal");
+        }
+      } else {
+        // Single payment
+        for (const target of targetPayrolls) {
+          const payload: Record<string, unknown> = {
+            metode_pembayaran: metodePembayaran,
+            tanggal_pembayaran: tanggalPembayaran,
+            catatan: catatan.trim() || undefined,
+          };
+
+          if (selectedAkunId && !selectedAkunId.includes("default")) {
+            payload.kas_bank_akun_id = selectedAkunId;
+          }
+
+          const res = await fetch(`${apiUrl}/payroll/${target.id}/pay`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify(payload),
+          });
+
+          const json = await res.json();
+          if (!res.ok) {
+            throw new Error(
+              json.message || `Gagal mencairkan slip ${target.nomor_slip || target.id}`
+            );
+          }
         }
       }
 
