@@ -236,27 +236,48 @@ function DonasiContent() {
       const token = resData.data?.snap_token || resData.snap_token;
 
       if (token) {
-        setSnapToken(token);
-        // Beri waktu sedikit untuk React merender <div id="snap-container">
-        setTimeout(() => {
-          // @ts-ignore
-          window.snap.embed(token, {
-            embedId: 'snap-container',
+        const win = typeof window !== "undefined" ? (window as any) : null;
+        if (win?.snap?.pay) {
+          win.snap.pay(token, {
             onSuccess: function (_result: any) {
               setIsSuccess(true);
             },
             onPending: function (_result: any) {
-              setFormError("Menunggu pembayaran Anda diselesaikan.");
+              setFormError("Menunggu pembayaran Anda diselesaikan. Anda dapat melihat statusnya di tab Profil.");
             },
             onError: function (_result: any) {
-              setFormError("Pembayaran gagal atau dibatalkan. Silakan coba lagi.");
-              setSnapToken(null);
+              setFormError("Pembayaran gagal atau dibatalkan. Silakan coba kembali.");
             },
             onClose: function () {
-              setSnapToken(null);
+              // Pengguna menutup popup Midtrans
             }
           });
-        }, 100);
+        } else if (win?.snap?.embed) {
+          // Fallback ke embed jika popup tidak tersedia
+          setSnapToken(token);
+          setTimeout(() => {
+            win.snap.embed(token, {
+              embedId: 'snap-container',
+              onSuccess: function (_result: any) {
+                setIsSuccess(true);
+              },
+              onPending: function (_result: any) {
+                setFormError("Menunggu pembayaran Anda diselesaikan.");
+              },
+              onError: function (_result: any) {
+                setFormError("Pembayaran gagal atau dibatalkan. Silakan coba lagi.");
+                setSnapToken(null);
+              },
+              onClose: function () {
+                setSnapToken(null);
+              }
+            });
+          }, 100);
+        } else if (resData.data?.payment_url) {
+          window.open(resData.data.payment_url, "_blank");
+        } else {
+          throw new Error("Sistem pembayaran sedang memuat, silakan klik lagi dalam beberapa detik.");
+        }
       } else {
         throw new Error("Gagal mendapatkan Token Pembayaran dari server.");
       }
