@@ -13,6 +13,7 @@ import {
   UserCog, 
   Settings,
   Newspaper,
+  Briefcase,
   LucideIcon
 } from "lucide-react";
 
@@ -48,6 +49,20 @@ export const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
       { name: "Orang Tua Asuh", href: "/admin/orang-tua-asuh", icon: HeartHandshake },
       { name: "Kunjungan", href: "/admin/kunjungan", icon: CalendarDays },
       { name: "Inventaris", href: "/admin/inventaris", icon: Package },
+    ],
+  },
+  {
+    title: "SDM & Kepegawaian",
+    items: [
+      {
+        name: "Karyawan & Payroll",
+        href: "/admin/karyawan",
+        icon: Briefcase,
+        children: [
+          { name: "Buku Induk Karyawan", href: "/admin/karyawan?tab=karyawan" },
+          { name: "Payroll Bulanan", href: "/admin/karyawan?tab=payroll" },
+        ],
+      },
     ],
   },
   {
